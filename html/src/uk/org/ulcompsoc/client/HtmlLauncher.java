@@ -3,7 +3,8 @@ package uk.org.ulcompsoc.client;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
-import uk.org.ulcompsoc.TesseractMain;
+
+import uk.org.ulcompsoc.tesseract.TesseractMain;
 
 public class HtmlLauncher extends GwtApplication {
 
