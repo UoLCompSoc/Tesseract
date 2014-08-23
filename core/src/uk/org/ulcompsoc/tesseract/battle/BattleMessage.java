@@ -1,4 +1,4 @@
-package uk.org.ulcompsoc.tesseract;
+package uk.org.ulcompsoc.tesseract.battle;
 
 import com.badlogic.gdx.graphics.Color;
 

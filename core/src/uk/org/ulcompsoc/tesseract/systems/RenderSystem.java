@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
+import uk.org.ulcompsoc.tesseract.components.Renderable.RenderType;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 
 import com.badlogic.ashley.core.ComponentMapper;
@@ -10,10 +11,12 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Vector2;
 
@@ -47,26 +50,35 @@ public class RenderSystem extends IteratingSystem {
 		GridPoint2 pos = posMapper.get(entity).position;
 		Renderable r = renderMapper.get(entity);
 
-		TextureRegion current = r.getCurrent();
+		if (r.renderType == RenderType.TILED) {
+			r.tiledRenderer.setView((OrthographicCamera) camera);
+			for (TiledMapTileLayer layer : r.layers) {
+				batch.begin();
+				r.tiledRenderer.renderTileLayer(layer);
+				batch.end();
+			}
+		} else {
+			TextureRegion current = r.getCurrent(deltaTime);
 
-		posTemp.set(pos.x * WorldConstants.TILE_WIDTH, pos.y * WorldConstants.TILE_HEIGHT);
-		batch.setProjectionMatrix(camera.combined);
+			posTemp.set(pos.x * WorldConstants.TILE_WIDTH, pos.y * WorldConstants.TILE_HEIGHT);
+			batch.setProjectionMatrix(camera.combined);
 
-		batch.begin();
+			batch.begin();
 
-		batch.draw(current, posTemp.x, posTemp.y);
+			batch.draw(current, posTemp.x, posTemp.y);
 
-		batch.end();
+			batch.end();
 
-		if (targetMarkerMapper.has(entity)) {
-			TargetMarker tm = targetMarkerMapper.get(entity);
+			if (targetMarkerMapper.has(entity)) {
+				TargetMarker tm = targetMarkerMapper.get(entity);
 
-			renderer.setColor(tm.color);
-			renderer.setProjectionMatrix(camera.combined);
+				renderer.setColor(tm.color);
+				renderer.setProjectionMatrix(camera.combined);
 
-			renderer.begin(ShapeType.Line);
-			renderer.rect(posTemp.x, posTemp.y, current.getRegionWidth(), current.getRegionHeight());
-			renderer.end();
+				renderer.begin(ShapeType.Line);
+				renderer.rect(posTemp.x, posTemp.y, current.getRegionWidth(), current.getRegionHeight());
+				renderer.end();
+			}
 		}
 	}
 

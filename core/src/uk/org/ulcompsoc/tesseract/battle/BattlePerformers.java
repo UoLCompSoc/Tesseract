@@ -1,5 +1,9 @@
-package uk.org.ulcompsoc.tesseract;
+package uk.org.ulcompsoc.tesseract.battle;
 
+import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
+import uk.org.ulcompsoc.tesseract.TesseractMain;
+import uk.org.ulcompsoc.tesseract.TesseractStrings;
+import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Position;

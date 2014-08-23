@@ -20,4 +20,8 @@ public class Position extends Component {
 	public Position(int x, int y) {
 		position = new GridPoint2(x, y);
 	}
+
+	public Position(GridPoint2 position) {
+		this.position = position;
+	}
 }

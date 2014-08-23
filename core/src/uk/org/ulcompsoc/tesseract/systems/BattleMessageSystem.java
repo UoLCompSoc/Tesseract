@@ -3,7 +3,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.BattleMessage;
+import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
 import uk.org.ulcompsoc.tesseract.components.RelativePosition;
 import uk.org.ulcompsoc.tesseract.components.Text;
 

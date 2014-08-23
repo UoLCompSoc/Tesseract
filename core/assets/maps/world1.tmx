@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="32" height="32" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="maptiles" tilewidth="32" tileheight="32">
+  <image source="../tilesets/world1tileset.png" width="352" height="256"/>
+  <tile id="44">
+   <properties>
+    <property name="torch" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <tileset firstgid="89" name="npcs" tilewidth="32" tileheight="32">
+  <image source="../tilesets/npctileset.png" width="160" height="32"/>
+ </tileset>
+ <layer name="floor" width="32" height="32">
+  <data encoding="base64" compression="zlib">
+   eJzjZGBg4BzCWGnU/kFnvyoaTW0sB8TCUMyBxIZhcyRadgiHfwAQuwGxP9Q/Ylj8qj3AcT3QaW3UftpjHwbUfEUOpiQfjtRwH7Ufv/2qDLSrY4ixXwlNDr3ew0WTinUYsOcpcwbUPGlOgCa3rhis8T9qP32w2gDbP4pH8SimDQYABbkr/g==
+  </data>
+ </layer>
+ <layer name="doortop" width="32" height="32">
+  <properties>
+   <property name="door" value="true"/>
+   <property name="z" value="1"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzsEJAAAIxDDR/XfWLeQggf5bBQAk6Wu+JwCAOAs5SAAG
+  </data>
+ </layer>
+ <layer name="doorbot" width="32" height="32">
+  <properties>
+   <property name="door" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIwDAMgH+5IAEunjbZvwgAgL2c6nsCADhr4XQAHA==
+  </data>
+ </layer>
+ <layer name="torches" width="32" height="32">
+  <properties>
+   <property name="hidden" value="true"/>
+   <property name="solid" value="true"/>
+   <property name="torch" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzrENAEAMAjEWYv/1foLoy0iR3RwlCRd1+wAAJ3XY2/opAJA8TSIBPA==
+  </data>
+ </layer>
+ <layer name="pedestal1" width="32" height="32">
+  <properties>
+   <property name="pedestal" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjEJAAAMA7De8y94MkohUZAEAGDXtQMAMOIBWAgACw==
+  </data>
+ </layer>
+ <layer name="pedestal2" width="32" height="32">
+  <properties>
+   <property name="pedestal" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIA7Dd+BeMjEHSKmgCAPDftAMAcNwCV7gACw==
+  </data>
+ </layer>
+ <layer name="pedestal3" width="32" height="32">
+  <properties>
+   <property name="pedestal" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIA7Dd+BeMjBHSKmgCAPDHtAMAcNQCV2gACw==
+  </data>
+ </layer>
+ <layer name="pedestal4" width="32" height="32">
+  <properties>
+   <property name="pedestal" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIA7Dd+BeMjBHSKmgCAPDPtAMAcMwCVxgACw==
+  </data>
+ </layer>
+ <layer name="pedestal5" width="32" height="32">
+  <properties>
+   <property name="pedestal" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjENAAAIA7Dd+BeMjBHSKmgCAPDXtAMAcMQCVsgACw==
+  </data>
+ </layer>
+ <layer name="solidobs" width="32" height="32">
+  <properties>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztl00PgjAMhusZjyYm6p3Euwl+ndTIWQ/+/39iSSBMbEu7jWEMb/IcCIwn3YCVHAByBRcGzdg+pOxqz4MhJJK/8T4d1xYpaxaEf8OQefhv8F3r1TlfIPfOmDVzr5fBT9VN+anE8FN1a9xSrP5mnak1llLVP0PmyNJxWP2+tbrz797X6t/D5zOgzUrA4o/5jkvR+MvE/gLab4zGfUCOhuM+f8pM/v/x++z3sf3W6yz+E3Ie0R8rQ87/mOvvk8lP+6uetbt3S3u7BqoH5vxcHxkSqgea/L/pzwZC60+VGP/OobwBaek1NA==
+  </data>
+ </layer>
+ <layer name="behindobs" width="32" height="32">
+  <properties>
+   <property name="z" value="1"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzrENACAMA8FsRGD/4ZIVQoOE7qQv3DkCgBury8EG5nZ3Xp8AgE8UysIBgQ==
+  </data>
+ </layer>
+ <layer name="npc1" width="32" height="32">
+  <properties>
+   <property name="npc" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztziEBAAAIA7AHpX8OIlwgMFuCJQAANPMdAICjBYFuAF0=
+  </data>
+ </layer>
+ <layer name="playerspawn" width="32" height="32">
+  <properties>
+   <property name="hidden" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzgEJAAAMA6BVeP+yjzEGmsAEtlw7AAAAMOgB8gwAEg==
+  </data>
+ </layer>
+ <layer name="npc2" width="32" height="32">
+  <properties>
+   <property name="npc" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzgENAAAIA6DntH8QY9w5SEDCN9MOAAAAcM4CC8MAWw==
+  </data>
+ </layer>
+ <layer name="npc3" width="32" height="32">
+  <properties>
+   <property name="npc" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzgENAAAIA6AXtX8NY9w5SEDCV9MOAAAAcMYCM18AXg==
+  </data>
+ </layer>
+ <layer name="npc4" width="32" height="32">
+  <properties>
+   <property name="npc" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzjEBAAAMAiBrrn+RZfDygQQk0Ll1AAAAgNoD3CgAWg==
+  </data>
+ </layer>
+ <layer name="npc5" width="32" height="32">
+  <properties>
+   <property name="npc" value="true"/>
+   <property name="solid" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzgENAAAIA6D3tH8PY9w5SEACXDPtAAAA8M4CeTQAXA==
+  </data>
+ </layer>
+ <layer name="monsters" width="32" height="32">
+  <properties>
+   <property name="hidden" value="true"/>
+   <property name="monsters" value="true"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztzbEJAAAIBLFv3X9hlxBFSODqSwAAAG7VcP6//uxoHgkC0Q==
+  </data>
+ </layer>
+</map>

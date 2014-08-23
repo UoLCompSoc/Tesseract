@@ -1,5 +1,6 @@
 package uk.org.ulcompsoc.tesseract;
 
+import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
@@ -16,6 +17,7 @@ import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
 import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
+import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -27,18 +29,27 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Rectangle;
 
 public class TesseractMain extends ApplicationAdapter {
 	private SpriteBatch				batch			= null;
 	private Camera					camera			= null;
 
-	private Engine					engine			= null;
+	private FreeTypeFontGenerator	fontGenerator	= null;
+	private BitmapFont				font			= null;
+	private BitmapFont				bigFont			= null;
+
+	private Engine					currentEngine	= null;
+	private Engine					battleEngine	= null;
+	private Engine					worldEngine		= null;
 
 	public static Entity			playerEntity	= null;
 	private Texture					playerTexture	= null;
@@ -46,15 +57,17 @@ public class TesseractMain extends ApplicationAdapter {
 	private Texture					slimeTexture	= null;
 	private Entity					slimeEntity		= null;
 
+	private Texture					torchTexture	= null;
+	private Animation				torchAnim		= null;
+
 	private Entity					statusDialog	= null;
 	private Entity[]				menuDialogs		= null;
 	private Entity[]				menuTexts		= null;
 	private Entity					hpText			= null;
 	private Entity					rageText		= null;
 
-	private FreeTypeFontGenerator	fontGenerator	= null;
-	private BitmapFont				font			= null;
-	private BitmapFont				bigFont			= null;
+	public static final String[]	mapNames		= { "world1.tmx" };
+	private TesseractMap[]			maps			= null;
 
 	@SuppressWarnings("unused")
 	private GameState				gameState		= null;
@@ -81,6 +94,7 @@ public class TesseractMain extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
 		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/RobotoRegular.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 16;
@@ -88,11 +102,56 @@ public class TesseractMain extends ApplicationAdapter {
 		parameter.size = 24;
 		bigFont = fontGenerator.generateFont(parameter);
 
-		engine = new Engine();
+		playerTexture = new Texture(Gdx.files.local("player/basicPlayer.png"));
+		slimeTexture = new Texture(Gdx.files.local("monsters/greenSlime.png"));
+		torchTexture = new Texture(Gdx.files.local("torches/world1torches.png"));
+		TextureRegion[] torchRegions = TextureRegion.split(torchTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0];
+		torchAnim = new Animation(0.1f, torchRegions[0], torchRegions[1], torchRegions[2]);
+		torchAnim.setPlayMode(PlayMode.LOOP_PINGPONG);
 
+		battleEngine = new Engine();
+		worldEngine = new Engine();
+
+		initBattleEngine(battleEngine);
+		initWorldEngine(worldEngine);
+
+		currentEngine = worldEngine;
+	}
+
+	@Override
+	public void render() {
+		float deltaTime = Gdx.graphics.getDeltaTime();
+
+		Gdx.gl.glClearColor(0.0f, 0.8f, 0.0f, 0.0f);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		currentEngine.update(deltaTime);
+	}
+
+	public void initWorldEngine(Engine engine) {
+		maps = new TesseractMap[mapNames.length];
+		TmxMapLoader mapLoader = new TmxMapLoader();
+
+		for (int i = 0; i < mapNames.length; i++) {
+			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
+					torchAnim);
+
+			engine.addEntity(maps[i].baseLayerEntity);
+
+			for (Entity e : maps[i].torches) {
+				engine.addEntity(e);
+			}
+
+			engine.addEntity(maps[i].zLayerEntity);
+		}
+
+		engine.addSystem(new RenderSystem(batch, camera, 1000));
+	}
+
+	public void initBattleEngine(Engine engine) {
 		final int yTile = 12;
 
-		playerTexture = new Texture(Gdx.files.local("player/basicPlayer.png"));
 		TextureRegion[] playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0];
 		playerEntity = new Entity();
@@ -105,7 +164,6 @@ public class TesseractMain extends ApplicationAdapter {
 		playerEntity.add(playerComp);
 		playerEntity.add(new Named(playerComp.name));
 
-		slimeTexture = new Texture(Gdx.files.local("monsters/greenSlime.png"));
 		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0][0];
 
@@ -184,23 +242,22 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font, 3000));
-
-		gameState = GameState.BATTLE;
-	}
-
-	@Override
-	public void render() {
-		float deltaTime = Gdx.graphics.getDeltaTime();
-
-		Gdx.gl.glClearColor(0.0f, 0.8f, 0.0f, 0.0f);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-		engine.update(deltaTime);
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
+
+		for (TesseractMap map : maps) {
+			if (map != null) {
+				map.dispose();
+			}
+		}
+
+		if (torchTexture != null) {
+			torchAnim = null;
+			torchTexture.dispose();
+		}
 
 		if (playerTexture != null) {
 			playerTexture.dispose();

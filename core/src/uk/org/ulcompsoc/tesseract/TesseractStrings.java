@@ -1,5 +1,7 @@
 package uk.org.ulcompsoc.tesseract;
 
+import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
+
 /**
  * @author Ashley Davis (SgtCoDFish)
  */

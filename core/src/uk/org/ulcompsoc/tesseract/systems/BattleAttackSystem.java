@@ -3,8 +3,8 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.BattleAttack;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
+import uk.org.ulcompsoc.tesseract.battle.BattleAttack;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 

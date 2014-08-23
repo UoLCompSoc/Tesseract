@@ -1,4 +1,4 @@
-package uk.org.ulcompsoc.tesseract;
+package uk.org.ulcompsoc.tesseract.battle;
 
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
