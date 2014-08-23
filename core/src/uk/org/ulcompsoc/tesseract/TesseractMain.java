@@ -108,7 +108,7 @@ public class TesseractMain extends ApplicationAdapter {
 		Text hpTextString = new Text("HP: 100/100");
 		// hpText.add(new RelativePosition(new Rectangle(0.25f, 0.8f, 0.0f,
 		// 0.0f), statusDialog));
-		hpText.add(RelativePosition.makeCentred(Text.getTextRectangle(0.0f, 0.75f, hpTextString, font), statusDialog));
+		hpText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.75f, hpTextString, font), statusDialog));
 		hpText.add(hpTextString);
 		Gdx.app.debug("TEXT_WIDTH", "HP Text width = " + Text.getTextWidth(hpTextString, font) + ".");
 

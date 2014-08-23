@@ -66,7 +66,7 @@ public class RelativePosition extends Component {
 		final float childXAbs = parentXCentre - (rect.width / 2.0f);
 		final float childXRel = childXAbs / parent.width;
 
-		final float childY = rect.height / parent.height;
+		final float childY = rect.y;
 
 		final float childWidth = rect.width / parent.width;
 		final float childHeight = rect.height / parent.height;
@@ -128,7 +128,7 @@ public class RelativePosition extends Component {
 		final float childYAbs = parentYCentre + (rect.height / 2.0f);
 		final float childYRel = childYAbs / parent.height;
 
-		final float childX = rect.width / parent.width;
+		final float childX = rect.x;
 
 		final float childWidth = rect.width / parent.width;
 		final float childHeight = rect.height / parent.height;
