@@ -21,6 +21,7 @@ public class TextRenderSystem extends IteratingSystem {
 	private Batch								batch			= null;
 	private BitmapFont							font			= null;
 
+	@SuppressWarnings("unchecked")
 	public TextRenderSystem(Batch batch, BitmapFont font, int priority) {
 		super(Family.getFor(RelativePosition.class, Text.class), priority);
 

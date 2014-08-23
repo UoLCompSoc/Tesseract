@@ -3,13 +3,14 @@ package uk.org.ulcompsoc.tesseract.components;
 import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Rectangle;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
-public class MouseClickListener extends Component {
+public class MouseClickListener extends Component implements MouseClickPerformer {
 	public final Rectangle				rect;
 	public final MouseClickPerformer	performer;
 
@@ -25,7 +26,8 @@ public class MouseClickListener extends Component {
 	 *        The entity that was being iterated over when this invocation
 	 *        happened.
 	 */
-	public void perform(Entity invoker) {
-		performer.perform(invoker);
+	@Override
+	public void perform(Entity invoker, Engine engine) {
+		performer.perform(invoker, engine);
 	}
 }

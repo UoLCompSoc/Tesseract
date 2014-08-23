@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 
 import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
@@ -24,6 +25,9 @@ public class BattleInputSystem extends IteratingSystem {
 
 	private boolean								hasReleased		= true;
 
+	private Engine								engine			= null;
+
+	@SuppressWarnings("unchecked")
 	public BattleInputSystem(Camera camera, int priority) {
 		super(Family.getFor(MouseClickListener.class), priority);
 
@@ -31,12 +35,24 @@ public class BattleInputSystem extends IteratingSystem {
 	}
 
 	@Override
+	public void addedToEngine(Engine engine) {
+		super.addedToEngine(engine);
+		this.engine = engine;
+	};
+
+	@Override
+	public void removedFromEngine(Engine engine) {
+		super.removedFromEngine(engine);
+		this.engine = null;
+	};
+
+	@Override
 	public void processEntity(Entity entity, float deltaTime) {
 		MouseClickListener mcl = mclMapper.get(entity);
 		Rectangle pos = mcl.rect;
 
 		if (pos.contains(mouseCoordCache.x, mouseCoordCache.y)) {
-			mcl.perform(entity);
+			mcl.perform(entity, engine);
 		}
 	}
 

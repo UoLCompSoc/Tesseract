@@ -22,6 +22,7 @@ public class BattleDialogRenderSystem extends IteratingSystem {
 	private Camera								camera			= null;
 	private ShapeRenderer						renderer		= null;
 
+	@SuppressWarnings("unchecked")
 	public BattleDialogRenderSystem(Camera camera, int priority) {
 		super(Family.getFor(RelativePosition.class, BattleDialog.class), priority);
 

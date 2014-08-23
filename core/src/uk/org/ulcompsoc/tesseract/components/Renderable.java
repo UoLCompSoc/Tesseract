@@ -39,4 +39,8 @@ public class Renderable extends Component {
 		this.current = sprite;
 		this.downTexture = sprite;
 	}
+
+	public TextureRegion getCurrent() {
+		return current;
+	}
 }

@@ -33,12 +33,20 @@ public class Text extends Component {
 	}
 
 	public static Rectangle getTextRectangle(float x, float y, Text text, BitmapFont font) {
-		TextBounds bounds = font.getMultiLineBounds(text.text);
-
-		return new Rectangle(x, y, bounds.width, bounds.height);
+		return getTextRectangle(x, y, text.text, font);
 	}
 
 	public static Rectangle getTextRectangle(Text text, BitmapFont font) {
-		return getTextRectangle(0.0f, 0.0f, text, font);
+		return getTextRectangle(0.0f, 0.0f, text.text, font);
+	}
+
+	public static Rectangle getTextRectangle(String str, BitmapFont font) {
+		return getTextRectangle(0.0f, 0.0f, str, font);
+	}
+
+	public static Rectangle getTextRectangle(float x, float y, String str, BitmapFont font) {
+		TextBounds bounds = font.getMultiLineBounds(str);
+
+		return new Rectangle(x, y, bounds.width, bounds.height);
 	}
 }

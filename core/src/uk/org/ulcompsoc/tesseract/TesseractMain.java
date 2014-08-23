@@ -3,14 +3,17 @@ package uk.org.ulcompsoc.tesseract;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
+import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.RelativePosition;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.Text;
+import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
+import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
 import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
 
@@ -37,8 +40,8 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private Engine					engine			= null;
 
+	public static Entity			playerEntity	= null;
 	private Texture					playerTexture	= null;
-	private Entity					playerEntity	= null;
 
 	private Texture					slimeTexture	= null;
 	private Entity					slimeEntity		= null;
@@ -53,6 +56,7 @@ public class TesseractMain extends ApplicationAdapter {
 	private BitmapFont				font			= null;
 	private BitmapFont				bigFont			= null;
 
+	@SuppressWarnings("unused")
 	private GameState				gameState		= null;
 
 	public TesseractMain() {
@@ -95,16 +99,23 @@ public class TesseractMain extends ApplicationAdapter {
 
 		playerEntity.add(new Position(17, yTile));
 		playerEntity.add(new Renderable(playerRegions[1], playerRegions[0], playerRegions[3], playerRegions[2]));
-		playerEntity.add(new Stats(100, 4, 4));
-		playerEntity.add(new Player());
+		playerEntity.add(new Stats(100, 25, 4));
+
+		Player playerComp = new Player();
+		playerEntity.add(playerComp);
+		playerEntity.add(new Named(playerComp.name));
 
 		slimeTexture = new Texture(Gdx.files.local("monsters/greenSlime.png"));
 		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0][0];
+
 		slimeEntity = new Entity();
 		slimeEntity.add(new Position(3, yTile)).add(new Renderable(slimeRegion));
 		slimeEntity.add(new Stats(50, 2, 2));
-		slimeEntity.add(new Enemy());
+
+		Enemy slime1 = new Enemy("Green Ooze");
+		slimeEntity.add(slime1);
+		slimeEntity.add(new Named(slime1.speciesName + " 1"));
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -148,7 +159,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 		rageText = new Entity();
 		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
-		Gdx.app.debug("rage_size", "Rage w: " + Text.getTextWidth(rageTextComponent, font) + ".");
 		rageText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.5f, rageTextComponent, font),
 				statusDialog));
 		rageText.add(rageTextComponent);
@@ -163,7 +173,14 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(hpText);
 		engine.addEntity(rageText);
 
+		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(bigFont, camera, screenRect, 300);
+		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, 200);
+		BattlePerformers.battleAttackSystem = battleAttackSystem;
+		BattlePerformers.battleMessageSystem = battleMessageSystem;
+
 		engine.addSystem(new BattleInputSystem(camera, 100));
+		engine.addSystem(battleAttackSystem);
+		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font, 3000));
