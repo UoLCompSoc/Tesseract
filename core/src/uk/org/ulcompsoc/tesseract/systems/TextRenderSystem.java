@@ -30,12 +30,13 @@ public class TextRenderSystem extends IteratingSystem {
 
 	@Override
 	public void processEntity(Entity entity, float deltaTime) {
-		String text = textMapper.get(entity).text;
+		Text text = textMapper.get(entity);
 		Rectangle pos = relPosMapper.get(entity).pos;
 
 		batch.begin();
 
-		font.draw(batch, text, pos.x, pos.y);
+		font.setColor(text.color);
+		font.drawMultiLine(batch, text.text, pos.x, pos.y);
 
 		batch.end();
 	}

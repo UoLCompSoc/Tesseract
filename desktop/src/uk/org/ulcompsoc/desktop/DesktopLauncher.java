@@ -1,5 +1,6 @@
 package uk.org.ulcompsoc.desktop;
 
+import uk.org.ulcompsoc.tesseract.Difficulty;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
@@ -18,6 +19,9 @@ public class DesktopLauncher {
 				debug = true;
 			}
 		}
-		new LwjglApplication(new TesseractMain(debug), config);
+
+		Difficulty diff = Difficulty.parseCommandLineArgs(args);
+
+		new LwjglApplication(new TesseractMain(diff, debug), config);
 	}
 }

@@ -22,8 +22,7 @@ public class RelativePosition extends Component {
 	public RelativePosition(Rectangle rect, Rectangle parent) {
 		this.rect = rect;
 		this.parent = parent;
-		pos = new Rectangle((parent.width - parent.x) * rect.x, (parent.height - parent.y) * rect.y,
-				(parent.width - parent.x) * rect.width, (parent.height - parent.y) * rect.height);
+		pos = makePos(rect, parent);
 	}
 
 	public RelativePosition(Rectangle rect, Entity parentEntity) {
@@ -35,9 +34,13 @@ public class RelativePosition extends Component {
 		} else {
 			this.rect = rect;
 			this.parent = relPosMapper.get(parentEntity).pos;
-			pos = new Rectangle((parent.width - parent.x) * rect.x, (parent.height - parent.y) * rect.y,
-					(parent.width - parent.x) * rect.width, (parent.height - parent.y) * rect.height);
+			pos = makePos(rect, parent);
 		}
+	}
+
+	private static Rectangle makePos(Rectangle rect, Rectangle parent) {
+		return new Rectangle((parent.width) * rect.x + parent.x, (parent.height) * rect.y + parent.y, parent.width
+				* rect.width, parent.height * rect.height);
 	}
 
 	/**
@@ -50,7 +53,9 @@ public class RelativePosition extends Component {
 	 * </p>
 	 * 
 	 * @param rect
-	 *        rectangle using window coordinates describing the object to centre
+	 *        rectangle using window coordinates describing the object to
+	 *        centre, optionally with y in absolute coordinates describing the y
+	 *        pos of the relative position.
 	 * @param parent
 	 *        rectangle in which to centre rect, in window coordinates, probably
 	 *        from an existing RelativePosition's pos member.
@@ -84,7 +89,9 @@ public class RelativePosition extends Component {
 	 * </p>
 	 * 
 	 * @param rect
-	 *        rectangle using window coordinates describing the object to centre
+	 *        rectangle using window coordinates describing the object to
+	 *        centre, optionally with y in absolute coordinates describing the y
+	 *        pos of the relative position.
 	 * @param parent
 	 *        entity containing a RelativePosition component in which to centre
 	 *        rect, in window coordinates
@@ -112,7 +119,9 @@ public class RelativePosition extends Component {
 	 * </p>
 	 * 
 	 * @param rect
-	 *        rectangle using window coordinates describing the object to centre
+	 *        rectangle using window coordinates describing the object to
+	 *        centre, optionally with x in absolute coordinates describing the x
+	 *        pos of the relative position.
 	 * @param parent
 	 *        rectangle in which to centre rect, in window coordinates, probably
 	 *        from an existing RelativePosition's pos member.
@@ -146,7 +155,9 @@ public class RelativePosition extends Component {
 	 * </p>
 	 * 
 	 * @param rect
-	 *        rectangle using window coordinates describing the object to centre
+	 *        rectangle using window coordinates describing the object to
+	 *        centre, optionally with x in absolute coordinates describing the x
+	 *        pos of the relative position.
 	 * @param parent
 	 *        entity containing a RelativePosition component in which to centre
 	 *        rect, in window coordinates
