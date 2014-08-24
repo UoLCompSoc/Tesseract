@@ -12,4 +12,6 @@ public class WorldPlayerInputListener extends Component {
 	public int	leftKey		= Keys.A;
 	public int	rightKey	= Keys.D;
 
+	public int	examineKey	= Keys.SPACE;
+	public int	hopKey		= Keys.ENTER;
 }

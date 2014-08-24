@@ -105,6 +105,10 @@ public class Move {
 		return steps[currentStep * 2 + 1];
 	}
 
+	public float getProgress() {
+		return (float) currentStep / (float) stepCount;
+	}
+
 	// only meaningful at constructor, returns min of 1
 	private int calcStepCount() {
 		float dist = (float) Math.sqrt(Math.pow(ny - start.y, 2) + Math.pow(nx - start.x, 2));

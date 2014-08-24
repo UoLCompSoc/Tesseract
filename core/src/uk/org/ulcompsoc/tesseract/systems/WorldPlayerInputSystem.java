@@ -2,6 +2,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 
 import uk.org.ulcompsoc.tesseract.Move;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
@@ -14,18 +15,26 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Vector2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldPlayerInputSystem extends IteratingSystem {
-	private Engine	engine	= null;
+	private ComponentMapper<Position>	posMapper		= ComponentMapper.getFor(Position.class);
+	private ComponentMapper<Renderable>	facingMapper	= ComponentMapper.getFor(Renderable.class);
+
+	private Engine						engine			= null;
+
+	private DialogueSystem				dialogueSystem	= null;
 
 	@SuppressWarnings("unchecked")
 	public WorldPlayerInputSystem(int priority) {
-		super(Family.getFor(Position.class, WorldPlayerInputListener.class), priority);
+		super(Family.getFor(Position.class, Renderable.class, WorldPlayerInputListener.class), priority);
 	}
 
 	@Override
@@ -42,28 +51,42 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 
 	@Override
 	public void processEntity(Entity entity, float deltaTime) {
-		Vector2 pos = ComponentMapper.getFor(Position.class).get(entity).position;
+		if (dialogueSystem == null) {
+			dialogueSystem = engine.getSystem(DialogueSystem.class);
+		}
+		Vector2 pos = posMapper.get(entity).position;
 		WorldPlayerInputListener listener = ComponentMapper.getFor(WorldPlayerInputListener.class).get(entity);
 
 		final float xMove = WorldConstants.TILE_WIDTH;
 		final float yMove = WorldConstants.TILE_HEIGHT;
 
-		if (!ComponentMapper.getFor(Moving.class).has(entity)) {
-			if (Gdx.input.isKeyJustPressed(listener.upKey)) {
-				Gdx.app.debug("MOVE_UP", "Attempting to move.");
-				attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
+		if (!engine.getSystem(DialogueSystem.class).checkProcessing()) {
+			if (!ComponentMapper.getFor(Moving.class).has(entity)) {
+				if (Gdx.input.isKeyJustPressed(listener.upKey)) {
+					Gdx.app.debug("MOVE_UP", "Attempting to move.");
+					attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
 
-			} else if (Gdx.input.isKeyJustPressed(listener.downKey)) {
-				Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
-				attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
+				} else if (Gdx.input.isKeyJustPressed(listener.downKey)) {
+					Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
+					attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
 
-			} else if (Gdx.input.isKeyJustPressed(listener.leftKey)) {
-				Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
-				attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
+				} else if (Gdx.input.isKeyJustPressed(listener.leftKey)) {
+					Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
+					attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
 
-			} else if (Gdx.input.isKeyJustPressed(listener.rightKey)) {
-				Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
-				attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
+				} else if (Gdx.input.isKeyJustPressed(listener.rightKey)) {
+					Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
+					attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
+				}
+			}
+
+			if (Gdx.input.isKeyJustPressed(listener.examineKey)) {
+				Gdx.app.debug("EXAMINE", "Attempting to examine.");
+				attemptExamine(entity);
+			}
+		} else {
+			if (Gdx.input.isKeyJustPressed(Keys.ANY_KEY)) {
+				dialogueSystem.notifyPress();
 			}
 		}
 	}
@@ -73,11 +96,11 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 
 		Move move = ms.makeAndAddMoveIfPossible(entity, Move.Type.TILE, start, x, y, 0.1f,
 				ComponentMapper.getFor(Solid.class).has(entity));
+		ComponentMapper.getFor(Renderable.class).get(entity).setFacing(facing);
 
 		if (move != null) {
 			// move was/will be successful
 			entity.add(new Moving(move));
-			ComponentMapper.getFor(Renderable.class).get(entity).setFacing(facing);
 
 			return true;
 		} else {
@@ -85,5 +108,27 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 			Gdx.app.debug("MOVE_FAIL", "Can't move into solid object.");
 			return false;
 		}
+	}
+
+	private boolean attemptExamine(Entity entity) {
+		GridPoint2 pos = posMapper.get(entity).getGridPosition();
+		Facing f = facingMapper.get(entity).facing;
+
+		GridPoint2 pointInFront = Facing.pointInFront(pos, f);
+
+		@SuppressWarnings("unchecked")
+		ImmutableArray<Entity> npcEntities = engine.getEntitiesFor(Family.getFor(Position.class, Dialogue.class));
+
+		for (int i = 0; i < npcEntities.size(); i++) {
+			Entity other = npcEntities.get(i);
+
+			GridPoint2 otherPos = posMapper.get(other).getGridPosition();
+
+			if (pointInFront.equals(otherPos)) {
+				dialogueSystem.add(other);
+			}
+		}
+
+		return true;
 	}
 }

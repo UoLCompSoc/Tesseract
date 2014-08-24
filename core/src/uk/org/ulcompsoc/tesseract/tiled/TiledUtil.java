@@ -71,4 +71,16 @@ public class TiledUtil {
 	public static boolean isPlayerLayer(TiledMapTileLayer layer) {
 		return (layer.getProperties().get("playerspawn", null, String.class) != null);
 	}
+
+	public static boolean isVisibleLayer(TiledMapTileLayer layer) {
+		return (!isHiddenLayer(layer) && !isNPCLayer(layer));
+	}
+
+	public static boolean isValidTesseractMap(TiledMap map) {
+		return (getMapTextPrefix(map) != null);
+	}
+
+	public static String getMapTextPrefix(TiledMap map) {
+		return map.getProperties().get("textPrefix", null, String.class);
+	}
 }

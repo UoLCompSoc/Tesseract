@@ -18,6 +18,7 @@ import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
+import uk.org.ulcompsoc.tesseract.systems.DialogueSystem;
 import uk.org.ulcompsoc.tesseract.systems.FocusTakingSystem;
 import uk.org.ulcompsoc.tesseract.systems.MovementSystem;
 import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
@@ -50,8 +51,10 @@ public class TesseractMain extends ApplicationAdapter {
 	private SpriteBatch				batch				= null;
 	private Camera					camera				= null;
 
-	private BitmapFont				font				= null;
-	private BitmapFont				bigFont				= null;
+	private BitmapFont				font10				= null;
+	private BitmapFont				font12				= null;
+	private BitmapFont				font16				= null;
+	private BitmapFont				font24				= null;
 
 	private Engine					currentEngine		= null;
 	private Engine					battleEngine		= null;
@@ -105,10 +108,14 @@ public class TesseractMain extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		font = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"), Gdx.files.internal("fonts/robotobm16.png"),
+		font10 = new BitmapFont(Gdx.files.internal("fonts/robotobm10.fnt"), Gdx.files.internal("fonts/robotobm10.png"),
 				false);
-		bigFont = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"),
-				Gdx.files.internal("fonts/robotobm24.png"), false);
+		font12 = new BitmapFont(Gdx.files.internal("fonts/robotobm12.fnt"), Gdx.files.internal("fonts/robotobm12.png"),
+				false);
+		font16 = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"), Gdx.files.internal("fonts/robotobm16.png"),
+				false);
+		font24 = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"), Gdx.files.internal("fonts/robotobm24.png"),
+				false);
 
 		playerTexture = new Texture(Gdx.files.internal("player/basicPlayer.png"));
 		playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH, WorldConstants.TILE_HEIGHT)[0];
@@ -174,6 +181,10 @@ public class TesseractMain extends ApplicationAdapter {
 				engine.addEntity(e);
 			}
 
+			for (Entity e : maps[i].NPCs) {
+				engine.addEntity(e);
+			}
+
 			engine.addEntity(maps[i].zLayerEntity);
 		}
 
@@ -189,10 +200,11 @@ public class TesseractMain extends ApplicationAdapter {
 
 		engine.addEntity(worldPlayerEntity);
 
-		engine.addSystem(new WorldPlayerInputSystem(50));
-		engine.addSystem(new MovementSystem(getCurrentMap(), 75));
-		engine.addSystem(new FocusTakingSystem(100));
+		engine.addSystem(new WorldPlayerInputSystem(100));
+		engine.addSystem(new MovementSystem(getCurrentMap(), 500));
+		engine.addSystem(new FocusTakingSystem(750));
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
+		engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
 	}
 
 	public void initBattleEngine(Engine engine) {
@@ -250,20 +262,20 @@ public class TesseractMain extends ApplicationAdapter {
 			menuTexts[i] = new Entity();
 			Text text = new Text(thisString);
 			menuTexts[i].add(text);
-			menuTexts[i].add(RelativePosition.makeCentred(Text.getTextRectangle(0.0f, 0.0f, text, bigFont),
+			menuTexts[i].add(RelativePosition.makeCentred(Text.getTextRectangle(0.0f, 0.0f, text, font24),
 					menuDialogs[i]));
 
 		}
 
 		hpText = new Entity();
 		Text hpTextComponent = new Text("HP: 100/100");
-		hpText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.75f, hpTextComponent, font),
+		hpText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.75f, hpTextComponent, font16),
 				statusDialog));
 		hpText.add(hpTextComponent);
 
 		rageText = new Entity();
 		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
-		rageText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.5f, rageTextComponent, font),
+		rageText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.5f, rageTextComponent, font16),
 				statusDialog));
 		rageText.add(rageTextComponent);
 
@@ -277,7 +289,7 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(hpText);
 		engine.addEntity(rageText);
 
-		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(bigFont, camera, screenRect, 300);
+		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(font24, camera, screenRect, 300);
 		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, 200);
 		BattlePerformers.battleAttackSystem = battleAttackSystem;
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
@@ -287,7 +299,7 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
-		engine.addSystem(new TextRenderSystem(batch, font, 3000));
+		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
 	}
 
 	public static TesseractMap getCurrentMap() {
@@ -317,12 +329,20 @@ public class TesseractMain extends ApplicationAdapter {
 			slimeTexture.dispose();
 		}
 
-		if (font != null) {
-			font.dispose();
+		if (font10 != null) {
+			font10.dispose();
 		}
 
-		if (bigFont != null) {
-			bigFont.dispose();
+		if (font12 != null) {
+			font12.dispose();
+		}
+
+		if (font16 != null) {
+			font16.dispose();
+		}
+
+		if (font24 != null) {
+			font24.dispose();
 		}
 	}
 }

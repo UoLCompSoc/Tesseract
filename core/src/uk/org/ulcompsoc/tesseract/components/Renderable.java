@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.GridPoint2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -19,6 +20,22 @@ public class Renderable extends Component {
 
 	public enum Facing {
 		UP, DOWN, LEFT, RIGHT;
+
+		public static GridPoint2 pointInFront(GridPoint2 pos, Facing facing) {
+			switch (facing) {
+			case DOWN:
+				return new GridPoint2(pos.x, pos.y - 1);
+			case LEFT:
+				return new GridPoint2(pos.x - 1, pos.y);
+			case RIGHT:
+				return new GridPoint2(pos.x + 1, pos.y);
+			case UP:
+				return new GridPoint2(pos.x, pos.y + 1);
+
+			default:
+				return null;
+			}
+		}
 	}
 
 	public RenderType				renderType		= RenderType.NONE;
