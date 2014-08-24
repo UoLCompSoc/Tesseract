@@ -1,5 +1,8 @@
 package uk.org.ulcompsoc.tesseract.components;
 
+import uk.org.ulcompsoc.tesseract.animations.AnimationFrameResolver;
+import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
+
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -14,28 +17,34 @@ public class Renderable extends Component {
 		UDLR_SPRITE, STATIC_SPRITE, ANIM_SPRITE_LOOP, TILED, NONE;
 	}
 
-	public RenderType			renderType		= RenderType.NONE;
+	public enum Facing {
+		UP, DOWN, LEFT, RIGHT;
+	}
 
-	private TextureRegion		current			= null;
+	public RenderType				renderType		= RenderType.NONE;
+
+	private TextureRegion			current			= null;
 
 	// not the component's responsibility to dispose(), should be done in class
 	// where it's loaded
-	public TextureRegion		upTexture		= null;
-	public TextureRegion		downTexture		= null;
-	public TextureRegion		leftTexture		= null;
-	public TextureRegion		rightTexture	= null;
+	public Facing					facing			= Facing.DOWN;
+	public TextureRegion			upTexture		= null;
+	public TextureRegion			downTexture		= null;
+	public TextureRegion			leftTexture		= null;
+	public TextureRegion			rightTexture	= null;
 
-	public Animation			animation		= null;
-	public float				animTime		= 0.0f;
+	public Animation				animation		= null;
+	public AnimationFrameResolver	resolver		= null;
 
-	public TiledMapTileLayer[]	layers			= null;
-	public TiledMapRenderer		tiledRenderer	= null;
+	public TiledMapTileLayer[]		layers			= null;
+	public TiledMapRenderer			tiledRenderer	= null;
 
 	// lower = first
-	public int					renderPriority	= 0;
+	public int						renderPriority	= 0;
 
-	public Renderable(TextureRegion upTexture, TextureRegion downTexture, TextureRegion leftTexture,
+	public Renderable(Facing facing, TextureRegion upTexture, TextureRegion downTexture, TextureRegion leftTexture,
 			TextureRegion rightTexture) {
+		this.facing = facing;
 		this.upTexture = upTexture;
 		this.downTexture = downTexture;
 		this.leftTexture = leftTexture;
@@ -48,12 +57,18 @@ public class Renderable extends Component {
 
 	public Renderable(TextureRegion sprite) {
 		this.renderType = RenderType.STATIC_SPRITE;
+		this.facing = Facing.DOWN;
 		this.current = sprite;
 		this.downTexture = sprite;
 	}
 
 	public Renderable(Animation animation) {
+		this(animation, new PingPongFrameResolver());
+	}
+
+	public Renderable(Animation animation, AnimationFrameResolver resolver) {
 		this.animation = animation;
+		this.resolver = resolver;
 		this.renderType = RenderType.ANIM_SPRITE_LOOP;
 	}
 
@@ -65,8 +80,7 @@ public class Renderable extends Component {
 
 	public TextureRegion getCurrent(float deltaTime) {
 		if (renderType == RenderType.ANIM_SPRITE_LOOP) {
-			animTime += deltaTime;
-			return animation.getKeyFrame(animTime);
+			return resolver.resolveFrame(animation, deltaTime);
 		} else {
 			return current;
 		}
@@ -74,6 +88,41 @@ public class Renderable extends Component {
 
 	public Renderable setPrioritity(int priority) {
 		this.renderPriority = priority;
+		return this;
+	}
+
+	public Renderable setAnimationResolver(AnimationFrameResolver resolver) {
+		this.resolver = resolver;
+		return this;
+	}
+
+	public Renderable setFacing(Facing facing) {
+		if (renderType == RenderType.UDLR_SPRITE) {
+			this.facing = facing;
+
+			switch (facing) {
+			case UP: {
+				current = upTexture;
+				break;
+			}
+
+			case DOWN: {
+				current = downTexture;
+				break;
+			}
+
+			case LEFT: {
+				current = leftTexture;
+				break;
+			}
+
+			case RIGHT: {
+				current = rightTexture;
+				break;
+			}
+			}
+		}
+
 		return this;
 	}
 }

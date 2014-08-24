@@ -23,7 +23,7 @@ public class FocusTakingSystem extends IteratingSystem {
 
 	@Override
 	public void processEntity(Entity entity, float deltaTime) {
-		Vector2 camPos = posMapper.get(entity).getWorldPosition();
+		Vector2 camPos = posMapper.get(entity).position;
 		FocusTaker ft = focusMapper.get(entity);
 
 		ft.camera.position.x = camPos.x;

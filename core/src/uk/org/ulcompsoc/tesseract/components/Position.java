@@ -14,25 +14,36 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class Position extends Component {
-	public GridPoint2	position		= null;
+	public Vector2		position		= null;
 
-	private Vector2		worldPosition	= null;
+	private GridPoint2	gridPosition	= null;
 
 	public Position() {
-		this(0, 0);
+		this(0.0f, 0.0f);
 	}
 
-	public Position(int x, int y) {
-		this(new GridPoint2(x, y));
+	public Position(float x, float y) {
+		this(new Vector2(x, y));
 	}
 
-	public Position(GridPoint2 position) {
+	public Position(Vector2 position) {
 		this.position = position;
-		this.worldPosition = new Vector2();
+		this.gridPosition = new GridPoint2();
 	}
 
-	public Vector2 getWorldPosition() {
-		return worldPosition.set((float) position.x * WorldConstants.TILE_WIDTH, (float) position.y
-				* WorldConstants.TILE_HEIGHT);
+	public Position setFromGrid(int x, int y) {
+		position.x = (float) (x * WorldConstants.TILE_WIDTH);
+		position.y = (float) (y * WorldConstants.TILE_HEIGHT);
+
+		return this;
+	}
+
+	public Position setFromGrid(GridPoint2 grid) {
+		return setFromGrid(grid.x, grid.y);
+	}
+
+	public GridPoint2 getGridPosition() {
+		return gridPosition.set((int) Math.floor(position.x / WorldConstants.TILE_WIDTH),
+				(int) Math.floor(position.y / WorldConstants.TILE_HEIGHT));
 	}
 }

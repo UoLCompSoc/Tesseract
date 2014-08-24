@@ -37,7 +37,7 @@ public class BattlePerformers {
 			if (enemies != null) {
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
-					GridPoint2 pos = posMapper.get(e).position;
+					GridPoint2 pos = posMapper.get(e).getGridPosition();
 
 					e.add(new TargetMarker());
 					e.add(new MouseClickListener(new Rectangle(pos.x * WorldConstants.TILE_WIDTH, pos.y

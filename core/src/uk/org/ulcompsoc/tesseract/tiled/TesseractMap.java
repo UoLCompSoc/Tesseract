@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 
@@ -31,8 +32,14 @@ public class TesseractMap implements Disposable {
 	public final Entity				zLayerEntity;
 	public final TiledMapRenderer	renderer;
 
+	final int						widthInTiles;
+	final int						heightInTiles;
+
 	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim) {
 		this.map = map;
+
+		widthInTiles = TiledUtil.getMapWidthInTiles(map);
+		heightInTiles = TiledUtil.getMapHeightInTiles(map);
 
 		this.renderer = new OrthogonalTiledMapRenderer(map, batch);
 
@@ -43,19 +50,19 @@ public class TesseractMap implements Disposable {
 	}
 
 	public boolean isTileSolid(int x, int y) {
-		return false;
+		return collisionArray[y * widthInTiles + x];
 	}
 
 	public boolean isTileSolid(GridPoint2 point) {
-		return false;
+		return isTileSolid(point.x, point.y);
 	}
 
 	public boolean isCoordSolid(float x, float y) {
-		return false;
+		return isTileSolid((int) x / WorldConstants.TILE_WIDTH, (int) y / WorldConstants.TILE_HEIGHT);
 	}
 
 	public boolean isCoordSolid(Vector2 vec) {
-		return false;
+		return isCoordSolid(vec.x, vec.y);
 	}
 
 	public Position findPlayerPosition() {
@@ -66,7 +73,7 @@ public class TesseractMap implements Disposable {
 			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
 
 			if (TiledUtil.isPlayerLayer(layer)) {
-				retVal = new Position(TiledUtil.findFirstCell(layer));
+				retVal = new Position().setFromGrid(TiledUtil.findFirstCell(layer));
 			}
 		}
 
@@ -89,6 +96,7 @@ public class TesseractMap implements Disposable {
 					for (int x = 0; x < width; x++) {
 						if (layer.getCell(x, y) != null) {
 							retVal[(y * width) + x] = true;
+							Gdx.app.debug("FOUND_SOLID", "Found solid at (x,y) = (" + x + ", " + y + ").");
 						}
 					}
 				}
@@ -134,7 +142,7 @@ public class TesseractMap implements Disposable {
 			Entity e = new Entity();
 			Renderable r = new Renderable(torchAnim).setPrioritity(25);
 
-			e.add(new Position(point)).add(r);
+			e.add(new Position().setFromGrid(point)).add(r);
 			retVal[i] = e;
 		}
 

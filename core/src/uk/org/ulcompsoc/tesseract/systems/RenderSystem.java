@@ -96,7 +96,7 @@ public class RenderSystem extends EntitySystem {
 	}
 
 	public void processEntity(Entity entity, float deltaTime) {
-		Vector2 pos = posMapper.get(entity).getWorldPosition();
+		Vector2 pos = posMapper.get(entity).position;
 		Renderable r = renderMapper.get(entity);
 
 		if (r.renderType == RenderType.TILED) {
@@ -130,6 +130,9 @@ public class RenderSystem extends EntitySystem {
 	private EntityListener				renderSystemListener			= new EntityListener() {
 																			@Override
 																			public void entityRemoved(Entity entity) {
+																				if (renderSystemFamily.matches(entity)) {
+																					entities.remove(entity);
+																				}
 																			}
 
 																			@Override
