@@ -58,6 +58,21 @@ public class TesseractMap implements Disposable {
 		return false;
 	}
 
+	public Position findPlayerPosition() {
+		Position retVal = null;
+		MapLayers layers = map.getLayers();
+
+		for (MapLayer layer_ : layers) {
+			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
+
+			if (TiledUtil.isPlayerLayer(layer)) {
+				retVal = new Position(TiledUtil.findFirstCell(layer));
+			}
+		}
+
+		return retVal;
+	}
+
 	public static boolean[] generateCollisionArray(TiledMap map) {
 		boolean[] retVal = null;
 		MapLayers layers = map.getLayers();
@@ -117,7 +132,7 @@ public class TesseractMap implements Disposable {
 			GridPoint2 point = torchPos.get(i);
 
 			Entity e = new Entity();
-			Renderable r = new Renderable(torchAnim);
+			Renderable r = new Renderable(torchAnim).setPrioritity(25);
 
 			e.add(new Position(point)).add(r);
 			retVal[i] = e;
@@ -142,7 +157,7 @@ public class TesseractMap implements Disposable {
 		TiledMapTileLayer[] layerArray = baseLayers.toArray(new TiledMapTileLayer[baseLayers.size()]);
 
 		e.add(new Position(0, 0));
-		e.add(new Renderable(renderer, layerArray));
+		e.add(new Renderable(renderer, layerArray).setPrioritity(0));
 
 		return e;
 	}
@@ -162,7 +177,7 @@ public class TesseractMap implements Disposable {
 
 		TiledMapTileLayer[] layerArray = zLayers.toArray(new TiledMapTileLayer[zLayers.size()]);
 		e.add(new Position(0, 0));
-		e.add(new Renderable(renderer, layerArray));
+		e.add(new Renderable(renderer, layerArray).setPrioritity(1000));
 
 		return e;
 	}

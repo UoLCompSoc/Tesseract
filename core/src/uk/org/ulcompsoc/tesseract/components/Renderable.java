@@ -31,6 +31,9 @@ public class Renderable extends Component {
 	public TiledMapTileLayer[]	layers			= null;
 	public TiledMapRenderer		tiledRenderer	= null;
 
+	// lower = first
+	public int					renderPriority	= 0;
+
 	public Renderable(TextureRegion upTexture, TextureRegion downTexture, TextureRegion leftTexture,
 			TextureRegion rightTexture) {
 		this.upTexture = upTexture;
@@ -67,5 +70,10 @@ public class Renderable extends Component {
 		} else {
 			return current;
 		}
+	}
+
+	public Renderable setPrioritity(int priority) {
+		this.renderPriority = priority;
+		return this;
 	}
 }

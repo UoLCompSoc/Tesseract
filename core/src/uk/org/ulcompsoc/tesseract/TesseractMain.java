@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract;
 import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
+import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
@@ -15,6 +16,7 @@ import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
+import uk.org.ulcompsoc.tesseract.systems.FocusTakingSystem;
 import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
 import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
@@ -38,36 +40,39 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Rectangle;
 
 public class TesseractMain extends ApplicationAdapter {
-	private SpriteBatch				batch			= null;
-	private Camera					camera			= null;
+	private SpriteBatch				batch				= null;
+	private Camera					camera				= null;
 
-	private BitmapFont				font			= null;
-	private BitmapFont				bigFont			= null;
+	private BitmapFont				font				= null;
+	private BitmapFont				bigFont				= null;
 
-	private Engine					currentEngine	= null;
-	private Engine					battleEngine	= null;
-	private Engine					worldEngine		= null;
+	private Engine					currentEngine		= null;
+	private Engine					battleEngine		= null;
+	private Engine					worldEngine			= null;
 
-	public static Entity			playerEntity	= null;
-	private Texture					playerTexture	= null;
+	public static Entity			battlePlayerEntity	= null;
+	public static Entity			worldPlayerEntity	= null;
+	private Texture					playerTexture		= null;
+	private TextureRegion[]			playerRegions		= null;
 
-	private Texture					slimeTexture	= null;
-	private Entity					slimeEntity		= null;
+	private Texture					slimeTexture		= null;
+	private Entity					slimeEntity			= null;
 
-	private Texture					torchTexture	= null;
-	private Animation				torchAnim		= null;
+	private Texture					torchTexture		= null;
+	private Animation				torchAnim			= null;
 
-	private Entity					statusDialog	= null;
-	private Entity[]				menuDialogs		= null;
-	private Entity[]				menuTexts		= null;
-	private Entity					hpText			= null;
-	private Entity					rageText		= null;
+	private Entity					statusDialog		= null;
+	private Entity[]				menuDialogs			= null;
+	private Entity[]				menuTexts			= null;
+	private Entity					hpText				= null;
+	private Entity					rageText			= null;
 
-	public static final String[]	mapNames		= { "world1/world1.tmx" };
-	private TesseractMap[]			maps			= null;
+	public static final String[]	mapNames			= { "world1/world1.tmx" };
+	private TesseractMap[]			maps				= null;
+	public static TesseractMap		currentMap			= null;
 
 	@SuppressWarnings("unused")
-	private GameState				gameState		= null;
+	private GameState				gameState			= null;
 
 	public TesseractMain() {
 		this(Difficulty.EASY, false);
@@ -90,7 +95,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
 
 		// if (Gdx.app.getType() == ApplicationType.WebGL) {
 		font = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"), Gdx.files.internal("fonts/robotobm16.png"),
@@ -113,6 +118,8 @@ public class TesseractMain extends ApplicationAdapter {
 		// }
 
 		playerTexture = new Texture(Gdx.files.internal("player/basicPlayer.png"));
+		playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH, WorldConstants.TILE_HEIGHT)[0];
+
 		slimeTexture = new Texture(Gdx.files.internal("monsters/greenSlime.png"));
 		torchTexture = new Texture(Gdx.files.internal("torches/world1torches.png"));
 		TextureRegion[] torchRegions = TextureRegion.split(torchTexture, WorldConstants.TILE_WIDTH,
@@ -156,29 +163,39 @@ public class TesseractMain extends ApplicationAdapter {
 			engine.addEntity(maps[i].zLayerEntity);
 		}
 
+		currentMap = maps[0];
+
+		worldPlayerEntity = new Entity();
+		worldPlayerEntity.add(new Renderable(playerRegions[1], playerRegions[0], playerRegions[3], playerRegions[2])
+				.setPrioritity(50));
+		worldPlayerEntity.add(currentMap.findPlayerPosition());
+		worldPlayerEntity.add(new FocusTaker(camera));
+
+		engine.addEntity(worldPlayerEntity);
+
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
+		engine.addSystem(new FocusTakingSystem(10));
 	}
 
 	public void initBattleEngine(Engine engine) {
 		final int yTile = 12;
 
-		TextureRegion[] playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH,
-				WorldConstants.TILE_HEIGHT)[0];
-		playerEntity = new Entity();
+		battlePlayerEntity = new Entity();
 
-		playerEntity.add(new Position(17, yTile));
-		playerEntity.add(new Renderable(playerRegions[1], playerRegions[0], playerRegions[3], playerRegions[2]));
-		playerEntity.add(new Stats(100, 25, 4));
+		battlePlayerEntity.add(new Position(17, yTile));
+		battlePlayerEntity.add(new Renderable(playerRegions[1], playerRegions[0], playerRegions[3], playerRegions[2])
+				.setPrioritity(50));
+		battlePlayerEntity.add(new Stats(100, 25, 4));
 
 		Player playerComp = new Player();
-		playerEntity.add(playerComp);
-		playerEntity.add(new Named(playerComp.name));
+		battlePlayerEntity.add(playerComp);
+		battlePlayerEntity.add(new Named(playerComp.name));
 
 		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0][0];
 
 		slimeEntity = new Entity();
-		slimeEntity.add(new Position(3, yTile)).add(new Renderable(slimeRegion));
+		slimeEntity.add(new Position(3, yTile)).add(new Renderable(slimeRegion).setPrioritity(50));
 		slimeEntity.add(new Stats(50, 2, 2));
 
 		Enemy slime1 = new Enemy("Green Ooze");
@@ -231,7 +248,7 @@ public class TesseractMain extends ApplicationAdapter {
 				statusDialog));
 		rageText.add(rageTextComponent);
 
-		engine.addEntity(playerEntity);
+		engine.addEntity(battlePlayerEntity);
 		engine.addEntity(slimeEntity);
 		engine.addEntity(statusDialog);
 		for (int i = 0; i < menuDialogs.length; i++) {

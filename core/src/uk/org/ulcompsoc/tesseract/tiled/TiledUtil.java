@@ -67,4 +67,8 @@ public class TiledUtil {
 	public static boolean isHiddenLayer(TiledMapTileLayer layer) {
 		return (layer.getProperties().get("hidden", null, String.class) != null);
 	}
+
+	public static boolean isPlayerLayer(TiledMapTileLayer layer) {
+		return (layer.getProperties().get("playerspawn", null, String.class) != null);
+	}
 }

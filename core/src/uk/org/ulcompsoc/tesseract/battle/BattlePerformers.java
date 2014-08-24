@@ -71,7 +71,7 @@ public class BattlePerformers {
 			Gdx.app.debug("PERFORM_TARGET", "Attack was targetted.");
 
 			removeTargets(engine);
-			battleAttackSystem.addAttack(new BattleAttack(TesseractMain.playerEntity, invoker, AttackType.MELEE));
+			battleAttackSystem.addAttack(new BattleAttack(TesseractMain.battlePlayerEntity, invoker, AttackType.MELEE));
 		}
 	}
 
