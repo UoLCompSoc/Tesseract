@@ -11,7 +11,14 @@ Find out now!
 
 ### Roadmap
 1. ~~Basic Battle System~~
-2. Map Rendering and World Interactions
+2. ~~Map Rendering, World Interactions~~ and Random Battles
 3. Cube and World Changes
 4. Better Battle System - Spells etc
 5. Inventory/Items/Weapons
+
+### Art Roadmap
+1. Player Animations
+2. NPC animations/animated pedestals (each pedestal on separate layer) 
+3. Background music (World/Cube/Battle/Boss Battle)
+4. Sound effects (attack monster/get hit/door open)
+5. Item Sprites (Generic potion, generic money, generic sword)
