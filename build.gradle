@@ -25,7 +25,6 @@ allprojects {
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-        maven { url "http://mvnrepository.com/" }
     }
 }
 
@@ -52,7 +51,6 @@ project(":html") {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
         compile "com.badlogicgames.ashley:ashley:1.1.0:sources"
-        compile "org.json:json:20140107:sources"
     }
 }
 
@@ -64,7 +62,6 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         compile "com.badlogicgames.ashley:ashley:1.1.0"
-        compile "org.json:json:20140107"
     }
 }
 

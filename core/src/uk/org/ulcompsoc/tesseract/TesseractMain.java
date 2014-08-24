@@ -34,8 +34,6 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -43,7 +41,6 @@ public class TesseractMain extends ApplicationAdapter {
 	private SpriteBatch				batch			= null;
 	private Camera					camera			= null;
 
-	private FreeTypeFontGenerator	fontGenerator	= null;
 	private BitmapFont				font			= null;
 	private BitmapFont				bigFont			= null;
 
@@ -66,7 +63,7 @@ public class TesseractMain extends ApplicationAdapter {
 	private Entity					hpText			= null;
 	private Entity					rageText		= null;
 
-	public static final String[]	mapNames		= { "world1.tmx" };
+	public static final String[]	mapNames		= { "world1/world1.tmx" };
 	private TesseractMap[]			maps			= null;
 
 	@SuppressWarnings("unused")
@@ -95,19 +92,32 @@ public class TesseractMain extends ApplicationAdapter {
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/RobotoRegular.ttf"));
-		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-		parameter.size = 16;
-		font = fontGenerator.generateFont(parameter);
-		parameter.size = 24;
-		bigFont = fontGenerator.generateFont(parameter);
+		// if (Gdx.app.getType() == ApplicationType.WebGL) {
+		font = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"), Gdx.files.internal("fonts/robotobm16.png"),
+				false);
+		bigFont = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"),
+				Gdx.files.internal("fonts/robotobm24.png"), false);
+		// } else {
+		// com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+		// fontGenerator = new
+		// com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator(
+		// Gdx.files.internal("fonts/RobotoRegular.ttf"));
+		// com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
+		// parameter = new
+		// com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter();
+		// parameter.size = 16;
+		// font = fontGenerator.generateFont(parameter);
+		// parameter.size = 24;
+		// bigFont = fontGenerator.generateFont(parameter);
+		// fontGenerator.dispose();
+		// }
 
-		playerTexture = new Texture(Gdx.files.local("player/basicPlayer.png"));
-		slimeTexture = new Texture(Gdx.files.local("monsters/greenSlime.png"));
-		torchTexture = new Texture(Gdx.files.local("torches/world1torches.png"));
+		playerTexture = new Texture(Gdx.files.internal("player/basicPlayer.png"));
+		slimeTexture = new Texture(Gdx.files.internal("monsters/greenSlime.png"));
+		torchTexture = new Texture(Gdx.files.internal("torches/world1torches.png"));
 		TextureRegion[] torchRegions = TextureRegion.split(torchTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0];
-		torchAnim = new Animation(0.1f, torchRegions[0], torchRegions[1], torchRegions[2]);
+		torchAnim = new Animation(0.15f, torchRegions[0], torchRegions[1], torchRegions[2]);
 		torchAnim.setPlayMode(PlayMode.LOOP_PINGPONG);
 
 		battleEngine = new Engine();
@@ -267,8 +277,12 @@ public class TesseractMain extends ApplicationAdapter {
 			slimeTexture.dispose();
 		}
 
-		if (fontGenerator != null) {
-			fontGenerator.dispose();
+		if (font != null) {
+			font.dispose();
+		}
+
+		if (bigFont != null) {
+			bigFont.dispose();
 		}
 	}
 }
