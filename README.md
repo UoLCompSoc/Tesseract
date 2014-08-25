@@ -9,16 +9,19 @@ Your cube planet has several different worlds to visit to beat bosses, become mo
 
 Find out now!
 
-### Roadmap
+Latest playable version at http://www.ulcompsoc.org.uk/ld30/
+
+### Code Roadmap
 1. ~~Basic Battle System~~
-2. ~~Map Rendering, World Interactions~~ and Random Battles
-3. Cube and World Changes
-4. Better Battle System - Spells etc
-5. Inventory/Items/Weapons
+2. ~~Map Rendering, World Interactions and Random Battles~~
+3. World Changes
+4. Better Battle System - AI, Spells etc
+5. Cube
+6. Inventory/Items/Weapons
 
 ### Art Roadmap
-1. Player Animations
-2. NPC animations/animated pedestals (each pedestal on separate layer) 
+1. ~~Player Animations~~
+2. ~~Animated Pedestals~~
 3. Background music (World/Cube/Battle/Boss Battle)
 4. Sound effects (attack monster/get hit/door open)
-5. Item Sprites (Generic potion, generic money, generic sword)
+5. Item Sprites
