@@ -69,7 +69,7 @@ public class DialogueSystem extends EntitySystem {
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 
-		font.drawWrapped(batch, dia.dialogueLines[currentMsg], pos.x, pos.y + 100, 100);
+		font.drawWrapped(batch, dia.dialogueLines[currentMsg], pos.x, pos.y + 95, 100);
 
 		batch.end();
 

@@ -9,13 +9,14 @@ Your cube planet has several different worlds to visit to beat bosses, become mo
 
 Find out now!
 
-Latest playable version at http://www.ulcompsoc.org.uk/ld30/ - *DOES NOT WORK FOR v0.3, USE JAR FROM RELEASES PAGE*
+~~Latest playable version at http://www.ulcompsoc.org.uk/ld30/ - *DOES NOT WORK FOR v0.3, USE JAR FROM RELEASES PAGE*~~
+Sorry, HTML version not supported for Ludum Dare release.
 
 ### Code Roadmap
 1. ~~Basic Battle System~~
 2. ~~Map Rendering, World Interactions and Random Battles~~
 3. World Changes
-4. Better Battle System - AI, Spells etc
+4. ~~Better Battle System - AI, Spells etc~~
 5. Cube
 6. Inventory/Items/Weapons
 

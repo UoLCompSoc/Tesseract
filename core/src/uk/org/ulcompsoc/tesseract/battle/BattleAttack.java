@@ -1,7 +1,5 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
-import java.util.Random;
-
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
 import com.badlogic.ashley.core.Entity;
@@ -22,7 +20,7 @@ public class BattleAttack {
 
 	public static int resolveDamage(Stats attacker, Stats defender) {
 		double atk = attacker.getAttack() - defender.getDefence();
-		atk = atk + atk * (new Random().nextInt(11) - 5) * 0.1;
+		// atk = atk + atk * (new Random().nextInt(11) - 5) * 0.1;
 
 		return Math.max((int) Math.floor(atk), 1);
 	}

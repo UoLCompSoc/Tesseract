@@ -1,5 +1,6 @@
 package uk.org.ulcompsoc.tesseract.components;
 
+import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.animations.AnimationFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 
@@ -60,6 +61,9 @@ public class Renderable extends Component {
 	public TiledMapTileLayer[]		layers			= null;
 	public TiledMapRenderer			tiledRenderer	= null;
 
+	public float					width			= WorldConstants.TILE_WIDTH;
+	public float					height			= WorldConstants.TILE_HEIGHT;
+
 	// lower = first
 	public int						renderPriority	= 0;
 
@@ -74,6 +78,9 @@ public class Renderable extends Component {
 		this.current = downTexture;
 
 		this.renderType = RenderType.UDLR_SPRITE;
+
+		this.width = upTexture.getRegionWidth();
+		this.height = upTexture.getRegionHeight();
 	}
 
 	public Renderable(TextureRegion sprite) {
@@ -81,6 +88,8 @@ public class Renderable extends Component {
 		this.facing = Facing.DOWN;
 		this.current = sprite;
 		this.downTexture = sprite;
+		this.width = sprite.getRegionWidth();
+		this.height = sprite.getRegionHeight();
 	}
 
 	public Renderable(Animation animation) {
@@ -91,12 +100,16 @@ public class Renderable extends Component {
 		this.animation = animation;
 		this.resolver = resolver;
 		this.renderType = RenderType.ANIM_SPRITE_LOOP;
+		this.width = animation.getKeyFrames()[0].getRegionWidth();
+		this.height = animation.getKeyFrames()[0].getRegionHeight();
 	}
 
 	public Renderable(TiledMapRenderer tiledRenderer, TiledMapTileLayer[] layers) {
 		this.layers = layers;
 		this.tiledRenderer = tiledRenderer;
 		this.renderType = RenderType.TILED;
+		this.width = WorldConstants.TILE_WIDTH;
+		this.width = WorldConstants.TILE_HEIGHT;
 	}
 
 	public TextureRegion getCurrent(float deltaTime) {

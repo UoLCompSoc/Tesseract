@@ -17,6 +17,10 @@ public class DefenceBuff implements BuffPerformer {
 	private Stats					stats			= null;
 	private int						buffAmt			= 0;
 
+	public DefenceBuff() {
+		this(5.0f);
+	}
+
 	public DefenceBuff(float duration) {
 		this.duration = duration;
 	}
@@ -26,7 +30,7 @@ public class DefenceBuff implements BuffPerformer {
 		this.target = target;
 		stats = statsMapper.get(target);
 
-		buffAmt = stats.getLevel();
+		buffAmt = stats.getDefence();
 
 		stats.fortitude += buffAmt;
 

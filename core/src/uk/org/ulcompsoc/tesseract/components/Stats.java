@@ -11,10 +11,6 @@ public class Stats extends Component {
 	public int				maxHP			= 0;
 
 	private int				currentHP		= 0;
-	@SuppressWarnings("unused")
-	private int				attack			= 0;
-	@SuppressWarnings("unused")
-	private int				defence			= 0;
 
 	public int				strength		= 10;
 	public int				intelligence	= 10;
@@ -68,7 +64,7 @@ public class Stats extends Component {
 	}
 
 	public int getDefence() {
-		return resolveDefence(strength);
+		return resolveDefence(fortitude);
 	}
 
 	public float getThinkTime() {

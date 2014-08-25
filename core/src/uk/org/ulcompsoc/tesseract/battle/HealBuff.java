@@ -23,6 +23,10 @@ public class HealBuff implements BuffPerformer {
 
 	private int						healPerTick	= 0;
 
+	public HealBuff(int ticks) {
+		this(5.0f, ticks);
+	}
+
 	public HealBuff(float duration, int ticks) {
 		this.duration = duration;
 		this.ticks = ticks;
@@ -34,7 +38,7 @@ public class HealBuff implements BuffPerformer {
 		this.target = target;
 		this.stats = statsMapper.get(target);
 
-		this.healPerTick = (int) Math.floor(stats.maxHP * 0.1f);
+		this.healPerTick = (int) Math.floor(stats.maxHP * 0.05f);
 		this.timeElapsed = 0.0f;
 	}
 

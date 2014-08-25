@@ -6,6 +6,7 @@ import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.SlimeFrameResolver;
 import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Boss;
 import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
@@ -54,6 +55,8 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.GridPoint2;
@@ -74,6 +77,8 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private ShaderProgram				vortexProgram					= null;
 
+	private FreeTypeFontGenerator		fontGenerator					= null;
+
 	private BitmapFont					font10							= null;
 	private BitmapFont					font12							= null;
 	private BitmapFont					font16							= null;
@@ -90,6 +95,7 @@ public class TesseractMain extends ApplicationAdapter {
 	BattleVictoryListener				battleVictoryListener			= null;
 
 	private static boolean				battleChangeFlag				= false;
+	private static boolean				bossIncomingFlag				= false;
 	private static boolean				worldChangeFlag					= false;
 	private static boolean				diffWorldFlag					= false;
 	private float						transitionTime					= -1.0f;
@@ -105,6 +111,9 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private Texture[]					bossTextures					= null;
 	private Animation[]					bossAnims						= null;
+	private Stats[]						bossStats						= { new Stats(250, 15, 10, 3),
+			new Stats(500, 15, 10, 5), new Stats(500, 40, 10, 5), new Stats(500, 40, 10, 5), new Stats(500, 40, 10, 5),
+			new Stats(500, 40, 10, 5)									};
 
 	private DialogueFinishListener		healNPCListener					= null;
 	private DialogueFinishListener		bossBattleListener				= null;
@@ -174,14 +183,32 @@ public class TesseractMain extends ApplicationAdapter {
 
 		loadShader();
 
-		font10 = new BitmapFont(Gdx.files.internal("fonts/robotobm10.fnt"), Gdx.files.internal("fonts/robotobm10.png"),
-				false);
-		font12 = new BitmapFont(Gdx.files.internal("fonts/robotobm12.fnt"), Gdx.files.internal("fonts/robotobm12.png"),
-				false);
-		font16 = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"), Gdx.files.internal("fonts/robotobm16.png"),
-				false);
-		font24 = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"), Gdx.files.internal("fonts/robotobm24.png"),
-				false);
+		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/RobotoRegular.ttf"));
+		FreeTypeFontParameter para = new FreeTypeFontParameter();
+
+		para.size = 10;
+		font10 = fontGenerator.generateFont(para);
+		// font10 = new BitmapFont(Gdx.files.internal("fonts/robotobm10.fnt"),
+		// Gdx.files.internal("fonts/robotobm10.png"),
+		// false);
+
+		para.size = 12;
+		font12 = fontGenerator.generateFont(para);
+		// font12 = new BitmapFont(Gdx.files.internal("fonts/robotobm12.fnt"),
+		// Gdx.files.internal("fonts/robotobm12.png"),
+		// false);
+
+		para.size = 16;
+		font16 = fontGenerator.generateFont(para);
+		// font16 = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"),
+		// Gdx.files.internal("fonts/robotobm16.png"),
+		// false);
+
+		para.size = 24;
+		font24 = fontGenerator.generateFont(para);
+		// font24 = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"),
+		// Gdx.files.internal("fonts/robotobm24.png"),
+		// false);
 
 		playerTexture = new Texture(Gdx.files.internal("player/basicPlayer.png"));
 		playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH, WorldConstants.TILE_HEIGHT)[0];
@@ -246,7 +273,7 @@ public class TesseractMain extends ApplicationAdapter {
 				} else if (battleChangeFlag) {
 					battleChangeFlag = false;
 					vortexOff();
-					changeToBattle();
+					changeToBattle(bossIncomingFlag);
 				}
 			}
 		}
@@ -254,8 +281,9 @@ public class TesseractMain extends ApplicationAdapter {
 		currentEngine.update(deltaTime);
 	}
 
-	public void flagBattleChange() {
+	public void flagBattleChange(boolean boss) {
 		battleChangeFlag = true;
+		bossIncomingFlag = boss;
 		transitionTime = BATTLE_START_TRANSITION_TIME;
 		vortexOn();
 	}
@@ -263,6 +291,11 @@ public class TesseractMain extends ApplicationAdapter {
 	public void flagWorldChange(boolean boss) {
 		worldChangeFlag = true;
 		diffWorldFlag = false;
+
+		if (boss) {
+			getCurrentMap().setBossBeaten();
+		}
+
 		transitionTime = BATTLE_END_TRANSITION_TIME;
 	}
 
@@ -270,7 +303,7 @@ public class TesseractMain extends ApplicationAdapter {
 		return battleChangeFlag || worldChangeFlag;
 	}
 
-	public void changeToBattle() {
+	public void changeToBattle(boolean boss) {
 		Gdx.app.debug("BATTLE_CHANGE", "Changing to battle view.");
 
 		this.currentEngine = battleEngine;
@@ -278,7 +311,11 @@ public class TesseractMain extends ApplicationAdapter {
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
 
-		addSlimes(battleEngine, random.nextInt(3) + 1);
+		if (boss) {
+			addBoss(battleEngine);
+		} else {
+			addSlimes(battleEngine, random.nextInt(3) + 1);
+		}
 		battleEngine.getSystem(BattleMessageSystem.class).clearAllMessages();
 	}
 
@@ -290,6 +327,10 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		this.currentEngine = worldEngines[currentMapIndex];
+
+		if (getCurrentMap().bossBeaten) {
+			currentEngine.removeEntity(getCurrentMap().bossEntity);
+		}
 
 		if (diffWorld) {
 			worldPlayerEntity.add(getCurrentMap().findPlayerPosition());
@@ -442,6 +483,27 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
 	}
 
+	private void addBoss(Engine engine) {
+		TesseractMap map = getCurrentMap();
+
+		if (map.bossBeaten) {
+			Gdx.app.debug("ADD_BOSS", "Trying to fight a boss for the second time.");
+		}
+
+		Entity boss = new Entity();
+		final float yMiddle = 12 * WorldConstants.TILE_HEIGHT;
+		boss.add(new Position(3 * WorldConstants.TILE_WIDTH, yMiddle));
+		boss.add(new Renderable(bossAnims[currentMapIndex]).setAnimationResolver(new PingPongFrameResolver(0.1f)));
+		boss.add(bossStats[currentMapIndex]);
+		boss.add(new Boss());
+		boss.add(new Combatant());
+		Enemy enemy = ComponentMapper.getFor(Enemy.class).get(map.bossEntity);
+		boss.add(enemy);
+		boss.add(new Named(enemy.speciesName));
+
+		engine.addEntity(boss);
+	}
+
 	private void addSlimes(Engine engine, int count) {
 		if (count < 1 || count > 3) {
 			throw new GdxRuntimeException("Only between 1-3 slimes supported.");
@@ -554,6 +616,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public void startBossBattle() {
 		Gdx.app.debug("BOSS_BATTLE", "Let's get ready to rumble.");
+		flagBattleChange(true);
 	}
 
 	public void healToFull() {
@@ -564,6 +627,10 @@ public class TesseractMain extends ApplicationAdapter {
 	@Override
 	public void dispose() {
 		super.dispose();
+
+		if (fontGenerator != null) {
+			fontGenerator.dispose();
+		}
 
 		for (TesseractMap map : maps) {
 			if (map != null) {
@@ -675,7 +742,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 						if (rand <= prob) {
 							monsterTilesVisited = 0;
-							flagBattleChange();
+							flagBattleChange(false);
 						}
 					}
 				}

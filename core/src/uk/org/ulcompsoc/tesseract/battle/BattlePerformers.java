@@ -3,10 +3,11 @@ package uk.org.ulcompsoc.tesseract.battle;
 import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
-import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Position;
+import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
@@ -40,9 +41,12 @@ public class BattlePerformers {
 					Entity e = enemies.get(i);
 					Vector2 pos = posMapper.get(e).position;
 
+					final Renderable r = ComponentMapper.getFor(Renderable.class).get(e);
+					final float imgW = r.width;
+					final float imgH = r.height;
+
 					e.add(new TargetMarker());
-					e.add(new MouseClickListener(new Rectangle(pos.x, pos.y, WorldConstants.TILE_WIDTH,
-							WorldConstants.TILE_HEIGHT), enemyTargetPerformer));
+					e.add(new MouseClickListener(new Rectangle(pos.x, pos.y, imgW, imgH), enemyTargetPerformer));
 				}
 			}
 		}
@@ -53,6 +57,7 @@ public class BattlePerformers {
 		public void perform(Entity invoker, Engine engine) {
 			// Gdx.app.debug("PERFORM_JUMP", "Performing defend.");
 			battleMessageSystem.addMessage(TesseractStrings.getDefendMessage());
+			ComponentMapper.getFor(Combatant.class).get(TesseractMain.battlePlayerEntity).addBuff(new DefenceBuff());
 		}
 	}
 
@@ -61,6 +66,7 @@ public class BattlePerformers {
 		public void perform(Entity invoker, Engine engine) {
 			// Gdx.app.debug("PERFORM_QUAFF", "Performing a quaff.");
 			battleMessageSystem.addMessage(TesseractStrings.getQuaffMessage());
+			ComponentMapper.getFor(Combatant.class).get(TesseractMain.battlePlayerEntity).addBuff(new HealBuff(5));
 		}
 	}
 

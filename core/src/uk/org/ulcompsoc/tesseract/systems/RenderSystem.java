@@ -17,7 +17,6 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -69,7 +68,6 @@ public class RenderSystem extends EntitySystem {
 	}
 
 	public void doReorder() {
-		Gdx.app.debug("RENDER_SYSTEM_REORDER", "Reordering entities in RenderSystem.");
 		entities.clear();
 
 		for (int i = 0; i < entitiesImmu.size(); i++) {

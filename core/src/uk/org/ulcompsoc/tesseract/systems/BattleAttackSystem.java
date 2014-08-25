@@ -54,7 +54,6 @@ public class BattleAttackSystem extends EntitySystem {
 	@Override
 	public void update(float deltaTime) {
 		while (attacks.size() > 0) {
-			Gdx.app.debug("BATT_ATK_UPDATE", "" + attacks.size() + " attacks left to process.");
 			BattleAttack atk = attacks.get(0);
 			Stats attackStats = statsMapper.get(atk.attacker);
 			Stats defStats = statsMapper.get(atk.target);
