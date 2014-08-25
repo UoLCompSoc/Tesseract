@@ -1,6 +1,7 @@
 package uk.org.ulcompsoc.tesseract.systems;
 
 import uk.org.ulcompsoc.tesseract.Move;
+import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Moving;
@@ -27,6 +28,7 @@ import com.badlogic.gdx.math.Vector2;
 public class WorldPlayerInputSystem extends IteratingSystem {
 	private ComponentMapper<Position>	posMapper		= ComponentMapper.getFor(Position.class);
 	private ComponentMapper<Renderable>	facingMapper	= ComponentMapper.getFor(Renderable.class);
+	private ComponentMapper<Moving>		movingMapper	= ComponentMapper.getFor(Moving.class);
 
 	private Engine						engine			= null;
 
@@ -60,23 +62,27 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		final float xMove = WorldConstants.TILE_WIDTH;
 		final float yMove = WorldConstants.TILE_HEIGHT;
 
-		if (!engine.getSystem(DialogueSystem.class).checkProcessing()) {
-			if (!ComponentMapper.getFor(Moving.class).has(entity)) {
-				if (Gdx.input.isKeyJustPressed(listener.upKey)) {
-					Gdx.app.debug("MOVE_UP", "Attempting to move.");
-					attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
+		if (!engine.getSystem(DialogueSystem.class).checkProcessing() && !TesseractMain.isTransitioning()) {
+			Moving moving = movingMapper.get(entity);
 
-				} else if (Gdx.input.isKeyJustPressed(listener.downKey)) {
-					Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
-					attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
+			if (moving == null || moving.move.isNearlyDone()) {
+				if (!ComponentMapper.getFor(Moving.class).has(entity)) {
+					if (Gdx.input.isKeyPressed(listener.upKey)) {
+						Gdx.app.debug("MOVE_UP", "Attempting to move.");
+						attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
 
-				} else if (Gdx.input.isKeyJustPressed(listener.leftKey)) {
-					Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
-					attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
+					} else if (Gdx.input.isKeyPressed(listener.downKey)) {
+						Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
+						attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
 
-				} else if (Gdx.input.isKeyJustPressed(listener.rightKey)) {
-					Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
-					attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
+					} else if (Gdx.input.isKeyPressed(listener.leftKey)) {
+						Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
+						attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
+
+					} else if (Gdx.input.isKeyPressed(listener.rightKey)) {
+						Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
+						attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
+					}
 				}
 			}
 

@@ -17,8 +17,8 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -35,15 +35,15 @@ public class BattlePerformers {
 			ImmutableArray<Entity> enemies = engine.getEntitiesFor(Family.getFor(Enemy.class));
 
 			if (enemies != null) {
+				battleMessageSystem.addMessage(TesseractStrings.getChooseTargetMessage());
+
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
-					GridPoint2 pos = posMapper.get(e).getGridPosition();
+					Vector2 pos = posMapper.get(e).position;
 
 					e.add(new TargetMarker());
-					e.add(new MouseClickListener(new Rectangle(pos.x * WorldConstants.TILE_WIDTH, pos.y
-							* WorldConstants.TILE_HEIGHT, WorldConstants.TILE_WIDTH, WorldConstants.TILE_HEIGHT),
-							enemyTargetPerformer));
-					battleMessageSystem.addMessage(TesseractStrings.getChooseTargetMessage());
+					e.add(new MouseClickListener(new Rectangle(pos.x, pos.y, WorldConstants.TILE_WIDTH,
+							WorldConstants.TILE_HEIGHT), enemyTargetPerformer));
 				}
 			}
 		}

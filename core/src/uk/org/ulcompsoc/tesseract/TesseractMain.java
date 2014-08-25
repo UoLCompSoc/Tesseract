@@ -1,10 +1,14 @@
 package uk.org.ulcompsoc.tesseract;
 
+import java.util.Random;
+
 import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
+import uk.org.ulcompsoc.tesseract.components.Movable;
+import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
@@ -26,12 +30,14 @@ import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.WorldPlayerInputSystem;
 import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 
+import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Listener;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -42,49 +48,67 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class TesseractMain extends ApplicationAdapter {
-	public static final String		PLAYER_NAME			= "Valiant Hero™";
+	public static final String		PLAYER_NAME						= "Valiant Hero™";
+	public static final float		BATTLE_END_TRANSITION_TIME		= 4.0f;
+	public static final float		BATTLE_START_TRANSITION_TIME	= 2.0f;
 
-	private SpriteBatch				batch				= null;
-	private Camera					camera				= null;
+	private Random					random							= null;
 
-	private BitmapFont				font10				= null;
-	private BitmapFont				font12				= null;
-	private BitmapFont				font16				= null;
-	private BitmapFont				font24				= null;
+	private SpriteBatch				batch							= null;
+	private Camera					camera							= null;
 
-	private Engine					currentEngine		= null;
-	private Engine					battleEngine		= null;
-	private Engine					worldEngine			= null;
+	private ShaderProgram			vortexProgram					= null;
 
-	public static Entity			battlePlayerEntity	= null;
-	public static Entity			worldPlayerEntity	= null;
-	private Texture					playerTexture		= null;
-	private TextureRegion[]			playerRegions		= null;
+	private BitmapFont				font10							= null;
+	private BitmapFont				font12							= null;
+	private BitmapFont				font16							= null;
+	private BitmapFont				font24							= null;
 
-	private Texture					slimeTexture		= null;
-	private Entity					slimeEntity			= null;
+	private Engine					currentEngine					= null;
+	private Engine					battleEngine					= null;
+	private Engine					worldEngine						= null;
 
-	private Texture					torchTexture		= null;
-	private Animation				torchAnim			= null;
+	public static Entity			battlePlayerEntity				= null;
+	public static Entity			worldPlayerEntity				= null;
 
-	private Entity					statusDialog		= null;
-	private Entity[]				menuDialogs			= null;
-	private Entity[]				menuTexts			= null;
-	private Entity					hpText				= null;
-	private Entity					rageText			= null;
+	BattleVictoryListener			battleVictoryListener			= null;
 
-	public static final String[]	mapNames			= { "world1/world1.tmx" };
-	public static final Color[]		mapColors			= { new Color(80.0f / 255.0f, 172.0f / 255.0f, 61.0f / 255.0f,
-																1.0f) };
-	private static TesseractMap[]	maps				= null;
-	public static int				currentMapIndex		= 0;
+	private static boolean			battleChangeFlag				= false;
+	private static boolean			worldChangeFlag					= false;
+	private float					transitionTime					= -1.0f;
+
+	private Texture					playerTexture					= null;
+	private TextureRegion[]			playerRegions					= null;
+
+	private Texture					slimeTexture					= null;
+
+	private Texture					torchTexture					= null;
+	private Animation				torchAnim						= null;
+
+	private MonsterTileHandler		monsterTileHandler				= null;
+
+	private Entity					statusDialog					= null;
+	private Entity[]				menuDialogs						= null;
+	private Entity[]				menuTexts						= null;
+	private Entity					hpText							= null;
+	private Entity					rageText						= null;
+
+	public static final String[]	mapNames						= { "world1/world1.tmx" };
+	public static final Color[]		mapColors						= { new Color(80.0f / 255.0f, 172.0f / 255.0f,
+																			61.0f / 255.0f, 1.0f) };
+	private static TesseractMap[]	maps							= null;
+	public static int				currentMapIndex					= 0;
 
 	@SuppressWarnings("unused")
-	private GameState				gameState			= null;
+	private GameState				gameState						= null;
 
 	public TesseractMain() {
 		this(Difficulty.EASY, false);
@@ -101,12 +125,15 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		}
 
-		Gdx.app.debug("TILE_INFO", "Window size in tiles is (x, y) = ("
-				+ (Gdx.graphics.getWidth() / WorldConstants.TILE_WIDTH) + ", "
-				+ (Gdx.graphics.getHeight() / WorldConstants.TILE_HEIGHT) + ").");
+		ShaderProgram.pedantic = false;
+
+		random = new Random();
+
+		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		batch = new SpriteBatch();
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+		loadShader();
 
 		font10 = new BitmapFont(Gdx.files.internal("fonts/robotobm10.fnt"), Gdx.files.internal("fonts/robotobm10.png"),
 				false);
@@ -127,6 +154,9 @@ public class TesseractMain extends ApplicationAdapter {
 		torchAnim = new Animation(0.15f, torchRegions[0], torchRegions[1], torchRegions[2]);
 		torchAnim.setPlayMode(PlayMode.LOOP_PINGPONG);
 
+		monsterTileHandler = new MonsterTileHandler();
+		battleVictoryListener = new BattleVictoryListener();
+
 		battleEngine = new Engine();
 		worldEngine = new Engine();
 
@@ -144,25 +174,62 @@ public class TesseractMain extends ApplicationAdapter {
 				mapColors[currentMapIndex].a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		if (Gdx.input.isKeyJustPressed(Keys.F10)) {
-			if (currentEngine.equals(battleEngine)) {
-				changeToWorld();
-			} else {
-				changeToBattle();
+		if (battleChangeFlag || worldChangeFlag) {
+			transitionTime -= deltaTime;
+
+			vortexProgram.begin();
+			vortexProgram.setUniformf("transitionTime", BATTLE_START_TRANSITION_TIME - transitionTime);
+			vortexProgram.end();
+
+			if (transitionTime <= 0.0f) {
+				transitionTime = -1.0f;
+
+				if (worldChangeFlag) {
+					worldChangeFlag = false;
+					changeToWorld();
+				} else if (battleChangeFlag) {
+					battleChangeFlag = false;
+					vortexOff();
+					changeToBattle();
+				}
 			}
 		}
+
 		currentEngine.update(deltaTime);
 	}
 
+	public void flagBattleChange() {
+		battleChangeFlag = true;
+		transitionTime = BATTLE_START_TRANSITION_TIME;
+		vortexOn();
+	}
+
+	public void flagWorldChange() {
+		worldChangeFlag = true;
+		transitionTime = BATTLE_END_TRANSITION_TIME;
+	}
+
+	public static boolean isTransitioning() {
+		return battleChangeFlag || worldChangeFlag;
+	}
+
 	public void changeToBattle() {
+		Gdx.app.debug("BATTLE_CHANGE", "Changing to battle view.");
+
 		this.currentEngine = battleEngine;
 
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
+
+		addSlimes(battleEngine, random.nextInt(3) + 1);
+		battleEngine.getSystem(BattleMessageSystem.class).clearAllMessages();
 	}
 
 	public void changeToWorld() {
+		Gdx.app.debug("WORLD_CHANGE", "Changing to world view.");
+
 		this.currentEngine = worldEngine;
+
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
 		camera.update();
 	}
@@ -198,6 +265,10 @@ public class TesseractMain extends ApplicationAdapter {
 		worldPlayerEntity.add(new Player(PLAYER_NAME));
 		worldPlayerEntity.add(new WorldPlayerInputListener());
 
+		worldPlayerEntity.componentAdded.add(monsterTileHandler.movingAddListener);
+		worldPlayerEntity.componentRemoved.add(monsterTileHandler.movingRemoveListener);
+		worldPlayerEntity.add(new Movable());
+
 		engine.addEntity(worldPlayerEntity);
 
 		engine.addSystem(new WorldPlayerInputSystem(100));
@@ -220,18 +291,6 @@ public class TesseractMain extends ApplicationAdapter {
 		Player playerComp = new Player(PLAYER_NAME);
 		battlePlayerEntity.add(playerComp);
 		battlePlayerEntity.add(new Named(playerComp.name));
-
-		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
-				WorldConstants.TILE_HEIGHT)[0][0];
-
-		slimeEntity = new Entity();
-		slimeEntity.add(new Position(3 * WorldConstants.TILE_WIDTH, yTile)).add(
-				new Renderable(slimeRegion).setPrioritity(50));
-		slimeEntity.add(new Stats(50, 2, 2));
-
-		Enemy slime1 = new Enemy("Green Ooze");
-		slimeEntity.add(slime1);
-		slimeEntity.add(new Named(slime1.speciesName + " 1"));
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -280,7 +339,6 @@ public class TesseractMain extends ApplicationAdapter {
 		rageText.add(rageTextComponent);
 
 		engine.addEntity(battlePlayerEntity);
-		engine.addEntity(slimeEntity);
 		engine.addEntity(statusDialog);
 		for (int i = 0; i < menuDialogs.length; i++) {
 			engine.addEntity(menuDialogs[i]);
@@ -295,11 +353,78 @@ public class TesseractMain extends ApplicationAdapter {
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
 
 		engine.addSystem(new BattleInputSystem(camera, 100));
-		engine.addSystem(battleAttackSystem);
+		engine.addSystem(battleAttackSystem.addVictoryListener(battleVictoryListener));
 		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
+	}
+
+	private void addSlimes(Engine engine, int count) {
+		if (count < 1 || count > 3) {
+			throw new GdxRuntimeException("Only between 1-3 slimes supported.");
+		}
+
+		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0][0];
+
+		final float yMiddle = 12 * WorldConstants.TILE_HEIGHT;
+
+		Position[] positions = null;
+
+		if (count == 1) {
+			positions = new Position[1];
+			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle);
+		} else if (count == 2) {
+			positions = new Position[2];
+			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle + 2 * WorldConstants.TILE_HEIGHT);
+			positions[1] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle - 2 * WorldConstants.TILE_HEIGHT);
+		} else if (count == 3) {
+			positions = new Position[3];
+			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle);
+			positions[1] = new Position(2 * WorldConstants.TILE_WIDTH, yMiddle + 2 * WorldConstants.TILE_HEIGHT);
+			positions[2] = new Position(2 * WorldConstants.TILE_WIDTH, yMiddle - 2 * WorldConstants.TILE_HEIGHT);
+		}
+
+		for (int i = 0; i < count; i++) {
+			Entity slimeEntity = new Entity();
+			slimeEntity.add(positions[i]).add(new Renderable(slimeRegion).setPrioritity(50));
+			slimeEntity.add(new Stats(50, 2, 2));
+
+			Enemy slime1 = new Enemy("Green Ooze");
+			slimeEntity.add(slime1);
+			slimeEntity.add(new Named(slime1.speciesName + " " + (i + 1)));
+			engine.addEntity(slimeEntity);
+		}
+	}
+
+	public void loadShader() {
+		vortexProgram = new ShaderProgram(Gdx.files.internal("shaders/passVertex.glslv"),
+				Gdx.files.internal("shaders/vortexFragment.glslf"));
+		if (!vortexProgram.isCompiled()) {
+			Gdx.app.debug("LOAD_SHADER", "Shader compilation produced following log:\n" + vortexProgram.getLog());
+			throw new GdxRuntimeException("Shader compilation failed");
+		}
+
+		vortexOff();
+	}
+
+	public void vortexOn() {
+		batch.setShader(vortexProgram);
+		vortexProgram.begin();
+		vortexProgram.setUniformf("vortexFlag", 1.0f);
+		vortexProgram.setUniformf("transitionTime", 0.0f);
+		vortexProgram
+				.setUniformf("iResolution", new Vector2(camera.viewportWidth * 2.0f, camera.viewportHeight * 2.0f));
+		vortexProgram.setUniformf("expectedTransitionTime", TesseractMain.BATTLE_START_TRANSITION_TIME);
+		vortexProgram.end();
+	}
+
+	public void vortexOff() {
+		vortexProgram.begin();
+		vortexProgram.setUniformf("vortexFlag", 0.0f);
+		vortexProgram.end();
+		batch.setShader(null);
 	}
 
 	public static TesseractMap getCurrentMap() {
@@ -343,6 +468,57 @@ public class TesseractMain extends ApplicationAdapter {
 
 		if (font24 != null) {
 			font24.dispose();
+		}
+	}
+
+	public class BattleVictoryListener implements Listener<Float> {
+		@Override
+		public void receive(Signal<Float> signal, Float object) {
+			Gdx.app.debug("BATTLE_END", "Battle end detected.");
+			flagWorldChange();
+		}
+	}
+
+	public class MonsterTileHandler {
+		boolean						moving					= false;
+
+		int							monsterTilesVisited		= 0;
+
+		MonsterTileAddListener		movingAddListener		= new MonsterTileAddListener();
+		MonsterTileRemoveListener	movingRemoveListener	= new MonsterTileRemoveListener();
+
+		public class MonsterTileAddListener implements Listener<Entity> {
+			@Override
+			public void receive(Signal<Entity> signal, Entity object) {
+				if (ComponentMapper.getFor(Moving.class).has(object)) {
+					Gdx.app.debug("MOVING_ADD", "Moving component added to player.");
+					moving = true;
+				}
+			}
+		}
+
+		public class MonsterTileRemoveListener implements Listener<Entity> {
+			@Override
+			public void receive(Signal<Entity> signal, Entity object) {
+				if (moving && !ComponentMapper.getFor(Moving.class).has(object)) {
+					Gdx.app.debug("MOVING_REMOVE", "Moving removed.");
+					moving = false;
+
+					GridPoint2 pos = ComponentMapper.getFor(Position.class).get(object).getGridPosition();
+
+					if (getCurrentMap().isMonsterTile(pos)) {
+						monsterTilesVisited++;
+						Gdx.app.debug("MONSTER_STEPS", "" + monsterTilesVisited + " steps taken.");
+						final double prob = 0.02 * monsterTilesVisited;
+						final double rand = Math.random();
+
+						if (rand <= prob) {
+							monsterTilesVisited = 0;
+							flagBattleChange();
+						}
+					}
+				}
+			}
 		}
 	}
 }

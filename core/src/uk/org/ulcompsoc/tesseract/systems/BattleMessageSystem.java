@@ -101,4 +101,14 @@ public class BattleMessageSystem extends EntitySystem {
 		messages.add(message);
 		Gdx.app.debug("ADD_MESSAGE", "Got a message, queue now has " + messages.size() + " message(s).");
 	}
+
+	public void clearAllMessages() {
+		currentBattleMessage = null;
+		if (currentMessageText != null) {
+			engine.removeEntity(currentMessageText);
+			currentMessageText = null;
+		}
+		displayTimeRemaining = -1.0f;
+		messages.clear();
+	}
 }

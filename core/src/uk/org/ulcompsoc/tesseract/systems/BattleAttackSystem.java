@@ -5,6 +5,8 @@ import java.util.List;
 
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
 import uk.org.ulcompsoc.tesseract.battle.BattleAttack;
+import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
+import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
@@ -12,6 +14,9 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.signals.Listener;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 
 /**
@@ -27,9 +32,12 @@ public class BattleAttackSystem extends EntitySystem {
 
 	private BattleMessageSystem		messageSystem	= null;
 
+	private Signal<Float>			battleEndSignal	= null;
+
 	public BattleAttackSystem(BattleMessageSystem messageSystem, int priority) {
 		super(priority);
 		this.messageSystem = messageSystem;
+		this.battleEndSignal = new Signal<Float>();
 	}
 
 	@Override
@@ -72,8 +80,26 @@ public class BattleAttackSystem extends EntitySystem {
 		attacks.add(attack);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void killTarget(Entity target) {
-		messageSystem.addMessage(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
 		engine.removeEntity(target);
+
+		if (engine.getEntitiesFor(Family.getFor(Enemy.class)).size() == 0) {
+			doVictory(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
+		} else {
+			messageSystem.addMessage(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
+		}
+	}
+
+	public BattleAttackSystem addVictoryListener(Listener<Float> listener) {
+		battleEndSignal.add(listener);
+		return this;
+	}
+
+	public void doVictory(BattleMessage lastMessage) {
+		messageSystem.clearAllMessages();
+		messageSystem.addMessage(lastMessage);
+		messageSystem.addMessage(TesseractStrings.getVictoryMessage());
+		battleEndSignal.dispatch(5.0f);
 	}
 }

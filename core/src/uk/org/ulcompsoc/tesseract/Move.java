@@ -24,6 +24,8 @@ public class Move {
 
 	public int				currentStep;
 
+	public final float		duration;
+
 	public float			durationRemaining;
 	public float			stepTime;
 
@@ -45,6 +47,7 @@ public class Move {
 		this.currentStep = 0;
 		this.stepCount = calcStepCount();
 
+		this.duration = duration;
 		this.durationRemaining = duration;
 		this.stepTime = 0.0f;
 		this.timePerStep = durationRemaining / (float) this.stepCount;
@@ -95,6 +98,10 @@ public class Move {
 
 	public boolean isDone() {
 		return durationRemaining <= 0.0f;
+	}
+
+	public boolean isNearlyDone() {
+		return (3 * durationRemaining < duration);
 	}
 
 	public float getCurrentX() {

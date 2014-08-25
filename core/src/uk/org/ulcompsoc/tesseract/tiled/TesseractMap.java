@@ -29,6 +29,7 @@ import com.badlogic.gdx.utils.Disposable;
 public class TesseractMap implements Disposable {
 	public final TiledMap			map;
 	public final boolean[]			collisionArray;
+	public final boolean[]			monsterTiles;
 	public final Entity[]			NPCs;
 	public final Entity[]			torches;
 	public final Entity				baseLayerEntity;
@@ -55,6 +56,7 @@ public class TesseractMap implements Disposable {
 		this.NPCs = generateNPCEntities(map);
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
+		this.monsterTiles = generateMonsterTiles(map);
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -71,6 +73,14 @@ public class TesseractMap implements Disposable {
 
 	public boolean isCoordSolid(Vector2 vec) {
 		return isCoordSolid(vec.x, vec.y);
+	}
+
+	public boolean isMonsterTile(int x, int y) {
+		return monsterTiles[y * widthInTiles + x];
+	}
+
+	public boolean isMonsterTile(GridPoint2 pos) {
+		return isMonsterTile(pos.x, pos.y);
 	}
 
 	public Position findPlayerPosition() {
@@ -239,6 +249,29 @@ public class TesseractMap implements Disposable {
 		Gdx.app.debug("LOAD_NPCS", "Loaded " + ret.length + " NPCs.");
 
 		return ret;
+	}
+
+	public static boolean[] generateMonsterTiles(TiledMap map) {
+		final int width = TiledUtil.getMapWidthInTiles(map);
+		final int height = TiledUtil.getMapHeightInTiles(map);
+
+		boolean[] retVal = new boolean[width * height];
+
+		for (MapLayer layer_ : map.getLayers()) {
+			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
+
+			if (TiledUtil.isMonsterLayer(layer)) {
+				for (int y = 0; y < height; y++) {
+					for (int x = 0; x < width; x++) {
+						if (layer.getCell(x, y) != null) {
+							retVal[(y * width) + x] = true;
+						}
+					}
+				}
+			}
+		}
+
+		return retVal;
 	}
 
 	@Override

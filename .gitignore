@@ -45,6 +45,8 @@ local.properties
 .externalToolBuilders/
 *.launch
 
+.README.md.html
+
 ## NetBeans
 **/nbproject/private/
 build/
