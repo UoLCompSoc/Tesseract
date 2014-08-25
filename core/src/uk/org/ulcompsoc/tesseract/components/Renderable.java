@@ -36,6 +36,10 @@ public class Renderable extends Component {
 				return null;
 			}
 		}
+
+		public static GridPoint2 pointInFront(int x, int y, Facing f) {
+			return pointInFront(new GridPoint2(x, y), f);
+		}
 	}
 
 	public RenderType				renderType		= RenderType.NONE;

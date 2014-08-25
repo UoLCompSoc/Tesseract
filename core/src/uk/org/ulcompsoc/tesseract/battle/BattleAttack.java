@@ -14,8 +14,6 @@ public class BattleAttack {
 	public Entity		target		= null;
 	public AttackType	attackType;
 
-	Random				random		= new Random();
-
 	public BattleAttack(Entity attacker, Entity target, AttackType attackType) {
 		this.attacker = attacker;
 		this.target = target;
@@ -24,7 +22,7 @@ public class BattleAttack {
 
 	public static int resolveDamage(Stats attacker, Stats defender) {
 		double atk = attacker.getAttack() - defender.getDefence();
-		atk *= (new Random().nextInt(40) - 20) * 0.01;
+		atk = atk + atk * (new Random().nextInt(11) - 5) * 0.1;
 
 		return Math.max((int) Math.floor(atk), 1);
 	}

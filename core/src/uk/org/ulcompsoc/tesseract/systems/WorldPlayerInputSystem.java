@@ -120,7 +120,10 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		GridPoint2 pos = posMapper.get(entity).getGridPosition();
 		Facing f = facingMapper.get(entity).facing;
 
-		GridPoint2 pointInFront = Facing.pointInFront(pos, f);
+		GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
+
+		// dirty hack
+		GridPoint2 pointInFront2 = Facing.pointInFront(pos.x - 1, pos.y, f);
 
 		@SuppressWarnings("unchecked")
 		ImmutableArray<Entity> npcEntities = engine.getEntitiesFor(Family.getFor(Position.class, Dialogue.class));
@@ -130,7 +133,7 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 
 			GridPoint2 otherPos = posMapper.get(other).getGridPosition();
 
-			if (pointInFront.equals(otherPos)) {
+			if (pointInFront.equals(otherPos) || pointInFront2.equals(otherPos)) {
 				dialogueSystem.add(other);
 			}
 		}

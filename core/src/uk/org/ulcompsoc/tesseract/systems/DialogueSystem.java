@@ -78,6 +78,7 @@ public class DialogueSystem extends EntitySystem {
 			pressed = false;
 
 			if (currentMsg == dia.dialogueLines.length) {
+				dia.finishSignal.dispatch(currentDia);
 				dias.remove(0);
 				currentMsg = 0;
 				Gdx.app.debug("DIALOGUE_SYSTEM", "Finished a conversation.");

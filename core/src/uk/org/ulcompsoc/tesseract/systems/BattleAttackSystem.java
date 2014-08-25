@@ -6,6 +6,7 @@ import java.util.List;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
 import uk.org.ulcompsoc.tesseract.battle.BattleAttack;
 import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
+import uk.org.ulcompsoc.tesseract.components.Boss;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Stats;
@@ -32,12 +33,12 @@ public class BattleAttackSystem extends EntitySystem {
 
 	private BattleMessageSystem		messageSystem	= null;
 
-	private Signal<Float>			battleEndSignal	= null;
+	private Signal<Boolean>			battleEndSignal	= null;
 
 	public BattleAttackSystem(BattleMessageSystem messageSystem, int priority) {
 		super(priority);
 		this.messageSystem = messageSystem;
-		this.battleEndSignal = new Signal<Float>();
+		this.battleEndSignal = new Signal<Boolean>();
 	}
 
 	@Override
@@ -60,8 +61,8 @@ public class BattleAttackSystem extends EntitySystem {
 			// AttackType attackType = atk.attackType;
 
 			int dmg = BattleAttack.resolveDamage(attackStats, defStats);
-			Gdx.app.debug("RESOLVED_DAMAGE", "Did " + dmg + " points of damage to " + nameMapper.get(atk.target).name
-					+ ".");
+			Gdx.app.debug("RESOLVED_DAMAGE", nameMapper.get(atk.attacker).name + " did " + dmg
+					+ " point(s) of damage to " + nameMapper.get(atk.target).name + ".");
 
 			defStats.damageHP(dmg);
 
@@ -88,21 +89,21 @@ public class BattleAttackSystem extends EntitySystem {
 		engine.removeEntity(target);
 
 		if (engine.getEntitiesFor(Family.getFor(Enemy.class)).size() == 0) {
-			doVictory(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
+			doVictory(target, TesseractStrings.getKilledMessage(nameMapper.get(target).name));
 		} else {
 			messageSystem.addMessage(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
 		}
 	}
 
-	public BattleAttackSystem addVictoryListener(Listener<Float> listener) {
+	public BattleAttackSystem addVictoryListener(Listener<Boolean> listener) {
 		battleEndSignal.add(listener);
 		return this;
 	}
 
-	public void doVictory(BattleMessage lastMessage) {
+	public void doVictory(Entity target, BattleMessage lastMessage) {
 		messageSystem.clearAllMessages();
 		messageSystem.addMessage(lastMessage);
 		messageSystem.addMessage(TesseractStrings.getVictoryMessage());
-		battleEndSignal.dispatch(5.0f);
+		battleEndSignal.dispatch(ComponentMapper.getFor(Boss.class).has(target));
 	}
 }

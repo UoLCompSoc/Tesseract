@@ -3,8 +3,10 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
+import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 
@@ -37,10 +39,13 @@ public class TesseractMap implements Disposable {
 	public final Entity				bossEntity;
 	public final TiledMapRenderer	renderer;
 
-	final int						widthInTiles;
-	final int						heightInTiles;
+	public final int				widthInTiles;
+	public final int				heightInTiles;
 
-	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim) {
+	public boolean					bossBeaten	= false;
+
+	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim, DialogueFinishListener healListener,
+			DialogueFinishListener bossListener) {
 		this.map = map;
 
 		if (!TiledUtil.isValidTesseractMap(map)) {
@@ -54,11 +59,11 @@ public class TesseractMap implements Disposable {
 
 		this.collisionArray = generateCollisionArray(map);
 		this.torches = generateTorchEntities(map, torchAnim);
-		this.NPCs = generateNPCEntities(map);
+		this.NPCs = generateNPCEntities(map, healListener);
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
-		this.bossEntity = generateBossEntity(map);
+		this.bossEntity = generateBossEntity(map, bossListener);
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -98,6 +103,10 @@ public class TesseractMap implements Disposable {
 		}
 
 		return retVal;
+	}
+
+	public void setBossBeaten() {
+		this.bossBeaten = true;
 	}
 
 	public static boolean[] generateCollisionArray(TiledMap map) {
@@ -209,7 +218,7 @@ public class TesseractMap implements Disposable {
 		return e;
 	}
 
-	public static Entity[] generateNPCEntities(TiledMap map) {
+	public static Entity[] generateNPCEntities(TiledMap map, DialogueFinishListener listener) {
 		List<Entity> npcs = new ArrayList<Entity>();
 		MapLayers layers = map.getLayers();
 		String mapTextPrefix = TiledUtil.getMapTextPrefix(map);
@@ -233,10 +242,15 @@ public class TesseractMap implements Disposable {
 				if (fh.exists()) {
 					String fileContents = fh.readString();
 					String lines[] = Dialogue.parseDialogueLines(fileContents);
-					Gdx.app.debug("PARSE_DIALOGUE",
-							"Found " + lines.length + " line(s) of dialogue for " + layer.getName() + ".");
 
-					e.add(new Dialogue(lines));
+					Dialogue dia = new Dialogue(lines);
+
+					if (layer.getName().equals("npc3")) {
+						// dirty hack for queen healing
+						dia = dia.addFinishListener(listener);
+					}
+
+					e.add(dia);
 				} else {
 					Gdx.app.debug("LOAD_NPC", "Could not find file " + prop + ".");
 					continue;
@@ -276,8 +290,33 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public static Entity generateBossEntity(TiledMap map) {
-		return null;
+	public static Entity generateBossEntity(TiledMap map, DialogueFinishListener dfl) {
+		Entity boss = new Entity();
+
+		MapLayers layers = map.getLayers();
+		GridPoint2 pos = null;
+		String name = null;
+
+		for (MapLayer layer_ : layers) {
+			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
+
+			if (TiledUtil.isBossLayer(layer)) {
+				pos = TiledUtil.findFirstCell(layer);
+				name = layer.getProperties().get("boss", String.class);
+			}
+		}
+
+		if (pos == null || name == null) {
+			return null;
+		}
+
+		boss.add(new Position().setFromGrid(pos));
+		boss.add(new Enemy(name));
+
+		final String[] dia = { "Mwa ha ha!", "Bring it!" };
+		boss.add(new Dialogue(dia).addFinishListener(dfl));
+
+		return boss;
 	}
 
 	@Override

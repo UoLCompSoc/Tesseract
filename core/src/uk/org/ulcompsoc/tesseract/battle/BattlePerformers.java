@@ -16,7 +16,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -30,7 +29,7 @@ public class BattlePerformers {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_ATTACK", "Performing an attack.");
+			// Gdx.app.debug("PERFORM_ATTACK", "Performing an attack.");
 
 			ImmutableArray<Entity> enemies = engine.getEntitiesFor(Family.getFor(Enemy.class));
 
@@ -52,7 +51,7 @@ public class BattlePerformers {
 	public static class DefendPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_JUMP", "Performing defend.");
+			// Gdx.app.debug("PERFORM_JUMP", "Performing defend.");
 			battleMessageSystem.addMessage(TesseractStrings.getDefendMessage());
 		}
 	}
@@ -60,7 +59,7 @@ public class BattlePerformers {
 	public static class QuaffPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_QUAFF", "Performing a quaff.");
+			// Gdx.app.debug("PERFORM_QUAFF", "Performing a quaff.");
 			battleMessageSystem.addMessage(TesseractStrings.getQuaffMessage());
 		}
 	}
@@ -68,7 +67,7 @@ public class BattlePerformers {
 	public static class FleePerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_FLEE", "Performing a flee.");
+			// Gdx.app.debug("PERFORM_FLEE", "Performing a flee.");
 			battleMessageSystem.addMessage(TesseractStrings.getFleeMessage());
 		}
 	}
@@ -76,7 +75,7 @@ public class BattlePerformers {
 	public static class EnemyTargetPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_TARGET", "Attack was targetted.");
+			// Gdx.app.debug("PERFORM_TARGET", "Attack was targetted.");
 
 			battleAttackSystem.addAttack(new BattleAttack(TesseractMain.battlePlayerEntity, invoker, AttackType.MELEE));
 			removeTargets(engine);

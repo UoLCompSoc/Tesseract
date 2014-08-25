@@ -57,7 +57,7 @@
  </layer>
  <layer name="boss" width="32" height="32">
   <properties>
-   <property name="boss" value="true"/>
+   <property name="boss" value="Eye Sore"/>
    <property name="hidden" value="true"/>
    <property name="solid" value="true"/>
   </properties>

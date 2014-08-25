@@ -95,8 +95,6 @@ public class BattleInputSystem extends EntitySystem {
 
 				hasReleased = false;
 
-				Gdx.app.debug("prc", "mouse proc");
-
 				return true;
 			}
 		} else {
