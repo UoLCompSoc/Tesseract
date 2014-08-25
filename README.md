@@ -9,7 +9,7 @@ Your cube planet has several different worlds to visit to beat bosses, become mo
 
 Find out now!
 
-Latest playable version at http://www.ulcompsoc.org.uk/ld30/
+Latest playable version at http://www.ulcompsoc.org.uk/ld30/ - *DOES NOT WORK FOR v0.3, USE JAR FROM RELEASES PAGE*
 
 ### Code Roadmap
 1. ~~Basic Battle System~~
