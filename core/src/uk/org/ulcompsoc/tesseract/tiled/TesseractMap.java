@@ -7,6 +7,7 @@ import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
+import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 
@@ -37,6 +38,8 @@ public class TesseractMap implements Disposable {
 	public final Entity				baseLayerEntity;
 	public final Entity				zLayerEntity;
 	public final Entity				bossEntity;
+	public final Entity				doorEntity;
+	public final Entity				openDoorEntity;
 	public final TiledMapRenderer	renderer;
 
 	public final int				widthInTiles;
@@ -45,7 +48,7 @@ public class TesseractMap implements Disposable {
 	public boolean					bossBeaten	= false;
 
 	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim, DialogueFinishListener healListener,
-			DialogueFinishListener bossListener) {
+			DialogueFinishListener bossListener, DialogueFinishListener doorOpenListener) {
 		this.map = map;
 
 		if (!TiledUtil.isValidTesseractMap(map)) {
@@ -64,6 +67,9 @@ public class TesseractMap implements Disposable {
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
 		this.bossEntity = generateBossEntity(map, bossListener);
+
+		this.doorEntity = generateDoorEntity(map);
+		this.openDoorEntity = generateOpenDoorEntity(map, doorOpenListener);
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -156,9 +162,6 @@ public class TesseractMap implements Disposable {
 			}
 		}
 
-		Gdx.app.debug("LOAD_TORCHES", "Found " + (torchPos.size() == 0 ? "no" : "" + torchPos.size())
-				+ " torch(es) in map.");
-
 		if (torchPos.size() == 0) {
 			return null;
 		}
@@ -236,6 +239,7 @@ public class TesseractMap implements Disposable {
 
 				e.add(new Position().setFromGrid(pos));
 				e.add(new Renderable(layer.getCell(pos.x, pos.y).getTile().getTextureRegion()));
+				e.add(new NPC());
 
 				FileHandle fh = Gdx.files.internal(prop);
 
@@ -262,7 +266,6 @@ public class TesseractMap implements Disposable {
 		}
 
 		Entity[] ret = npcs.toArray(new Entity[npcs.size()]);
-		Gdx.app.debug("LOAD_NPCS", "Loaded " + ret.length + " NPCs.");
 
 		return ret;
 	}
@@ -317,6 +320,14 @@ public class TesseractMap implements Disposable {
 		boss.add(new Dialogue(dia).addFinishListener(dfl));
 
 		return boss;
+	}
+
+	public static Entity generateDoorEntity(TiledMap map) {
+		return new Entity();
+	}
+
+	public static Entity generateOpenDoorEntity(TiledMap map, DialogueFinishListener dfl) {
+		return new Entity();
 	}
 
 	@Override

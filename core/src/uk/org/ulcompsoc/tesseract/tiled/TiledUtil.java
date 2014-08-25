@@ -73,7 +73,7 @@ public class TiledUtil {
 	}
 
 	public static boolean isVisibleLayer(TiledMapTileLayer layer) {
-		return (!isHiddenLayer(layer) && !isNPCLayer(layer));
+		return (!isHiddenLayer(layer) && !isNPCLayer(layer) && !isBossLayer(layer));
 	}
 
 	public static boolean isBossLayer(TiledMapTileLayer layer) {

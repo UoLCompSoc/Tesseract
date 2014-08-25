@@ -13,6 +13,7 @@ import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Movable;
 import uk.org.ulcompsoc.tesseract.components.Moving;
+import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
@@ -69,11 +70,15 @@ public class TesseractMain extends ApplicationAdapter {
 	public static final String			PLAYER_NAME						= "Valiant Hero™";
 	public static final float			BATTLE_END_TRANSITION_TIME		= 4.0f;
 	public static final float			BATTLE_START_TRANSITION_TIME	= 2.0f;
+	public static final float			WORLD_SELECT_LOAD_TIME			= 0.25f;
+	public static final float			WORLD_SELECT_CHANGE_TIME		= 1.0f;
 
 	private Random						random							= null;
 
 	private SpriteBatch					batch							= null;
 	private Camera						camera							= null;
+
+	public static MusicManager			musicManager					= null;
 
 	private ShaderProgram				vortexProgram					= null;
 
@@ -85,7 +90,9 @@ public class TesseractMain extends ApplicationAdapter {
 	private BitmapFont					font24							= null;
 
 	private Engine						currentEngine					= null;
+
 	private Engine						battleEngine					= null;
+	private Engine						worldSelectEngine				= null;
 	private Engine[]					worldEngines					= null;
 
 	public static Entity				battlePlayerEntity				= null;
@@ -94,10 +101,11 @@ public class TesseractMain extends ApplicationAdapter {
 
 	BattleVictoryListener				battleVictoryListener			= null;
 
-	private static boolean				battleChangeFlag				= false;
 	private static boolean				bossIncomingFlag				= false;
+	private static boolean				battleChangeFlag				= false;
 	private static boolean				worldChangeFlag					= false;
-	private static boolean				diffWorldFlag					= false;
+	private static boolean				worldSelectChangeFlag			= false;
+	private static int					diffWorldFlag					= -1;
 	private float						transitionTime					= -1.0f;
 
 	private Texture						playerTexture					= null;
@@ -111,12 +119,16 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private Texture[]					bossTextures					= null;
 	private Animation[]					bossAnims						= null;
-	private Stats[]						bossStats						= { new Stats(250, 15, 10, 3),
-			new Stats(500, 15, 10, 5), new Stats(500, 40, 10, 5), new Stats(500, 40, 10, 5), new Stats(500, 40, 10, 5),
-			new Stats(500, 40, 10, 5)									};
+	private Stats[]						bossStats						= { new Stats(20, 15, 10, 3),
+			new Stats(10, 15, 10, 5), new Stats(10, 40, 10, 5), new Stats(10, 40, 10, 5), new Stats(10, 40, 10, 5),
+			new Stats(10, 40, 10, 5), new Stats(10, 40, 10, 5)			};
+
+	private Texture[]					worldSelectTextures				= null;
 
 	private DialogueFinishListener		healNPCListener					= null;
 	private DialogueFinishListener		bossBattleListener				= null;
+	private DialogueFinishListener		doorOpenListener				= null;
+	private WorldSelectChangeListener	worldSelectChangeListener		= null;
 
 	private MonsterTileHandler			monsterTileHandler				= null;
 
@@ -127,14 +139,15 @@ public class TesseractMain extends ApplicationAdapter {
 	private Entity						rageText						= null;
 
 	public static final String[]		mapNames						= { "world1/world1.tmx", "world2/world2.tmx",
-			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx" };
+			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx", "world7/world7.tmx" };
 	public static final Color[]			mapColors						= {
 			new Color(80.0f / 255.0f, 172.0f / 255.0f, 61.0f / 255.0f, 1.0f),
 			new Color(61.0f / 255.0f, 111.f / 255.0f, 172.0f / 255.0f, 1.0f),
 			new Color(169.0f / 255.0f, 117.0f / 255.0f, 65.0f / 255.0f, 1.0f),
 			new Color(152.0f / 255.0f, 61.0f / 255.0f, 172.0f / 255.0f, 1.0f),
 			new Color(188.0f / 255.0f, 44.0f / 255.0f, 52.0f / 255.0f, 1.0f),
-			new Color(116.0f / 255.0f, 116.0f / 255.0f, 116.0f / 255.0f, 1.0f) };
+			new Color(116.0f / 255.0f, 116.0f / 255.0f, 116.0f / 255.0f, 1.0f),
+			new Color(246.0f / 255.0f, 241.0f / 255.0f, 83.0f / 255.0f, 1.0f) };
 
 	public static final String[]		slimeFiles						= { "monsters/world1_slime.png",
 			"monsters/world2_slime.png", "monsters/world3_slime.png", "monsters/world4_slime.png",
@@ -146,11 +159,18 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public static final String[]		bossFiles						= { "bosses/final_boss.png",
 			"bosses/world2_boss.png", "bosses/world3_boss.png", "bosses/world4_boss.png", "bosses/world5_boss.png",
-			"bosses/world6_boss.png"									};
+			"bosses/world6_boss.png", "bosses/final_boss.png"			};
 
 	public static final GridPoint2[]	bossSizes						= { new GridPoint2(128, 128),
 			new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64),
-			new GridPoint2(64, 64)										};
+			new GridPoint2(64, 64), new GridPoint2(128, 128)			};
+
+	public static final String[]		worldSelectTexFiles				= { "worldtextures/world1_64.png",
+			"worldtextures/world2_64.png", "worldtextures/world3_64.png", "worldtextures/world4_64.png",
+			"worldtextures/world5_64.png", "worldtextures/world6_64.png" };
+
+	public static final String[]		musicFiles						= { "music/world1.ogg", "music/world2.ogg",
+			"music/world3.ogg", "music/world4.ogg", "music/world5.ogg", "music/world6.ogg", "music/world7.ogg" };
 
 	private static TesseractMap[]		maps							= null;
 	public static int					currentMapIndex					= 0;
@@ -180,6 +200,8 @@ public class TesseractMain extends ApplicationAdapter {
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		batch = new SpriteBatch();
+
+		musicManager = new MusicManager(musicFiles);
 
 		loadShader();
 
@@ -226,14 +248,18 @@ public class TesseractMain extends ApplicationAdapter {
 
 		healNPCListener = new DialogueFinishListener();
 		bossBattleListener = new DialogueFinishListener();
+		doorOpenListener = new DialogueFinishListener();
+		worldSelectChangeListener = new WorldSelectChangeListener();
 
 		battleEngine = new Engine();
 		worldEngines = new Engine[mapNames.length];
+		worldSelectEngine = new Engine();
 
 		initBattleEngine(battleEngine);
 		initWorldEngines(worldEngines);
+		initWorldSelectEngine(worldSelectEngine);
 
-		changeToWorld(true);
+		changeToWorld(0);
 	}
 
 	@Override
@@ -244,19 +270,11 @@ public class TesseractMain extends ApplicationAdapter {
 				mapColors[currentMapIndex].a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		if (Gdx.app.getLogLevel() == Application.LOG_DEBUG) {
-			if (Gdx.input.isKeyJustPressed(Keys.F5)) {
-				currentMapIndex++;
-
-				if (currentMapIndex == mapNames.length) {
-					currentMapIndex = 0;
-				}
-
-				changeToWorld(true);
-			}
+		if (Gdx.input.isKeyJustPressed(Keys.F5)) {
+			changeToWorld((currentMapIndex + 1));
 		}
 
-		if (battleChangeFlag || worldChangeFlag) {
+		if (isTransitioning()) {
 			transitionTime -= deltaTime;
 
 			vortexProgram.begin();
@@ -267,17 +285,20 @@ public class TesseractMain extends ApplicationAdapter {
 				transitionTime = -1.0f;
 
 				if (worldChangeFlag) {
-					worldChangeFlag = false;
-					diffWorldFlag = false;
 					changeToWorld(diffWorldFlag);
 				} else if (battleChangeFlag) {
-					battleChangeFlag = false;
 					vortexOff();
 					changeToBattle(bossIncomingFlag);
+				} else if (worldSelectChangeFlag) {
+					changeToWorldSelect();
 				}
+
+				battleChangeFlag = worldChangeFlag = worldSelectChangeFlag = false;
+				diffWorldFlag = -1;
 			}
 		}
 
+		musicManager.update(deltaTime);
 		currentEngine.update(deltaTime);
 	}
 
@@ -288,19 +309,47 @@ public class TesseractMain extends ApplicationAdapter {
 		vortexOn();
 	}
 
-	public void flagWorldChange(boolean boss) {
+	public void flagWorldChange(int newWorld) {
 		worldChangeFlag = true;
-		diffWorldFlag = false;
+		diffWorldFlag = newWorld;
 
-		if (boss) {
+		musicManager.fadeOut(WORLD_SELECT_CHANGE_TIME);
+		transitionTime = WORLD_SELECT_CHANGE_TIME;
+	}
+
+	public void flagWorldReturn(boolean bossBattleJustHappened) {
+		worldChangeFlag = true;
+		diffWorldFlag = -1;
+
+		if (bossBattleJustHappened) {
 			getCurrentMap().setBossBeaten();
+			int bossesRemaining = 0;
+
+			for (TesseractMap map : maps) {
+				if (!map.bossBeaten) {
+					bossesRemaining++;
+				}
+			}
+
+			if (bossesRemaining == 0) {
+				Gdx.app.debug("ALL_BOSSES", "All bosses defeated, opening final world.");
+				Engine world1 = worldEngines[0];
+				world1.removeEntity(maps[0].doorEntity);
+				world1.addEntity(maps[0].openDoorEntity);
+			}
 		}
 
 		transitionTime = BATTLE_END_TRANSITION_TIME;
 	}
 
+	public void flagWorldSelectChange() {
+		worldSelectChangeFlag = true;
+
+		transitionTime = WORLD_SELECT_LOAD_TIME;
+	}
+
 	public static boolean isTransitioning() {
-		return battleChangeFlag || worldChangeFlag;
+		return battleChangeFlag || worldChangeFlag || worldSelectChangeFlag;
 	}
 
 	public void changeToBattle(boolean boss) {
@@ -319,11 +368,20 @@ public class TesseractMain extends ApplicationAdapter {
 		battleEngine.getSystem(BattleMessageSystem.class).clearAllMessages();
 	}
 
-	public void changeToWorld(boolean diffWorld) {
-		Gdx.app.debug("WORLD_CHANGE", "Changing to world " + (currentMapIndex + 1) + ".");
+	public void changeToWorld(int diffWorld) {
+		battleChangeFlag = worldChangeFlag = false;
+		Gdx.app.debug("WORLD_CHANGE", "Changing to world " + (diffWorld == -1 ? currentMapIndex : diffWorld) + ".");
 
-		if (diffWorld) {
-			this.currentEngine.removeEntity(worldPlayerEntity);
+		if (diffWorld != -1) {
+			if (diffWorld >= maps.length) {
+				diffWorld = diffWorld % maps.length;
+			}
+
+			if (diffWorld != currentMapIndex) {
+				this.currentEngine.removeEntity(worldPlayerEntity);
+			}
+
+			currentMapIndex = diffWorld;
 		}
 
 		this.currentEngine = worldEngines[currentMapIndex];
@@ -332,12 +390,21 @@ public class TesseractMain extends ApplicationAdapter {
 			currentEngine.removeEntity(getCurrentMap().bossEntity);
 		}
 
-		if (diffWorld) {
+		if (diffWorld != -1) {
 			worldPlayerEntity.add(getCurrentMap().findPlayerPosition());
 			currentEngine.addEntity(worldPlayerEntity);
+			musicManager.play(currentMapIndex);
 		}
 
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+		camera.update();
+
+	}
+
+	public void changeToWorldSelect() {
+		this.currentEngine = worldSelectEngine;
+
+		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.update();
 	}
 
@@ -345,7 +412,7 @@ public class TesseractMain extends ApplicationAdapter {
 		maps = new TesseractMap[mapNames.length];
 		TmxMapLoader mapLoader = new TmxMapLoader();
 
-		currentMapIndex = 0;
+		currentMapIndex = -1;
 
 		worldPlayerEntity = new Entity();
 		worldPlayerEntity.add(new Renderable(Facing.DOWN, playerRegions[1], playerRegions[0], playerRegions[3],
@@ -364,12 +431,15 @@ public class TesseractMain extends ApplicationAdapter {
 			Engine engine = new Engine();
 
 			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
-					torchAnims[i], healNPCListener, bossBattleListener);
+					(i == mapNames.length - 1 ? null : torchAnims[i]), healNPCListener, bossBattleListener,
+					doorOpenListener);
 
 			engine.addEntity(maps[i].baseLayerEntity);
 
-			for (Entity e : maps[i].torches) {
-				engine.addEntity(e);
+			if (maps[i].torches != null) {
+				for (Entity e : maps[i].torches) {
+					engine.addEntity(e);
+				}
 			}
 
 			for (Entity e : maps[i].NPCs) {
@@ -384,8 +454,8 @@ public class TesseractMain extends ApplicationAdapter {
 				engine.addEntity(maps[i].bossEntity);
 			}
 
-			engine.addSystem(new WorldPlayerInputSystem(100));
-			engine.addSystem(new MovementSystem(getCurrentMap(), 500));
+			engine.addSystem(new WorldPlayerInputSystem(worldSelectChangeListener, 100));
+			engine.addSystem(new MovementSystem(maps[i], 500));
 			engine.addSystem(new FocusTakingSystem(750));
 			engine.addSystem(new RenderSystem(batch, camera, 1000));
 			engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
@@ -481,6 +551,33 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(new RenderSystem(batch, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
+	}
+
+	public void initWorldSelectEngine(Engine engine) {
+		worldSelectTextures = new Texture[worldSelectTexFiles.length];
+
+		for (int i = 0; i < worldSelectTexFiles.length; i++) {
+			worldSelectTextures[i] = new Texture(Gdx.files.internal(worldSelectTexFiles[i]));
+
+			Entity e = new Entity();
+			Position p = new Position().setFromGrid(3 + 2 * 3 * (i % 3), (6 + (i > 2 ? 8 : 0)));
+
+			e.add(p);
+			e.add(new Renderable(new TextureRegion(worldSelectTextures[i])));
+			e.add(new Named("" + i));
+			e.add(new MouseClickListener(new Rectangle(p.position.x, p.position.y, 64, 64), new MouseClickPerformer() {
+				@Override
+				public void perform(Entity invoker, Engine engine) {
+					Integer i = Integer.parseInt(ComponentMapper.getFor(Named.class).get(invoker).name);
+					flagWorldChange(i.intValue());
+				}
+			}));
+
+			engine.addEntity(e);
+		}
+
+		engine.addSystem(new BattleInputSystem(camera, 50));
+		engine.addSystem(new RenderSystem(batch, camera, 1000));
 	}
 
 	private void addBoss(Engine engine) {
@@ -615,13 +712,15 @@ public class TesseractMain extends ApplicationAdapter {
 	}
 
 	public void startBossBattle() {
-		Gdx.app.debug("BOSS_BATTLE", "Let's get ready to rumble.");
 		flagBattleChange(true);
 	}
 
 	public void healToFull() {
-		Gdx.app.debug("HEAL_FULL", "What a nice queen.");
 		playerStats.restoreHP(playerStats.maxHP);
+	}
+
+	public void moveToLastWorld() {
+		Gdx.app.debug("LAST_WORLD", "Last world teleport activated.");
 	}
 
 	@Override
@@ -635,6 +734,12 @@ public class TesseractMain extends ApplicationAdapter {
 		for (TesseractMap map : maps) {
 			if (map != null) {
 				map.dispose();
+			}
+		}
+
+		for (int i = 0; i < worldSelectTexFiles.length; i++) {
+			if (worldSelectTextures[i] != null) {
+				worldSelectTextures[i].dispose();
 			}
 		}
 
@@ -678,13 +783,24 @@ public class TesseractMain extends ApplicationAdapter {
 		if (font24 != null) {
 			font24.dispose();
 		}
+
+		if (musicManager != null) {
+			musicManager.dispose();
+		}
+	}
+
+	public class WorldSelectChangeListener implements Listener<Boolean> {
+		@Override
+		public void receive(Signal<Boolean> signal, Boolean object) {
+			flagWorldSelectChange();
+		}
 	}
 
 	public class BattleVictoryListener implements Listener<Boolean> {
 		@Override
 		public void receive(Signal<Boolean> signal, Boolean object) {
 			Gdx.app.debug("BATTLE_END", "Battle end detected: boss = " + object);
-			flagWorldChange(object.booleanValue());
+			flagWorldReturn(object.booleanValue());
 		}
 	}
 
@@ -697,11 +813,14 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.debug("DIA_FINISH", "Detected finish in dialogue.");
 
 			Enemy e = ComponentMapper.getFor(Enemy.class).get(object);
+			NPC npc = ComponentMapper.getFor(NPC.class).get(object);
 
 			if (e != null) {
 				startBossBattle();
-			} else {
+			} else if (npc != null) {
 				healToFull();
+			} else {
+				moveToLastWorld();
 			}
 		}
 	}

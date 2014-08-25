@@ -15,6 +15,8 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.signals.Listener;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
@@ -26,17 +28,21 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldPlayerInputSystem extends IteratingSystem {
-	private ComponentMapper<Position>	posMapper		= ComponentMapper.getFor(Position.class);
-	private ComponentMapper<Renderable>	facingMapper	= ComponentMapper.getFor(Renderable.class);
-	private ComponentMapper<Moving>		movingMapper	= ComponentMapper.getFor(Moving.class);
+	private ComponentMapper<Position>	posMapper				= ComponentMapper.getFor(Position.class);
+	private ComponentMapper<Renderable>	facingMapper			= ComponentMapper.getFor(Renderable.class);
+	private ComponentMapper<Moving>		movingMapper			= ComponentMapper.getFor(Moving.class);
 
-	private Engine						engine			= null;
+	private Engine						engine					= null;
 
-	private DialogueSystem				dialogueSystem	= null;
+	private DialogueSystem				dialogueSystem			= null;
+
+	public Signal<Boolean>				worldSelectChangeSignal	= null;
 
 	@SuppressWarnings("unchecked")
-	public WorldPlayerInputSystem(int priority) {
+	public WorldPlayerInputSystem(Listener<Boolean> worldSelectChangeListener, int priority) {
 		super(Family.getFor(Position.class, Renderable.class, WorldPlayerInputListener.class), priority);
+		worldSelectChangeSignal = new Signal<Boolean>();
+		worldSelectChangeSignal.add(worldSelectChangeListener);
 	}
 
 	@Override
@@ -82,6 +88,8 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 					} else if (Gdx.input.isKeyPressed(listener.rightKey)) {
 						// Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
 						attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
+					} else if (Gdx.input.isKeyJustPressed(Keys.ENTER)) {
+						worldSelectChangeSignal.dispatch(true);
 					}
 				}
 			}
@@ -111,7 +119,6 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 			return true;
 		} else {
 			// move failed
-			Gdx.app.debug("MOVE_FAIL", "Can't move into solid object.");
 			return false;
 		}
 	}
