@@ -37,7 +37,7 @@ public class TextRenderSystem extends IteratingSystem {
 		batch.begin();
 
 		font.setColor(text.color);
-		font.drawMultiLine(batch, text.text, pos.x, pos.y);
+		font.drawMultiLine(batch, text.getText(), pos.x, pos.y);
 
 		batch.end();
 	}

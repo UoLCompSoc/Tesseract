@@ -20,12 +20,16 @@ public class TesseractStrings {
 		return killedMessage;
 	}
 
-	private static BattleMessage	jumpMessage	= new BattleMessage(
-														"You jump into the air!\n...what did you think that would do?",
-														2.5f);
+	private static BattleMessage	defendMessage	= new BattleMessage("You brace yourself against attacks!", 2.5f);
 
-	public static BattleMessage getJumpMessage() {
-		return jumpMessage;
+	public static BattleMessage getDefendMessage() {
+		return defendMessage;
+	}
+
+	private static BattleMessage	quaffMessage	= new BattleMessage("You quaff a delicious potion!", 2.5f);
+
+	public static BattleMessage getQuaffMessage() {
+		return quaffMessage;
 	}
 
 	private static BattleMessage	fleeMessage	= new BattleMessage(
@@ -55,5 +59,11 @@ public class TesseractStrings {
 		} else {
 			return victoryMessage1;
 		}
+	}
+
+	private static BattleMessage	attackNotReady	= new BattleMessage("Not ready yet!", 0.5f);
+
+	public static BattleMessage getAttackNotReadyMessage() {
+		return attackNotReady;
 	}
 }

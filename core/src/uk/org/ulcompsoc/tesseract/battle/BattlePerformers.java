@@ -49,11 +49,19 @@ public class BattlePerformers {
 		}
 	}
 
-	public static class JumpPerformer implements MouseClickPerformer {
+	public static class DefendPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			Gdx.app.debug("PERFORM_JUMP", "Performing a jump.");
-			battleMessageSystem.addMessage(TesseractStrings.getJumpMessage());
+			Gdx.app.debug("PERFORM_JUMP", "Performing defend.");
+			battleMessageSystem.addMessage(TesseractStrings.getDefendMessage());
+		}
+	}
+
+	public static class QuaffPerformer implements MouseClickPerformer {
+		@Override
+		public void perform(Entity invoker, Engine engine) {
+			Gdx.app.debug("PERFORM_QUAFF", "Performing a quaff.");
+			battleMessageSystem.addMessage(TesseractStrings.getQuaffMessage());
 		}
 	}
 
@@ -70,8 +78,8 @@ public class BattlePerformers {
 		public void perform(Entity invoker, Engine engine) {
 			Gdx.app.debug("PERFORM_TARGET", "Attack was targetted.");
 
-			removeTargets(engine);
 			battleAttackSystem.addAttack(new BattleAttack(TesseractMain.battlePlayerEntity, invoker, AttackType.MELEE));
+			removeTargets(engine);
 		}
 	}
 
@@ -79,11 +87,12 @@ public class BattlePerformers {
 	public static BattleMessageSystem			battleMessageSystem		= null;
 
 	public final static AttackPerformer			attackPerformer			= new AttackPerformer();
-	public final static JumpPerformer			jumpPerformer			= new JumpPerformer();
+	public final static DefendPerformer			defendPerformer			= new DefendPerformer();
+	public final static QuaffPerformer			quaffPerformer			= new QuaffPerformer();
 	public final static FleePerformer			fleePerformer			= new FleePerformer();
 	public final static EnemyTargetPerformer	enemyTargetPerformer	= new EnemyTargetPerformer();
-	public final static MouseClickPerformer[]	performers				= { attackPerformer, jumpPerformer,
-			fleePerformer												};
+	public final static MouseClickPerformer[]	performers				= { attackPerformer, defendPerformer,
+			quaffPerformer, fleePerformer								};
 
 	@SuppressWarnings("unchecked")
 	public static void removeTargets(Engine engine) {

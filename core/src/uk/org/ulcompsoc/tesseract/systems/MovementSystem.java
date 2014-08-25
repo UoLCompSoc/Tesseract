@@ -13,7 +13,6 @@ import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 
 /**
@@ -50,7 +49,7 @@ public class MovementSystem extends EntitySystem {
 			pos.position.set(move.getCurrentX(), move.getCurrentY());
 
 			if (done) {
-				Gdx.app.debug("MOVE_COMPLETE", "Finished a move.");
+				// Gdx.app.debug("MOVE_COMPLETE", "Finished a move.");
 				move.mover.remove(Moving.class);
 				movesToRemove.add(i);
 			}

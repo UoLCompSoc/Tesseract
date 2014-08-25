@@ -34,6 +34,7 @@ public class TesseractMap implements Disposable {
 	public final Entity[]			torches;
 	public final Entity				baseLayerEntity;
 	public final Entity				zLayerEntity;
+	public final Entity				bossEntity;
 	public final TiledMapRenderer	renderer;
 
 	final int						widthInTiles;
@@ -57,6 +58,7 @@ public class TesseractMap implements Disposable {
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
+		this.bossEntity = generateBossEntity(map);
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -272,6 +274,10 @@ public class TesseractMap implements Disposable {
 		}
 
 		return retVal;
+	}
+
+	public static Entity generateBossEntity(TiledMap map) {
+		return null;
 	}
 
 	@Override

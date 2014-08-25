@@ -2,8 +2,10 @@ package uk.org.ulcompsoc.tesseract;
 
 import java.util.Random;
 
+import uk.org.ulcompsoc.tesseract.animations.SlimeFrameResolver;
 import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
@@ -18,10 +20,12 @@ import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.Text;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
+import uk.org.ulcompsoc.tesseract.systems.BattleAISystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
+import uk.org.ulcompsoc.tesseract.systems.BuffSystem;
 import uk.org.ulcompsoc.tesseract.systems.DialogueSystem;
 import uk.org.ulcompsoc.tesseract.systems.FocusTakingSystem;
 import uk.org.ulcompsoc.tesseract.systems.MovementSystem;
@@ -38,6 +42,7 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -56,59 +61,87 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class TesseractMain extends ApplicationAdapter {
-	public static final String		PLAYER_NAME						= "Valiant Hero™";
-	public static final float		BATTLE_END_TRANSITION_TIME		= 4.0f;
-	public static final float		BATTLE_START_TRANSITION_TIME	= 2.0f;
+	public static final String			PLAYER_NAME						= "Valiant Hero™";
+	public static final float			BATTLE_END_TRANSITION_TIME		= 4.0f;
+	public static final float			BATTLE_START_TRANSITION_TIME	= 2.0f;
 
-	private Random					random							= null;
+	private Random						random							= null;
 
-	private SpriteBatch				batch							= null;
-	private Camera					camera							= null;
+	private SpriteBatch					batch							= null;
+	private Camera						camera							= null;
 
-	private ShaderProgram			vortexProgram					= null;
+	private ShaderProgram				vortexProgram					= null;
 
-	private BitmapFont				font10							= null;
-	private BitmapFont				font12							= null;
-	private BitmapFont				font16							= null;
-	private BitmapFont				font24							= null;
+	private BitmapFont					font10							= null;
+	private BitmapFont					font12							= null;
+	private BitmapFont					font16							= null;
+	private BitmapFont					font24							= null;
 
-	private Engine					currentEngine					= null;
-	private Engine					battleEngine					= null;
-	private Engine					worldEngine						= null;
+	private Engine						currentEngine					= null;
+	private Engine						battleEngine					= null;
+	private Engine[]					worldEngines					= null;
 
-	public static Entity			battlePlayerEntity				= null;
-	public static Entity			worldPlayerEntity				= null;
+	public static Entity				battlePlayerEntity				= null;
+	public static Entity				worldPlayerEntity				= null;
+	public static Stats					playerStats						= null;
 
-	BattleVictoryListener			battleVictoryListener			= null;
+	BattleVictoryListener				battleVictoryListener			= null;
 
-	private static boolean			battleChangeFlag				= false;
-	private static boolean			worldChangeFlag					= false;
-	private float					transitionTime					= -1.0f;
+	private static boolean				battleChangeFlag				= false;
+	private static boolean				worldChangeFlag					= false;
+	private float						transitionTime					= -1.0f;
 
-	private Texture					playerTexture					= null;
-	private TextureRegion[]			playerRegions					= null;
+	private Texture						playerTexture					= null;
+	private TextureRegion[]				playerRegions					= null;
 
-	private Texture					slimeTexture					= null;
+	private Texture[]					slimeTextures					= null;
+	private Animation[]					slimeAnims						= null;
 
-	private Texture					torchTexture					= null;
-	private Animation				torchAnim						= null;
+	private Texture[]					torchTextures					= null;
+	private Animation[]					torchAnims						= null;
 
-	private MonsterTileHandler		monsterTileHandler				= null;
+	private Texture[]					bossTextures					= null;
+	private Animation[]					bossAnims						= null;
 
-	private Entity					statusDialog					= null;
-	private Entity[]				menuDialogs						= null;
-	private Entity[]				menuTexts						= null;
-	private Entity					hpText							= null;
-	private Entity					rageText						= null;
+	private MonsterTileHandler			monsterTileHandler				= null;
 
-	public static final String[]	mapNames						= { "world1/world1.tmx" };
-	public static final Color[]		mapColors						= { new Color(80.0f / 255.0f, 172.0f / 255.0f,
-																			61.0f / 255.0f, 1.0f) };
-	private static TesseractMap[]	maps							= null;
-	public static int				currentMapIndex					= 0;
+	private Entity						statusDialog					= null;
+	private Entity[]					menuDialogs						= null;
+	private Entity[]					menuTexts						= null;
+	private Entity						hpText							= null;
+	private Entity						rageText						= null;
+
+	public static final String[]		mapNames						= { "world1/world1.tmx", "world2/world2.tmx",
+			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx" };
+	public static final Color[]			mapColors						= {
+			new Color(80.0f / 255.0f, 172.0f / 255.0f, 61.0f / 255.0f, 1.0f),
+			new Color(61.0f / 255.0f, 111.f / 255.0f, 172.0f / 255.0f, 1.0f),
+			new Color(169.0f / 255.0f, 117.0f / 255.0f, 65.0f / 255.0f, 1.0f),
+			new Color(152.0f / 255.0f, 61.0f / 255.0f, 172.0f / 255.0f, 1.0f),
+			new Color(188.0f / 255.0f, 44.0f / 255.0f, 52.0f / 255.0f, 1.0f),
+			new Color(116.0f / 255.0f, 116.0f / 255.0f, 116.0f / 255.0f, 1.0f) };
+
+	public static final String[]		slimeFiles						= { "monsters/world1_slime.png",
+			"monsters/world2_slime.png", "monsters/world3_slime.png", "monsters/world4_slime.png",
+			"monsters/world5_slime.png", "monsters/world6_slime.png"	};
+
+	public static final String[]		torchFiles						= { "torches/world1_torches.png",
+			"torches/world2_torches.png", "torches/world3_torches.png", "torches/world4_torches.png",
+			"torches/world5_torches.png", "torches/world6_torches.png"	};
+
+	public static final String[]		bossFiles						= { "bosses/final_boss.png",
+			"bosses/world2_boss.png", "bosses/world3_boss.png", "bosses/world4_boss.png", "bosses/world5_boss.png",
+			"bosses/world6_boss.png"									};
+
+	public static final GridPoint2[]	bossSizes						= { new GridPoint2(128, 128),
+			new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64),
+			new GridPoint2(64, 64)										};
+
+	private static TesseractMap[]		maps							= null;
+	public static int					currentMapIndex					= 0;
 
 	@SuppressWarnings("unused")
-	private GameState				gameState						= null;
+	private GameState					gameState						= null;
 
 	public TesseractMain() {
 		this(Difficulty.EASY, false);
@@ -147,21 +180,22 @@ public class TesseractMain extends ApplicationAdapter {
 		playerTexture = new Texture(Gdx.files.internal("player/basicPlayer.png"));
 		playerRegions = TextureRegion.split(playerTexture, WorldConstants.TILE_WIDTH, WorldConstants.TILE_HEIGHT)[0];
 
-		slimeTexture = new Texture(Gdx.files.internal("monsters/greenSlime.png"));
-		torchTexture = new Texture(Gdx.files.internal("torches/world1torches.png"));
-		TextureRegion[] torchRegions = TextureRegion.split(torchTexture, WorldConstants.TILE_WIDTH,
-				WorldConstants.TILE_HEIGHT)[0];
-		torchAnim = new Animation(0.15f, torchRegions[0], torchRegions[1], torchRegions[2]);
-		torchAnim.setPlayMode(PlayMode.LOOP_PINGPONG);
+		loadSlimeFiles();
+
+		loadTorchFiles();
+
+		loadBossFiles();
+
+		playerStats = new Stats(100, 15, 5, 70);
 
 		monsterTileHandler = new MonsterTileHandler();
 		battleVictoryListener = new BattleVictoryListener();
 
 		battleEngine = new Engine();
-		worldEngine = new Engine();
+		worldEngines = new Engine[mapNames.length];
 
 		initBattleEngine(battleEngine);
-		initWorldEngine(worldEngine);
+		initWorldEngines(worldEngines);
 
 		changeToWorld();
 	}
@@ -173,6 +207,18 @@ public class TesseractMain extends ApplicationAdapter {
 		Gdx.gl.glClearColor(mapColors[currentMapIndex].r, mapColors[currentMapIndex].g, mapColors[currentMapIndex].b,
 				mapColors[currentMapIndex].a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		if (Gdx.app.getLogLevel() == Application.LOG_DEBUG) {
+			if (Gdx.input.isKeyJustPressed(Keys.F5)) {
+				currentMapIndex++;
+
+				if (currentMapIndex == mapNames.length) {
+					currentMapIndex = 0;
+				}
+
+				changeToWorld();
+			}
+		}
 
 		if (battleChangeFlag || worldChangeFlag) {
 			transitionTime -= deltaTime;
@@ -226,21 +272,41 @@ public class TesseractMain extends ApplicationAdapter {
 	}
 
 	public void changeToWorld() {
-		Gdx.app.debug("WORLD_CHANGE", "Changing to world view.");
+		Gdx.app.debug("WORLD_CHANGE", "Changing to world " + (currentMapIndex + 1) + ".");
 
-		this.currentEngine = worldEngine;
+		this.currentEngine = worldEngines[currentMapIndex];
+
+		worldPlayerEntity.add(getCurrentMap().findPlayerPosition());
+		this.currentEngine.addEntity(worldPlayerEntity);
 
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
 		camera.update();
 	}
 
-	public void initWorldEngine(Engine engine) {
+	public void initWorldEngines(Engine[] engines) {
 		maps = new TesseractMap[mapNames.length];
 		TmxMapLoader mapLoader = new TmxMapLoader();
 
+		currentMapIndex = 0;
+
+		worldPlayerEntity = new Entity();
+		worldPlayerEntity.add(new Renderable(Facing.DOWN, playerRegions[1], playerRegions[0], playerRegions[3],
+				playerRegions[2]).setPrioritity(50));
+		worldPlayerEntity.add(new FocusTaker(camera));
+		worldPlayerEntity.add(new Player(PLAYER_NAME));
+		worldPlayerEntity.add(new WorldPlayerInputListener());
+
+		worldPlayerEntity.componentAdded.add(monsterTileHandler.movingAddListener);
+		worldPlayerEntity.componentRemoved.add(monsterTileHandler.movingRemoveListener);
+		worldPlayerEntity.add(new Movable());
+
+		worldPlayerEntity.add(playerStats);
+
 		for (int i = 0; i < mapNames.length; i++) {
+			Engine engine = new Engine();
+
 			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
-					torchAnim);
+					torchAnims[i]);
 
 			engine.addEntity(maps[i].baseLayerEntity);
 
@@ -253,29 +319,22 @@ public class TesseractMain extends ApplicationAdapter {
 			}
 
 			engine.addEntity(maps[i].zLayerEntity);
+
+			if (maps[i].bossEntity != null) {
+				engine.addEntity(maps[i].bossEntity);
+			}
+
+			engine.addEntity(worldPlayerEntity);
+
+			engine.addSystem(new WorldPlayerInputSystem(100));
+			engine.addSystem(new MovementSystem(getCurrentMap(), 500));
+			engine.addSystem(new FocusTakingSystem(750));
+			engine.addSystem(new RenderSystem(batch, camera, 1000));
+			engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
+
+			engines[i] = engine;
 		}
 
-		currentMapIndex = 0;
-
-		worldPlayerEntity = new Entity();
-		worldPlayerEntity.add(new Renderable(Facing.DOWN, playerRegions[1], playerRegions[0], playerRegions[3],
-				playerRegions[2]).setPrioritity(50));
-		worldPlayerEntity.add(getCurrentMap().findPlayerPosition());
-		worldPlayerEntity.add(new FocusTaker(camera));
-		worldPlayerEntity.add(new Player(PLAYER_NAME));
-		worldPlayerEntity.add(new WorldPlayerInputListener());
-
-		worldPlayerEntity.componentAdded.add(monsterTileHandler.movingAddListener);
-		worldPlayerEntity.componentRemoved.add(monsterTileHandler.movingRemoveListener);
-		worldPlayerEntity.add(new Movable());
-
-		engine.addEntity(worldPlayerEntity);
-
-		engine.addSystem(new WorldPlayerInputSystem(100));
-		engine.addSystem(new MovementSystem(getCurrentMap(), 500));
-		engine.addSystem(new FocusTakingSystem(750));
-		engine.addSystem(new RenderSystem(batch, camera, 1000));
-		engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
 	}
 
 	public void initBattleEngine(Engine engine) {
@@ -286,20 +345,23 @@ public class TesseractMain extends ApplicationAdapter {
 		battlePlayerEntity.add(new Position(17 * WorldConstants.TILE_WIDTH, yTile));
 		battlePlayerEntity.add(new Renderable(Facing.DOWN, playerRegions[1], playerRegions[0], playerRegions[3],
 				playerRegions[2]).setPrioritity(50));
-		battlePlayerEntity.add(new Stats(100, 25, 4));
+		battlePlayerEntity.add(playerStats);
+		Gdx.app.debug("PLAYER_THINK_TIME", "Player has " + playerStats.getThinkTime() + "s think time.");
 
 		Player playerComp = new Player(PLAYER_NAME);
 		battlePlayerEntity.add(playerComp);
+		Combatant playerCombatant = new Combatant();
+		battlePlayerEntity.add(playerCombatant);
 		battlePlayerEntity.add(new Named(playerComp.name));
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		statusDialog = new Entity();
 		statusDialog.add(new RelativePosition(new Rectangle(0.0f, 0.0f, 0.3f, 0.2f), screenRect));
-		statusDialog.add(new BattleDialog(Color.BLUE, Color.DARK_GRAY));
+		statusDialog.add(new BattleDialog(Color.BLUE, Color.DARK_GRAY, playerCombatant));
 
-		final int menuDialogCount = 3;
-		final String[] dialogStrings = { "Attack", "Jump", "Flee" };
+		final int menuDialogCount = 4;
+		final String[] dialogStrings = { "Attack", "Defend", "Quaff", "Flee" };
 
 		menuDialogs = new Entity[menuDialogCount];
 		menuTexts = new Entity[menuDialogCount];
@@ -315,7 +377,7 @@ public class TesseractMain extends ApplicationAdapter {
 			RelativePosition menuPos = new RelativePosition(new Rectangle(menuX, 0.0f, menuW, 0.2f), screenRect);
 
 			menuDialogs[i].add(menuPos);
-			menuDialogs[i].add(new BattleDialog(Color.NAVY, Color.DARK_GRAY));
+			menuDialogs[i].add(new BattleDialog(Color.NAVY, Color.DARK_GRAY, playerCombatant));
 			menuDialogs[i].add(new MouseClickListener(menuPos.pos, BattlePerformers.performers[i]));
 
 			menuTexts[i] = new Entity();
@@ -327,7 +389,7 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		hpText = new Entity();
-		Text hpTextComponent = new Text("HP: 100/100");
+		Text hpTextComponent = new Text("HP: ", Color.WHITE, playerStats.hpChangeSignal);
 		hpText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.75f, hpTextComponent, font16),
 				statusDialog));
 		hpText.add(hpTextComponent);
@@ -352,6 +414,8 @@ public class TesseractMain extends ApplicationAdapter {
 		BattlePerformers.battleAttackSystem = battleAttackSystem;
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
 
+		engine.addSystem(new BuffSystem(50));
+		engine.addSystem(new BattleAISystem(75));
 		engine.addSystem(new BattleInputSystem(camera, 100));
 		engine.addSystem(battleAttackSystem.addVictoryListener(battleVictoryListener));
 		engine.addSystem(battleMessageSystem);
@@ -364,9 +428,6 @@ public class TesseractMain extends ApplicationAdapter {
 		if (count < 1 || count > 3) {
 			throw new GdxRuntimeException("Only between 1-3 slimes supported.");
 		}
-
-		TextureRegion slimeRegion = TextureRegion.split(slimeTexture, WorldConstants.TILE_WIDTH,
-				WorldConstants.TILE_HEIGHT)[0][0];
 
 		final float yMiddle = 12 * WorldConstants.TILE_HEIGHT;
 
@@ -388,8 +449,13 @@ public class TesseractMain extends ApplicationAdapter {
 
 		for (int i = 0; i < count; i++) {
 			Entity slimeEntity = new Entity();
-			slimeEntity.add(positions[i]).add(new Renderable(slimeRegion).setPrioritity(50));
-			slimeEntity.add(new Stats(50, 2, 2));
+			slimeEntity.add(positions[i]).add(
+					new Renderable(slimeAnims[currentMapIndex]).setPrioritity(50).setAnimationResolver(
+							new SlimeFrameResolver()));
+			Stats slimeStats = new Stats(50, 10, 1, 2 + (random.nextInt(3) + 1) * 5);
+			slimeEntity.add(slimeStats);
+			Gdx.app.debug("SLIME_THINK_TIME", "Slimes think for " + slimeStats.getThinkTime() + "s.");
+			slimeEntity.add(new Combatant());
 
 			Enemy slime1 = new Enemy("Green Ooze");
 			slimeEntity.add(slime1);
@@ -431,6 +497,43 @@ public class TesseractMain extends ApplicationAdapter {
 		return maps[currentMapIndex];
 	}
 
+	public void loadTorchFiles() {
+		torchTextures = new Texture[torchFiles.length];
+		torchAnims = new Animation[torchFiles.length];
+
+		for (int i = 0; i < torchFiles.length; i++) {
+			torchTextures[i] = new Texture(Gdx.files.internal(torchFiles[i]));
+			TextureRegion[] torchRegions = TextureRegion.split(torchTextures[i], WorldConstants.TILE_WIDTH,
+					WorldConstants.TILE_HEIGHT)[0];
+			torchAnims[i] = new Animation(0.15f, torchRegions[0], torchRegions[1], torchRegions[2]);
+			torchAnims[i].setPlayMode(PlayMode.LOOP_PINGPONG);
+		}
+	}
+
+	public void loadSlimeFiles() {
+		slimeTextures = new Texture[slimeFiles.length];
+		slimeAnims = new Animation[slimeFiles.length];
+
+		for (int i = 0; i < slimeFiles.length; i++) {
+			slimeTextures[i] = new Texture(Gdx.files.internal(slimeFiles[i]));
+			TextureRegion[] slimeRegions = TextureRegion.split(slimeTextures[i], WorldConstants.TILE_WIDTH,
+					WorldConstants.TILE_HEIGHT)[0];
+			slimeAnims[i] = new Animation(0.75f, slimeRegions[0], slimeRegions[1]);
+			slimeAnims[i].setPlayMode(PlayMode.NORMAL);
+		}
+	}
+
+	public void loadBossFiles() {
+		bossTextures = new Texture[bossFiles.length];
+		bossAnims = new Animation[bossFiles.length];
+
+		for (int i = 0; i < bossFiles.length; i++) {
+			bossTextures[i] = new Texture(Gdx.files.internal(bossFiles[i]));
+			TextureRegion[] bossRegions = TextureRegion.split(bossTextures[i], bossSizes[i].x, bossSizes[i].y)[0];
+			bossAnims[i] = new Animation(0.1f, bossRegions);
+		}
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -441,17 +544,29 @@ public class TesseractMain extends ApplicationAdapter {
 			}
 		}
 
-		if (torchTexture != null) {
-			torchAnim = null;
-			torchTexture.dispose();
+		for (int i = 0; i < torchTextures.length; i++) {
+			if (torchTextures[i] != null) {
+				torchAnims[i] = null;
+				torchTextures[i].dispose();
+			}
+		}
+
+		for (int i = 0; i < slimeTextures.length; i++) {
+			if (slimeTextures[i] != null) {
+				slimeAnims[i] = null;
+				slimeTextures[i].dispose();
+			}
+		}
+
+		for (int i = 0; i < bossTextures.length; i++) {
+			if (bossTextures[i] != null) {
+				bossAnims[i] = null;
+				bossTextures[i].dispose();
+			}
 		}
 
 		if (playerTexture != null) {
 			playerTexture.dispose();
-		}
-
-		if (slimeTexture != null) {
-			slimeTexture.dispose();
 		}
 
 		if (font10 != null) {
@@ -491,7 +606,8 @@ public class TesseractMain extends ApplicationAdapter {
 			@Override
 			public void receive(Signal<Entity> signal, Entity object) {
 				if (ComponentMapper.getFor(Moving.class).has(object)) {
-					Gdx.app.debug("MOVING_ADD", "Moving component added to player.");
+					// Gdx.app.debug("MOVING_ADD",
+					// "Moving component added to player.");
 					moving = true;
 				}
 			}
@@ -501,7 +617,7 @@ public class TesseractMain extends ApplicationAdapter {
 			@Override
 			public void receive(Signal<Entity> signal, Entity object) {
 				if (moving && !ComponentMapper.getFor(Moving.class).has(object)) {
-					Gdx.app.debug("MOVING_REMOVE", "Moving removed.");
+					// Gdx.app.debug("MOVING_REMOVE", "Moving removed.");
 					moving = false;
 
 					GridPoint2 pos = ComponentMapper.getFor(Position.class).get(object).getGridPosition();

@@ -1,5 +1,8 @@
 package uk.org.ulcompsoc.tesseract.systems;
 
+import uk.org.ulcompsoc.tesseract.TesseractStrings;
+import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 
 import com.badlogic.ashley.core.ComponentMapper;
@@ -19,6 +22,9 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class BattleInputSystem extends EntitySystem {
 	private ComponentMapper<MouseClickListener>	mclMapper		= ComponentMapper.getFor(MouseClickListener.class);
+	// private ComponentMapper<Combatant> combatantMapper =
+	// ComponentMapper.getFor(Combatant.class);
+	private ComponentMapper<BattleDialog>		bdMapper		= ComponentMapper.getFor(BattleDialog.class);
 
 	private Camera								camera			= null;
 
@@ -39,7 +45,8 @@ public class BattleInputSystem extends EntitySystem {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void addedToEngine(Engine engine) {
-		this.entities = engine.getEntitiesFor(Family.getFor(MouseClickListener.class));
+		Family family = Family.getFor(MouseClickListener.class);
+		this.entities = engine.getEntitiesFor(family);
 		this.engine = engine;
 	};
 
@@ -61,10 +68,19 @@ public class BattleInputSystem extends EntitySystem {
 	public boolean processEntity(Entity entity, float deltaTime) {
 		MouseClickListener mcl = mclMapper.get(entity);
 		Rectangle pos = mcl.rect;
+		BattleDialog bd = bdMapper.get(entity);
+		Combatant com = (bd != null ? bd.combatant : null);
 
 		if (pos.contains(mouseCoordCache.x, mouseCoordCache.y)) {
-			mcl.perform(entity, engine);
-			return true;
+			if (com == null || com.canAct()) {
+				if (com != null) {
+					com.thinkingTime = 0.0f;
+				}
+				mcl.perform(entity, engine);
+				return true;
+			} else {
+				engine.getSystem(BattleMessageSystem.class).addMessage(TesseractStrings.getAttackNotReadyMessage());
+			}
 		}
 
 		return false;
@@ -78,6 +94,8 @@ public class BattleInputSystem extends EntitySystem {
 				mouseCoordCache = camera.unproject(mouseCoordCache);
 
 				hasReleased = false;
+
+				Gdx.app.debug("prc", "mouse proc");
 
 				return true;
 			}

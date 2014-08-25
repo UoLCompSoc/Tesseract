@@ -53,17 +53,20 @@ public class BattleAttackSystem extends EntitySystem {
 	@Override
 	public void update(float deltaTime) {
 		while (attacks.size() > 0) {
+			Gdx.app.debug("BATT_ATK_UPDATE", "" + attacks.size() + " attacks left to process.");
 			BattleAttack atk = attacks.get(0);
 			Stats attackStats = statsMapper.get(atk.attacker);
 			Stats defStats = statsMapper.get(atk.target);
 			// AttackType attackType = atk.attackType;
 
 			int dmg = BattleAttack.resolveDamage(attackStats, defStats);
-			Gdx.app.debug("RESOLVED_DAMAGE", "Did " + dmg + " points of damage.");
+			Gdx.app.debug("RESOLVED_DAMAGE", "Did " + dmg + " points of damage to " + nameMapper.get(atk.target).name
+					+ ".");
 
-			defStats.currentHP -= dmg;
+			defStats.damageHP(dmg);
 
-			if (defStats.currentHP <= 0) {
+			if (defStats.getHP() <= 0) {
+				attackStats.addExperience(defStats.getLevel() * 2);
 				killTarget(atk.target);
 			}
 

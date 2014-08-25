@@ -68,19 +68,19 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 			if (moving == null || moving.move.isNearlyDone()) {
 				if (!ComponentMapper.getFor(Moving.class).has(entity)) {
 					if (Gdx.input.isKeyPressed(listener.upKey)) {
-						Gdx.app.debug("MOVE_UP", "Attempting to move.");
+						// Gdx.app.debug("MOVE_UP", "Attempting to move.");
 						attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
 
 					} else if (Gdx.input.isKeyPressed(listener.downKey)) {
-						Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
+						// Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
 						attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
 
 					} else if (Gdx.input.isKeyPressed(listener.leftKey)) {
-						Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
+						// Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
 						attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
 
 					} else if (Gdx.input.isKeyPressed(listener.rightKey)) {
-						Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
+						// Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
 						attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
 					}
 				}
