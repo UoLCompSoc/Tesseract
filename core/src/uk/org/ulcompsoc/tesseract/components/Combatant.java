@@ -29,4 +29,10 @@ public class Combatant extends Component {
 	public boolean canAct() {
 		return thinkingTime < -0.5f;
 	}
+
+	public Combatant setThinkingTime(float time) {
+		thinkingTime = time;
+
+		return this;
+	}
 }

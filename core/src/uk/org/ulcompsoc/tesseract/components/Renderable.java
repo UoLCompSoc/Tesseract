@@ -16,15 +16,17 @@ import com.badlogic.gdx.math.GridPoint2;
  */
 public class Renderable extends Component {
 	public enum RenderType {
-		UDLR_SPRITE, STATIC_SPRITE, ANIM_SPRITE_LOOP, TILED, NONE;
+		UDLR_SPRITE, UDLR_ANIM, STATIC_SPRITE, ANIM_SPRITE_LOOP, TILED, NONE;
 	}
 
 	public enum Facing {
-		UP, DOWN, LEFT, RIGHT;
+		UP, DOWN, LEFT, RIGHT, IDLE;
 
 		public static GridPoint2 pointInFront(GridPoint2 pos, Facing facing) {
 			switch (facing) {
 			case DOWN:
+				return new GridPoint2(pos.x, pos.y - 1);
+			case IDLE:
 				return new GridPoint2(pos.x, pos.y - 1);
 			case LEFT:
 				return new GridPoint2(pos.x - 1, pos.y);
@@ -32,7 +34,6 @@ public class Renderable extends Component {
 				return new GridPoint2(pos.x + 1, pos.y);
 			case UP:
 				return new GridPoint2(pos.x, pos.y + 1);
-
 			default:
 				return null;
 			}
@@ -50,10 +51,17 @@ public class Renderable extends Component {
 	// not the component's responsibility to dispose(), should be done in class
 	// where it's loaded
 	public Facing					facing			= Facing.DOWN;
+
 	public TextureRegion			upTexture		= null;
 	public TextureRegion			downTexture		= null;
 	public TextureRegion			leftTexture		= null;
 	public TextureRegion			rightTexture	= null;
+
+	public Animation				idleAnim		= null;
+	public Animation				upAnim			= null;
+	public Animation				downAnim		= null;
+	public Animation				leftAnim		= null;
+	public Animation				rightAnim		= null;
 
 	public Animation				animation		= null;
 	public AnimationFrameResolver	resolver		= null;
@@ -112,8 +120,31 @@ public class Renderable extends Component {
 		this.width = WorldConstants.TILE_HEIGHT;
 	}
 
+	public Renderable(Facing facing, Animation idleAnim, Animation upAnim, Animation downAnim, Animation leftAnim,
+			Animation rightAnim) {
+		this(facing, idleAnim, upAnim, downAnim, leftAnim, rightAnim, new PingPongFrameResolver());
+	}
+
+	public Renderable(Facing facing, Animation idleAnim, Animation upAnim, Animation downAnim, Animation leftAnim,
+			Animation rightAnim, AnimationFrameResolver resolver) {
+		this.facing = facing;
+
+		this.idleAnim = idleAnim;
+		this.upAnim = upAnim;
+		this.downAnim = downAnim;
+		this.leftAnim = leftAnim;
+		this.rightAnim = rightAnim;
+
+		this.renderType = RenderType.UDLR_ANIM;
+
+		setFacing(facing);
+
+		this.resolver = resolver;
+
+	}
+
 	public TextureRegion getCurrent(float deltaTime) {
-		if (renderType == RenderType.ANIM_SPRITE_LOOP) {
+		if (renderType == RenderType.ANIM_SPRITE_LOOP || renderType == RenderType.UDLR_ANIM) {
 			return resolver.resolveFrame(animation, deltaTime);
 		} else {
 			return current;
@@ -152,6 +183,39 @@ public class Renderable extends Component {
 
 			case RIGHT: {
 				current = rightTexture;
+				break;
+			}
+
+			case IDLE: {
+				break;
+			}
+			}
+		} else if (renderType == RenderType.UDLR_ANIM) {
+			this.facing = facing;
+
+			switch (facing) {
+			case UP: {
+				animation = upAnim;
+				break;
+			}
+
+			case DOWN: {
+				animation = downAnim;
+				break;
+			}
+
+			case LEFT: {
+				animation = leftAnim;
+				break;
+			}
+
+			case RIGHT: {
+				animation = rightAnim;
+				break;
+			}
+
+			case IDLE: {
+				animation = idleAnim;
 				break;
 			}
 			}

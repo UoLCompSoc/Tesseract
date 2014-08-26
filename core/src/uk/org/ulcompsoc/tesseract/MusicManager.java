@@ -13,7 +13,6 @@ public class MusicManager implements Disposable {
 	public final Music[]		loadedMusic;
 
 	private int					playingIndex		= -1;
-	private boolean				isPaused			= false;
 
 	private float				fadeDuration		= -1.0f;
 	private float				remainingFadeTime	= -1.0f;
@@ -52,7 +51,6 @@ public class MusicManager implements Disposable {
 			return;
 		}
 
-		isPaused = true;
 		loadedMusic[playingIndex].pause();
 	}
 
@@ -63,7 +61,7 @@ public class MusicManager implements Disposable {
 
 		loadedMusic[playingIndex].stop();
 		playingIndex = -1;
-		isPaused = false;
+
 	}
 
 	/**
