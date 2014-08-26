@@ -324,7 +324,7 @@ public class TesseractMap implements Disposable {
 		boss.add(new Enemy(name));
 
 		final String[] dia = Dialogue.parseDialogueLines(Gdx.files.internal(
-				map.getProperties().get("textPrefix") + "../boss_start.txt").readString());
+				map.getProperties().get("textPrefix") + "boss_start.txt").readString());
 		boss.add(new Dialogue(dia).addFinishListener(dfl));
 
 		return boss;

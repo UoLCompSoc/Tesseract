@@ -5,24 +5,20 @@ ULCS LD30 Entry - Theme "Connected Worlds"
 
 You are the mighty Valiant Hero<sup>TM</sup>, tasked with doing some poorly explained tasks to vanquish evil monsters! Why you? Who cares!
 
-Your cube planet has several different worlds to visit to beat bosses, become more powerful and save the kingdom. Can you obtain the ultimate weapon? Can you find the secrets of this place? How many slimes will *you* destroy?
+Your cube planet has several different worlds to visit to beat bosses, become more powerful and save the kingdom. Can you obtain the ultimate weapon? Can you find the secrets of this place? How many slimes will you destroy?
 
 Find out now!
 
-~~Latest playable version at http://www.ulcompsoc.org.uk/ld30/ - *DOES NOT WORK FOR v0.3, USE JAR FROM RELEASES PAGE*~~
-Sorry, HTML version not supported for Ludum Dare release.
+Instructions
+------------
+Movement : WASD  
+Interact with NPC/Boss : Space  
+World hop : Enter  
 
-### Code Roadmap
-1. ~~Basic Battle System~~
-2. ~~Map Rendering, World Interactions and Random Battles~~
-3. World Changes
-4. ~~Better Battle System - AI, Spells etc~~
-5. Cube
-6. Inventory/Items/Weapons
 
-### Art Roadmap
-1. ~~Player Animations~~
-2. ~~Animated Pedestals~~
-3. Background music (World/Cube/Battle/Boss Battle)
-4. Sound effects (attack monster/get hit/door open)
-5. Item Sprites
+Including your home world, there are 5 other unique worlds to visit; in each world lies a powerful boss who you feel compelled to slay.  
+You feel that once you have slain all 5 bosses you may unlock the mystery of the strange door which lies in the centre of your home world!
+
+With each boss slain you will not only notice that the other worlds increase in difficulty, but you will feel and appear more heroic!
+  
+To be strong enough to slay the resident boss of each world, it would be a good idea to train yourself using the slimes in the conveniently placed pens.
