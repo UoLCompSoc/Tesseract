@@ -9,6 +9,7 @@ import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
 import uk.org.ulcompsoc.tesseract.components.Boss;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.Named;
+import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
 import com.badlogic.ashley.core.ComponentMapper;
@@ -24,21 +25,23 @@ import com.badlogic.gdx.Gdx;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleAttackSystem extends EntitySystem {
-	private ComponentMapper<Stats>	statsMapper		= ComponentMapper.getFor(Stats.class);
-	private ComponentMapper<Named>	nameMapper		= ComponentMapper.getFor(Named.class);
+	private ComponentMapper<Stats>	statsMapper			= ComponentMapper.getFor(Stats.class);
+	private ComponentMapper<Named>	nameMapper			= ComponentMapper.getFor(Named.class);
 
-	private Engine					engine			= null;
+	private Engine					engine				= null;
 
-	private List<BattleAttack>		attacks			= new ArrayList<BattleAttack>();
+	private List<BattleAttack>		attacks				= new ArrayList<BattleAttack>();
 
-	private BattleMessageSystem		messageSystem	= null;
+	private BattleMessageSystem		messageSystem		= null;
 
-	private Signal<Boolean>			battleEndSignal	= null;
+	private Signal<Boolean>			battleEndSignal		= null;
+	private Signal<Boolean>			battleDefeatSignal	= null;
 
 	public BattleAttackSystem(BattleMessageSystem messageSystem, int priority) {
 		super(priority);
 		this.messageSystem = messageSystem;
 		this.battleEndSignal = new Signal<Boolean>();
+		this.battleDefeatSignal = new Signal<Boolean>();
 	}
 
 	@Override
@@ -87,9 +90,14 @@ public class BattleAttackSystem extends EntitySystem {
 	protected void killTarget(Entity target) {
 		engine.removeEntity(target);
 
+		if (ComponentMapper.getFor(Player.class).has(target)) {
+			doDefeat(target, TesseractStrings.getKilledMessage(nameMapper.get(target).name));
+		}
+
 		if (engine.getEntitiesFor(Family.getFor(Enemy.class)).size() == 0) {
 			doVictory(target, TesseractStrings.getKilledMessage(nameMapper.get(target).name));
 		} else {
+			messageSystem.clearAllMessages();
 			messageSystem.addMessage(TesseractStrings.getKilledMessage(nameMapper.get(target).name));
 		}
 	}
@@ -99,10 +107,24 @@ public class BattleAttackSystem extends EntitySystem {
 		return this;
 	}
 
+	public BattleAttackSystem addDefeatListener(Listener<Boolean> listener) {
+		battleDefeatSignal.add(listener);
+		return this;
+	}
+
 	public void doVictory(Entity target, BattleMessage lastMessage) {
 		messageSystem.clearAllMessages();
 		messageSystem.addMessage(lastMessage);
 		messageSystem.addMessage(TesseractStrings.getVictoryMessage());
+
 		battleEndSignal.dispatch(ComponentMapper.getFor(Boss.class).has(target));
+	}
+
+	public void doDefeat(Entity target, BattleMessage battleMessage) {
+		messageSystem.clearAllMessages();
+		messageSystem.addMessage(battleMessage);
+		messageSystem.addMessage(TesseractStrings.getDefeatMessage());
+
+		battleDefeatSignal.dispatch(true);
 	}
 }

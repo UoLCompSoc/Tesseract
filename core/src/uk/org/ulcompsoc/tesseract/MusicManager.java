@@ -30,7 +30,6 @@ public class MusicManager implements Disposable {
 	}
 
 	public void play(int index) {
-		Gdx.app.debug("PLAY", "");
 		if (playingIndex != -1) {
 			loadedMusic[playingIndex].stop();
 		}
@@ -80,7 +79,6 @@ public class MusicManager implements Disposable {
 			remainingFadeTime -= deltaTime;
 
 			if (remainingFadeTime <= 0.0f) {
-				Gdx.app.debug("FADE_COMPLETE", "");
 				fadeDuration = -1.0f;
 				remainingFadeTime = -1.0f;
 				loadedMusic[playingIndex].setVolume(DEFAULT_VOLUME);

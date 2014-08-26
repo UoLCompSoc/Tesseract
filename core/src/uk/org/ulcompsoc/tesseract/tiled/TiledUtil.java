@@ -80,6 +80,10 @@ public class TiledUtil {
 		return (layer.getProperties().get("boss", null, String.class) != null);
 	}
 
+	public static boolean isDoorLayer(TiledMapTileLayer layer) {
+		return (layer.getProperties().get("door", null, String.class) != null);
+	}
+
 	public static boolean isValidTesseractMap(TiledMap map) {
 		return (getMapTextPrefix(map) != null);
 	}

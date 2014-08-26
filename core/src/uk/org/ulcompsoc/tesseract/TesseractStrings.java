@@ -61,6 +61,13 @@ public class TesseractStrings {
 		}
 	}
 
+	private static BattleMessage	defeatMessage	= new BattleMessage("That's going to hurt in the morning!",
+															VICTORY_MESSAGE_TIME);
+
+	public static BattleMessage getDefeatMessage() {
+		return defeatMessage;
+	}
+
 	private static BattleMessage	attackNotReady	= new BattleMessage("Not ready yet!", 0.5f);
 
 	public static BattleMessage getAttackNotReadyMessage() {

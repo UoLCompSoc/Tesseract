@@ -21,7 +21,7 @@
  </layer>
  <layer name="doortop" width="32" height="32">
   <properties>
-   <property name="door" value="true"/>
+   <property name="hidden" value=""/>
    <property name="z" value="1"/>
   </properties>
   <data encoding="base64">
@@ -31,6 +31,7 @@
  <layer name="doorbot" width="32" height="32">
   <properties>
    <property name="door" value="true"/>
+   <property name="hidden" value=""/>
    <property name="solid" value="true"/>
   </properties>
   <data encoding="base64">

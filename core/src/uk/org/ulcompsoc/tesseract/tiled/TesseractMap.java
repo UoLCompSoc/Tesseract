@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
@@ -16,6 +17,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -47,8 +49,9 @@ public class TesseractMap implements Disposable {
 
 	public boolean					bossBeaten	= false;
 
-	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim, DialogueFinishListener healListener,
-			DialogueFinishListener bossListener, DialogueFinishListener doorOpenListener) {
+	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim, TextureRegion openDoorSprite,
+			TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
+			DialogueFinishListener doorOpenListener) {
 		this.map = map;
 
 		if (!TiledUtil.isValidTesseractMap(map)) {
@@ -68,8 +71,8 @@ public class TesseractMap implements Disposable {
 		this.monsterTiles = generateMonsterTiles(map);
 		this.bossEntity = generateBossEntity(map, bossListener);
 
-		this.doorEntity = generateDoorEntity(map);
-		this.openDoorEntity = generateOpenDoorEntity(map, doorOpenListener);
+		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
+		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -254,6 +257,10 @@ public class TesseractMap implements Disposable {
 						dia = dia.addFinishListener(listener);
 					}
 
+					if (layer.getProperties().get("finalwiz", String.class, null) != null) {
+						dia.addFinishListener(TesseractMain.finalFightListener);
+					}
+
 					e.add(dia);
 				} else {
 					Gdx.app.debug("LOAD_NPC", "Could not find file " + prop + ".");
@@ -316,18 +323,62 @@ public class TesseractMap implements Disposable {
 		boss.add(new Position().setFromGrid(pos));
 		boss.add(new Enemy(name));
 
-		final String[] dia = { "Mwa ha ha!", "Bring it!" };
+		final String[] dia = Dialogue.parseDialogueLines(Gdx.files.internal(
+				map.getProperties().get("textPrefix") + "../boss_start.txt").readString());
 		boss.add(new Dialogue(dia).addFinishListener(dfl));
 
 		return boss;
 	}
 
-	public static Entity generateDoorEntity(TiledMap map) {
-		return new Entity();
+	public static Entity generateDoorEntity(TiledMap map, TextureRegion closedDoorSprite) {
+		Entity e = new Entity();
+
+		MapLayers layers = map.getLayers();
+		GridPoint2 pos = null;
+
+		for (MapLayer layer_ : layers) {
+			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
+
+			if (TiledUtil.isDoorLayer(layer)) {
+				pos = TiledUtil.findFirstCell(layer);
+			}
+		}
+
+		if (pos == null) {
+			return null;
+		}
+		e.add(new Position().setFromGrid(pos));
+		final String[] doorDia = { "Ah, this is the door the wizard mentioned...",
+				"It opens when all the bosses are dead, right?" };
+		e.add(new Dialogue(doorDia));
+		e.add(new Renderable(closedDoorSprite).setPrioritity(0));
+
+		return e;
 	}
 
-	public static Entity generateOpenDoorEntity(TiledMap map, DialogueFinishListener dfl) {
-		return new Entity();
+	public static Entity generateOpenDoorEntity(TiledMap map, TextureRegion openDoorSprite, DialogueFinishListener dfl) {
+		Entity e = new Entity();
+
+		MapLayers layers = map.getLayers();
+		GridPoint2 pos = null;
+
+		for (MapLayer layer_ : layers) {
+			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
+
+			if (TiledUtil.isDoorLayer(layer)) {
+				pos = TiledUtil.findFirstCell(layer);
+			}
+		}
+
+		if (pos == null) {
+			return null;
+		}
+		e.add(new Position().setFromGrid(pos));
+		final String[] doorDia = { "This looks... ominous.", "Well, I guess I've come this far..." };
+		e.add(new Dialogue(doorDia).addFinishListener(dfl));
+		e.add(new Renderable(openDoorSprite).setPrioritity(0));
+
+		return e;
 	}
 
 	@Override

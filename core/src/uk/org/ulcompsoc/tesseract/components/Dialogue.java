@@ -1,9 +1,8 @@
 package uk.org.ulcompsoc.tesseract.components;
 
-import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
-
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Listener;
 import com.badlogic.ashley.signals.Signal;
 
 /**
@@ -19,7 +18,7 @@ public class Dialogue extends Component {
 		this.finishSignal = new Signal<Entity>();
 	}
 
-	public Dialogue addFinishListener(DialogueFinishListener listener) {
+	public Dialogue addFinishListener(Listener<Entity> listener) {
 		finishSignal.add(listener);
 		return this;
 	}
