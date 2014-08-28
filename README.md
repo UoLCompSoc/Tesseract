@@ -22,3 +22,19 @@ You feel that once you have slain all 5 bosses you may unlock the mystery of the
 With each boss slain you will not only notice that the other worlds increase in difficulty, but you will feel and appear more heroic!
   
 To be strong enough to slay the resident boss of each world, it would be a good idea to train yourself using the slimes in the conveniently placed pens.
+
+Post-Ludum Dare Roadmap
+-----------------------
+
+1. Bugfixing
+  1. Last world access
+  2. HP Rendering Bug at game start
+  3. Fix multiple clicks on world change restarting the world change process
+  4. Fix dirty hacks with interactions
+  
+2. Code Improvements
+  1. Combine Position and RelativePosition
+  2. Remove globals where possible
+  3. Enable HTML5 support
+  4. More data stored in maps
+  

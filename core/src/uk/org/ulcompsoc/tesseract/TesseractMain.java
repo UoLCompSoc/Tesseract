@@ -306,6 +306,10 @@ public class TesseractMain extends ApplicationAdapter {
 				changeToWorld((currentMapIndex + 1));
 			} else if (Gdx.input.isKeyJustPressed(Keys.F1)) {
 				doPlayerPowerUp();
+			} else if (Gdx.input.isKeyJustPressed(Keys.F2)) {
+				for (int i = 0; i < 20; i++) {
+					doPlayerPowerUp();
+				}
 			}
 		}
 
@@ -378,7 +382,6 @@ public class TesseractMain extends ApplicationAdapter {
 				world1.removeEntity(maps[0].doorEntity);
 				world1.addEntity(maps[0].openDoorEntity);
 			} else if (bossesRemaining == 0) {
-				finished = true;
 				flagWorldChange(0);
 				return;
 			}
@@ -772,7 +775,6 @@ public class TesseractMain extends ApplicationAdapter {
 			System.arraycopy(playerRegions[4], 0, leftArray, 0, 4);
 
 			Animation down = new Animation(0.2f, new Array<TextureRegion>(downArray));
-			;
 			Animation up = new Animation(0.2f, new Array<TextureRegion>(upArray));
 			Animation right = new Animation(0.2f, new Array<TextureRegion>(rightArray));
 			Animation left = new Animation(0.2f, new Array<TextureRegion>(leftArray));
@@ -952,16 +954,6 @@ public class TesseractMain extends ApplicationAdapter {
 			musicManager.dispose();
 		}
 	}
-
-	public static boolean			finished			= false;
-	public static Listener<Entity>	finalFightListener	= new Listener<Entity>() {
-															@Override
-															public void receive(Signal<Entity> signal, Entity object) {
-																if (!finished) {
-																	TesseractMain.doFinalFight();
-																}
-															}
-														};
 
 	public class WorldSelectChangeListener implements Listener<Boolean> {
 		@Override

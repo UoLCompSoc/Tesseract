@@ -3,7 +3,6 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
@@ -255,10 +254,6 @@ public class TesseractMap implements Disposable {
 					if (layer.getName().equals("npc3")) {
 						// dirty hack for queen healing
 						dia = dia.addFinishListener(listener);
-					}
-
-					if (layer.getProperties().get("finalwiz", String.class, null) != null) {
-						dia.addFinishListener(TesseractMain.finalFightListener);
 					}
 
 					e.add(dia);
