@@ -3,14 +3,35 @@ package uk.org.ulcompsoc.desktop;
 import uk.org.ulcompsoc.tesseract.Difficulty;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 
+import com.badlogic.gdx.Files.FileType;
+import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 public class DesktopLauncher {
 	public static void main(String[] args) {
+		DisplayMode[] modes = LwjglApplicationConfiguration.getDisplayModes();
+		boolean resFound = false;
+
+		for (DisplayMode mode : modes) {
+			if (mode.width == 1280 && mode.height == 720) {
+				System.out.println("1280x720 found.");
+				resFound = true;
+				break;
+			}
+		}
+
+		if (!resFound) {
+			throw new IllegalStateException("Could not find expected resolution, sorry.");
+		}
+
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.width = 640 + 32;
-		config.height = 640 + 32;
+		config.width = 1280;
+		config.height = 720;
+
+		config.addIcon("icons/icon16.png", FileType.Internal);
+		config.addIcon("icons/icon32.png", FileType.Internal);
+		config.addIcon("icons/icon128.png", FileType.Internal);
 
 		boolean debug = false;
 

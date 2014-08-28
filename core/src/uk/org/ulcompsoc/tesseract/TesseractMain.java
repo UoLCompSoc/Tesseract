@@ -455,7 +455,8 @@ public class TesseractMain extends ApplicationAdapter {
 			musicManager.play(currentMapIndex);
 		}
 
-		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		((OrthographicCamera) camera).zoom = 0.5f;
 		camera.update();
 
 	}
