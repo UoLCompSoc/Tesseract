@@ -424,8 +424,10 @@ public class TesseractMain extends ApplicationAdapter {
 			makeBattlePlayerEntity(currentEngine);
 		}
 
-		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		// ((OrthographicCamera) camera).zoom = 1.0f;
+		// ((OrthographicCamera) camera).setToOrtho(false,
+		// Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		((OrthographicCamera) camera).zoom = 1.0f;
+		camera.position.set(Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f, 0.0f);
 		debugCameraPosition(camera);
 		camera.update();
 
@@ -466,9 +468,10 @@ public class TesseractMain extends ApplicationAdapter {
 			musicManager.play(currentMapIndex);
 		}
 
-		((OrthographicCamera) camera)
-				.setToOrtho(false, Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f);
-		// ((OrthographicCamera) camera).zoom = 0.5f;
+		// ((OrthographicCamera) camera)
+		// .setToOrtho(false, Gdx.graphics.getWidth() / 2.0f,
+		// Gdx.graphics.getHeight() / 2.0f);
+		((OrthographicCamera) camera).zoom = 0.5f;
 		camera.update();
 		debugCameraPosition(camera);
 	}
@@ -476,9 +479,10 @@ public class TesseractMain extends ApplicationAdapter {
 	public void changeToWorldSelect() {
 		this.currentEngine = worldSelectEngine;
 
-		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		// camera.position.set(0.0f, 0.0f, 0.0f);
-		// ((OrthographicCamera) camera).zoom = 1.0f;
+		// ((OrthographicCamera) camera).setToOrtho(false,
+		// Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		((OrthographicCamera) camera).zoom = 1.0f;
+		camera.position.set(Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f, 0.0f);
 		camera.update();
 		debugCameraPosition(camera);
 	}
