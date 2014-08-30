@@ -3,51 +3,58 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
-import uk.org.ulcompsoc.tesseract.components.RelativePosition;
+import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Text;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleMessageSystem extends EntitySystem {
-	private static final Rectangle	boxDimensions			= new Rectangle(0.2f, 0.8f, 0.6f, 0.1f);
+	private List<BattleMessage>	messages				= new ArrayList<BattleMessage>();
 
-	private List<BattleMessage>		messages				= new ArrayList<BattleMessage>();
+	private float				displayTimeRemaining	= -1.0f;
 
-	private float					displayTimeRemaining	= -1.0f;
+	private Engine				engine					= null;
 
-	private Engine					engine					= null;
+	private BitmapFont			font					= null;
+	private Camera				camera					= null;
 
-	private BitmapFont				font					= null;
-	private Camera					camera					= null;
+	private ShapeRenderer		renderer				= null;
 
-	private Rectangle				boxPos					= null;
+	private final Rectangle		boxPos;
 
-	private ShapeRenderer			renderer				= new ShapeRenderer();
+	private BattleMessage		currentBattleMessage	= null;
+	private Entity				currentMessageText		= null;
 
-	private BattleMessage			currentBattleMessage	= null;
-	private Entity					currentMessageText		= null;
-
-	public BattleMessageSystem(BitmapFont font, Camera camera, int priority) {
-		this(font, camera, new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()), priority);
-	}
-
-	public BattleMessageSystem(BitmapFont font, Camera camera, Rectangle screenRect, int priority) {
-		boxPos = new RelativePosition(boxDimensions, screenRect).pos;
+	public BattleMessageSystem(Entity baseDialogEntity, ShapeRenderer renderer, BitmapFont font, Camera camera,
+			int priority) {
+		this.renderer = renderer;
 		this.font = font;
 		this.camera = camera;
+
+		Position pos = Mappers.position.get(baseDialogEntity);
+		BattleDialog bd = Mappers.battleDialog.get(baseDialogEntity);
+
+		if (pos == null || bd == null) {
+			throw new GdxRuntimeException("Constructor of BattleMessageSystem called with invalid baseDialogEntity.");
+		}
+
+		this.boxPos = new Rectangle(pos.position.x, pos.position.y, bd.actualWidth, bd.actualHeight);
 	}
 
 	@Override
@@ -77,9 +84,11 @@ public class BattleMessageSystem extends EntitySystem {
 			renderer.end();
 		} else if (currentBattleMessage == null) {
 			currentBattleMessage = messages.get(0);
+
+			TextBounds bounds = font.getBounds(messages.get(0).message);
+
 			currentMessageText = new Entity();
-			currentMessageText.add(RelativePosition.makeCentred(
-					Text.getTextRectangle(currentBattleMessage.message, font), boxPos));
+			currentMessageText.add(new Position().smartCentre(bounds.width, bounds.height, boxPos));
 			currentMessageText.add(new Text(currentBattleMessage.message, currentBattleMessage.textColor));
 			engine.addEntity(currentMessageText);
 
@@ -103,10 +112,12 @@ public class BattleMessageSystem extends EntitySystem {
 
 	public void clearAllMessages() {
 		currentBattleMessage = null;
+
 		if (currentMessageText != null) {
 			engine.removeEntity(currentMessageText);
 			currentMessageText = null;
 		}
+
 		displayTimeRemaining = -1.0f;
 		messages.clear();
 	}

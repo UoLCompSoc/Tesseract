@@ -5,6 +5,7 @@ import uk.org.ulcompsoc.tesseract.animations.AnimationFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
@@ -222,5 +223,47 @@ public class Renderable extends Component {
 		}
 
 		return this;
+	}
+
+	public float getRenderableWidth() {
+		switch (renderType) {
+		case ANIM_SPRITE_LOOP:
+			return animation.getKeyFrames()[0].getRegionWidth();
+		case STATIC_SPRITE:
+			return current.getRegionWidth();
+		case TILED:
+			return WorldConstants.TILE_WIDTH;
+		case UDLR_ANIM:
+			return upAnim.getKeyFrames()[0].getRegionWidth();
+		case UDLR_SPRITE:
+			return upTexture.getRegionWidth();
+		case NONE:
+			Gdx.app.debug("GET_RENDERABLE_WIDTH", "Call to getRenderableWidth with NONE for renderType.");
+			return 0.0f;
+		default:
+			Gdx.app.debug("GET_RENDERABLE_WIDTH", "Call to getRenderableWidth reached default.");
+			return 0.0f;
+		}
+	}
+
+	public float getRenderableHeight() {
+		switch (renderType) {
+		case ANIM_SPRITE_LOOP:
+			return animation.getKeyFrames()[0].getRegionHeight();
+		case STATIC_SPRITE:
+			return current.getRegionHeight();
+		case TILED:
+			return WorldConstants.TILE_HEIGHT;
+		case UDLR_ANIM:
+			return upAnim.getKeyFrames()[0].getRegionHeight();
+		case UDLR_SPRITE:
+			return upTexture.getRegionHeight();
+		case NONE:
+			Gdx.app.debug("GET_RENDERABLE_WIDTH", "Call to getRenderableHeight with NONE for renderType.");
+			return 0.0f;
+		default:
+			Gdx.app.debug("GET_RENDERABLE_WIDTH", "Call to getRenderableHeight reached default.");
+			return 0.0f;
+		}
 	}
 }

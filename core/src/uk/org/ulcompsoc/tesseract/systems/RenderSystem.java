@@ -36,7 +36,6 @@ public class RenderSystem extends EntitySystem {
 
 	private Camera							camera				= null;
 	private Batch							batch				= null;
-
 	private ShapeRenderer					renderer			= null;
 
 	@SuppressWarnings("unchecked")
@@ -47,10 +46,11 @@ public class RenderSystem extends EntitySystem {
 	private ImmutableArray<Entity>			entitiesImmu		= null;
 	private List<Entity>					entities			= null;
 
-	public RenderSystem(Batch batch, Camera camera, int priority) {
+	public RenderSystem(Batch batch, ShapeRenderer renderer, Camera camera, int priority) {
 		super(priority);
 
 		this.batch = batch;
+		this.renderer = renderer;
 		this.camera = camera;
 		this.renderer = new ShapeRenderer();
 		this.entities = new ArrayList<Entity>();

@@ -18,7 +18,6 @@ import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
-import uk.org.ulcompsoc.tesseract.components.RelativePosition;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
 import uk.org.ulcompsoc.tesseract.components.Stats;
@@ -62,6 +61,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
@@ -79,6 +79,7 @@ public class TesseractMain extends ApplicationAdapter {
 	private Random							random							= null;
 
 	private SpriteBatch						batch							= null;
+	private ShapeRenderer					shapeRenderer					= null;
 	private Camera							camera							= null;
 
 	public static MusicManager				musicManager					= null;
@@ -225,9 +226,11 @@ public class TesseractMain extends ApplicationAdapter {
 
 		random = new Random();
 
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera = new OrthographicCamera();
+		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		batch = new SpriteBatch();
+		shapeRenderer = new ShapeRenderer();
 
 		musicManager = new MusicManager(musicFiles);
 
@@ -402,11 +405,12 @@ public class TesseractMain extends ApplicationAdapter {
 		return battleChangeFlag || worldChangeFlag || worldSelectChangeFlag;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void changeToBattle(boolean boss) {
 		Gdx.app.debug("BATTLE_CHANGE", "Changing to battle view.");
 
 		this.currentEngine = battleEngine;
-		@SuppressWarnings("unchecked")
+
 		ImmutableArray<Entity> ents = currentEngine.getEntitiesFor(Family.getFor(Enemy.class));
 		if (ents.size() > 0) {
 			while (ents.size() > 0) {
@@ -417,6 +421,8 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		// ((OrthographicCamera) camera).zoom = 1.0f;
+		debugCameraPosition(camera);
 		camera.update();
 
 		if (boss) {
@@ -424,6 +430,7 @@ public class TesseractMain extends ApplicationAdapter {
 		} else {
 			addSlimes(battleEngine, random.nextInt(3) + 1);
 		}
+
 		battleEngine.getSystem(BattleMessageSystem.class).clearAllMessages();
 	}
 
@@ -455,17 +462,21 @@ public class TesseractMain extends ApplicationAdapter {
 			musicManager.play(currentMapIndex);
 		}
 
-		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		((OrthographicCamera) camera).zoom = 0.5f;
+		((OrthographicCamera) camera)
+				.setToOrtho(false, Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f);
+		// ((OrthographicCamera) camera).zoom = 0.5f;
 		camera.update();
-
+		debugCameraPosition(camera);
 	}
 
 	public void changeToWorldSelect() {
 		this.currentEngine = worldSelectEngine;
 
 		((OrthographicCamera) camera).setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		// camera.position.set(0.0f, 0.0f, 0.0f);
+		// ((OrthographicCamera) camera).zoom = 1.0f;
 		camera.update();
+		debugCameraPosition(camera);
 	}
 
 	public void initWorldEngines(Engine[] engines) {
@@ -521,7 +532,7 @@ public class TesseractMain extends ApplicationAdapter {
 			engine.addSystem(new WorldPlayerInputSystem(worldSelectChangeListener, 100));
 			engine.addSystem(new MovementSystem(maps[i], 500));
 			engine.addSystem(new FocusTakingSystem(750));
-			engine.addSystem(new RenderSystem(batch, camera, 1000));
+			engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
 			engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
 
 			engines[i] = engine;
@@ -536,12 +547,40 @@ public class TesseractMain extends ApplicationAdapter {
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
+		final float statusX = 0.0f;
+		final float statusY = 0.0f;
 		statusDialog = new Entity();
-		statusDialog.add(new RelativePosition(new Rectangle(0.0f, 0.0f, 0.3f, 0.2f), screenRect));
-		statusDialog.add(new BattleDialog(Color.BLUE, Color.DARK_GRAY, playerCom));
+		statusDialog.add(new Position(statusX, statusY));
+		statusDialog.add(new BattleDialog(screenRect, 0.3f, 0.2f, playerCom));
+
+		BattleDialog bd = Mappers.battleDialog.get(statusDialog);
+
+		final Rectangle statusRect = new Rectangle(statusX, statusY, bd.actualWidth, bd.actualHeight);
+		Gdx.app.debug("STATUS_W", "Expected status.w of " + (Gdx.graphics.getWidth() * 0.3f) + ", got "
+				+ statusRect.width + ".");
+
+		hpText = new Entity();
+		Text hpTextComponent = new Text("HP: ", Color.WHITE, playerStats.hpChangeSignal);
+		hpText.add(new Position(0.0f, statusRect.height * 0.75f).smartCentreX(
+				Text.getTextWidth(hpTextComponent, font16), statusRect));
+		hpText.add(hpTextComponent);
+
+		rageText = new Entity();
+		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
+		rageText.add(new Position(0.0f, statusRect.height * 0.25f).smartCentreX(
+				Text.getTextWidth(rageTextComponent, font16), statusRect));
+		rageText.add(rageTextComponent);
 
 		final int menuDialogCount = 4;
 		final String[] dialogStrings = { "Attack", "Defend", "Quaff", "Flee" };
+
+		final float menuWRel = ((screenRect.width - statusRect.width) / menuDialogCount) / screenRect.width;
+		final float menuHRel = 0.2f;
+		final float menuW = screenRect.width * menuWRel;
+		final float menuH = screenRect.height * menuHRel;
+
+		Gdx.app.debug("MENU_W", "Menu.w = " + menuW);
+		Gdx.app.debug("BATTLE_GUI_WIDTH", "Total GUI width = " + (statusRect.width + menuDialogCount * menuW) + ".");
 
 		menuDialogs = new Entity[menuDialogCount];
 		menuTexts = new Entity[menuDialogCount];
@@ -549,36 +588,21 @@ public class TesseractMain extends ApplicationAdapter {
 		for (int i = 0; i < menuDialogCount; i++) {
 			menuDialogs[i] = new Entity();
 
-			final float menuW = 0.7f / (float) menuDialogCount;
-			final float menuX = (0.3f) + (menuW * (float) i);
-
+			final float menuX = statusRect.width + (menuW * (float) i);
 			final String thisString = dialogStrings[i];
 
-			RelativePosition menuPos = new RelativePosition(new Rectangle(menuX, 0.0f, menuW, 0.2f), screenRect);
-
-			menuDialogs[i].add(menuPos);
-			menuDialogs[i].add(new BattleDialog(Color.NAVY, Color.DARK_GRAY, playerCom));
-			menuDialogs[i].add(new MouseClickListener(menuPos.pos, BattlePerformers.performers[i]));
+			menuDialogs[i].add(new Position(menuX, 0.0f));
+			menuDialogs[i].add(new BattleDialog(screenRect, menuWRel, menuHRel, playerCom));
+			menuDialogs[i].add(new MouseClickListener(new Rectangle(menuX, 0, menuW, menuH),
+					BattlePerformers.performers[i]));
 
 			menuTexts[i] = new Entity();
 			Text text = new Text(thisString);
 			menuTexts[i].add(text);
-			menuTexts[i].add(RelativePosition.makeCentred(Text.getTextRectangle(0.0f, 0.0f, text, font24),
-					menuDialogs[i]));
+			menuTexts[i].add(new Position().smartCentre(Text.getTextWidth(text, font24),
+					Text.getTextHeight(text, font24), new Rectangle(menuX, 0.0f, menuW, menuH)));
 
 		}
-
-		hpText = new Entity();
-		Text hpTextComponent = new Text("HP: ", Color.WHITE, playerStats.hpChangeSignal);
-		hpText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.75f, hpTextComponent, font16),
-				statusDialog));
-		hpText.add(hpTextComponent);
-
-		rageText = new Entity();
-		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
-		rageText.add(RelativePosition.makeCentredX(Text.getTextRectangle(0.0f, 0.5f, rageTextComponent, font16),
-				statusDialog));
-		rageText.add(rageTextComponent);
 
 		engine.addEntity(battlePlayerEntity);
 		engine.addEntity(statusDialog);
@@ -589,7 +613,15 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(hpText);
 		engine.addEntity(rageText);
 
-		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(font24, camera, screenRect, 300);
+		Entity battleMessageEntity = new Entity();
+		BattleDialog battleMessageEntityDialog = new BattleDialog(screenRect, 0.7f, 0.1f, playerCom);
+
+		battleMessageEntity.add(battleMessageEntityDialog);
+		battleMessageEntity.add(new Position(0.0f, screenRect.height * 0.85f).smartCentreX(
+				battleMessageEntityDialog.actualWidth, screenRect));
+
+		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(battleMessageEntity, shapeRenderer, font24,
+				camera, 300);
 		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, 200);
 		BattlePerformers.battleAttackSystem = battleAttackSystem;
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
@@ -600,8 +632,8 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(battleAttackSystem.addVictoryListener(battleVictoryListener).addDefeatListener(
 				battleDefeatListener));
 		engine.addSystem(battleMessageSystem);
-		engine.addSystem(new RenderSystem(batch, camera, 1000));
-		engine.addSystem(new BattleDialogRenderSystem(camera, 2000));
+		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
+		engine.addSystem(new BattleDialogRenderSystem(shapeRenderer, camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
 	}
 
@@ -646,7 +678,7 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		engine.addSystem(new BattleInputSystem(camera, 50));
-		engine.addSystem(new RenderSystem(batch, camera, 1000));
+		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
 	}
 
 	private void addBoss(Engine engine) {
@@ -1043,5 +1075,10 @@ public class TesseractMain extends ApplicationAdapter {
 				}
 			}
 		}
+	}
+
+	private static void debugCameraPosition(Camera camera) {
+		Gdx.app.debug("CAMERA_POS", "Camera (x, y, z) = (" + camera.position.x + ", " + camera.position.y + ", "
+				+ camera.position.z + ").");
 	}
 }

@@ -1,53 +1,50 @@
 package uk.org.ulcompsoc.tesseract.systems;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
-import uk.org.ulcompsoc.tesseract.components.RelativePosition;
+import uk.org.ulcompsoc.tesseract.components.Position;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleDialogRenderSystem extends IteratingSystem {
-	private ComponentMapper<RelativePosition>	relPosMapper	= ComponentMapper.getFor(RelativePosition.class);
-	private ComponentMapper<BattleDialog>		bdMapper		= ComponentMapper.getFor(BattleDialog.class);
-
-	private Camera								camera			= null;
-	private ShapeRenderer						renderer		= null;
+	private Camera			camera		= null;
+	private ShapeRenderer	renderer	= null;
 
 	@SuppressWarnings("unchecked")
-	public BattleDialogRenderSystem(Camera camera, int priority) {
-		super(Family.getFor(RelativePosition.class, BattleDialog.class), priority);
+	public BattleDialogRenderSystem(ShapeRenderer renderer, Camera camera, int priority) {
+		super(Family.getFor(Position.class, BattleDialog.class), priority);
 
 		this.camera = camera;
-		this.renderer = new ShapeRenderer();
+		this.renderer = renderer;
 	}
 
 	@Override
 	public void processEntity(Entity entity, float deltaTime) {
-		BattleDialog dialog = bdMapper.get(entity);
-		Rectangle posRect = relPosMapper.get(entity).pos;
+		BattleDialog dialog = Mappers.battleDialog.get(entity);
+		Vector2 pos = Mappers.position.get(entity).position;
 
 		renderer.setProjectionMatrix(camera.combined);
 
 		renderer.setColor(dialog.fillColor);
 		renderer.begin(ShapeType.Filled);
 
-		renderer.rect(posRect.x, posRect.y, posRect.width, posRect.height);
+		renderer.rect(pos.x, pos.y, dialog.actualWidth, dialog.actualHeight);
 
 		renderer.end();
 
 		renderer.setColor(dialog.lineColor);
 		renderer.begin(ShapeType.Line);
 
-		renderer.rect(posRect.x, posRect.y, posRect.width, posRect.height);
+		renderer.rect(pos.x, pos.y, dialog.actualWidth, dialog.actualHeight);
 
 		renderer.end();
 	}
