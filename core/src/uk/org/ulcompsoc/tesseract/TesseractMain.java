@@ -5,6 +5,9 @@ import java.util.Random;
 import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PlayerAnimationFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.SlimeFrameResolver;
+import uk.org.ulcompsoc.tesseract.audio.MusicManager;
+import uk.org.ulcompsoc.tesseract.audio.SilentMusicManager;
+import uk.org.ulcompsoc.tesseract.audio.StandardMusicManager;
 import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Boss;
@@ -208,12 +211,13 @@ public class TesseractMain extends ApplicationAdapter {
 	private GameState						gameState						= null;
 
 	public TesseractMain() {
-		this(Difficulty.EASY, false);
+		this(Difficulty.EASY, false, false);
 	}
 
-	public TesseractMain(Difficulty diff, boolean debug) {
+	public TesseractMain(Difficulty diff, boolean debug, boolean silent) {
 		WorldConstants.DEBUG = debug;
 		WorldConstants.DIFFICULTY = diff;
+		WorldConstants.SILENT = silent;
 	}
 
 	@Override
@@ -232,7 +236,7 @@ public class TesseractMain extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 
-		musicManager = new MusicManager(musicFiles);
+		musicManager = (!WorldConstants.SILENT ? new StandardMusicManager(musicFiles) : new SilentMusicManager());
 
 		loadShader();
 

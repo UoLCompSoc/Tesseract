@@ -34,15 +34,20 @@ public class DesktopLauncher {
 		config.addIcon("icons/icon128.png", FileType.Internal);
 
 		boolean debug = false;
+		boolean silent = false;
 
 		for (String s : args) {
 			if ("--debug".equals(s)) {
 				debug = true;
 			}
+
+			if ("--silent".equalsIgnoreCase(s) || "--shut-up".equalsIgnoreCase(s)) {
+				silent = true;
+			}
 		}
 
 		Difficulty diff = Difficulty.parseCommandLineArgs(args);
 
-		new LwjglApplication(new TesseractMain(diff, debug), config);
+		new LwjglApplication(new TesseractMain(diff, debug, silent), config);
 	}
 }

@@ -5,6 +5,7 @@ package uk.org.ulcompsoc.tesseract;
  */
 public class WorldConstants {
 	public static boolean		DEBUG				= false;
+	public static boolean		SILENT				= false;
 	public static Difficulty	DIFFICULTY			= Difficulty.EASY;
 
 	public static final int		TILE_WIDTH			= 32;

@@ -1,4 +1,4 @@
-package uk.org.ulcompsoc.tesseract;
+package uk.org.ulcompsoc.tesseract.audio;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
@@ -8,7 +8,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
-public class MusicManager implements Disposable {
+public class StandardMusicManager implements MusicManager, Disposable {
 	public static final float	DEFAULT_VOLUME		= 0.75f;
 	public final Music[]		loadedMusic;
 
@@ -17,7 +17,7 @@ public class MusicManager implements Disposable {
 	private float				fadeDuration		= -1.0f;
 	private float				remainingFadeTime	= -1.0f;
 
-	public MusicManager(String[] files) {
+	public StandardMusicManager(String[] files) {
 		Music[] temp = new Music[files.length];
 
 		for (int i = 0; i < files.length; i++) {
@@ -29,6 +29,7 @@ public class MusicManager implements Disposable {
 		loadedMusic = temp;
 	}
 
+	@Override
 	public void play(int index) {
 		if (playingIndex != -1) {
 			loadedMusic[playingIndex].stop();
@@ -45,6 +46,7 @@ public class MusicManager implements Disposable {
 		playingIndex = index;
 	}
 
+	@Override
 	public void pause() {
 		if (playingIndex == -1) {
 			return;
@@ -53,6 +55,7 @@ public class MusicManager implements Disposable {
 		loadedMusic[playingIndex].pause();
 	}
 
+	@Override
 	public void stop() {
 		if (playingIndex == -1) {
 			return;
@@ -63,17 +66,13 @@ public class MusicManager implements Disposable {
 
 	}
 
-	/**
-	 * Fades the currently playing song over duration seconds.
-	 * 
-	 * @param duration
-	 *        The duration of the fade.
-	 */
+	@Override
 	public void fadeOut(float duration) {
 		fadeDuration = duration;
 		remainingFadeTime = fadeDuration;
 	}
 
+	@Override
 	public void update(float deltaTime) {
 		if (fadeDuration >= 0.0f) {
 			remainingFadeTime -= deltaTime;
