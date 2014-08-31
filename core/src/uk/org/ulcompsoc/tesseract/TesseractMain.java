@@ -17,7 +17,6 @@ import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Movable;
 import uk.org.ulcompsoc.tesseract.components.Moving;
-import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
@@ -26,6 +25,9 @@ import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.Text;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
+import uk.org.ulcompsoc.tesseract.dialoguelisteners.BossBattleDialogueFinishListener;
+import uk.org.ulcompsoc.tesseract.dialoguelisteners.FullHealDialogueFinishListener;
+import uk.org.ulcompsoc.tesseract.dialoguelisteners.WorldWarpDialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.fonts.FontResolver;
 import uk.org.ulcompsoc.tesseract.systems.BattleAISystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
@@ -80,14 +82,14 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private Random							random							= null;
 
-	private SpriteBatch						batch							= null;
-	private ShapeRenderer					shapeRenderer					= null;
-	private Camera							camera							= null;
+	private static SpriteBatch				batch							= null;
+	private static ShapeRenderer			shapeRenderer					= null;
+	private static Camera					camera							= null;
 
 	public static MusicManager				musicManager					= null;
 
-	private boolean							useShader						= false;
-	private ShaderProgram					vortexProgram					= null;
+	private static boolean					useShader						= false;
+	private static ShaderProgram			vortexProgram					= null;
 
 	private FontResolver					fontResolver					= null;
 	private BitmapFont						font10							= null;
@@ -115,7 +117,7 @@ public class TesseractMain extends ApplicationAdapter {
 	private boolean							healOnTransition				= false;
 	private static boolean					worldSelectChangeFlag			= false;
 	private static int						diffWorldFlag					= -1;
-	private float							transitionTime					= -1.0f;
+	private static float					transitionTime					= -1.0f;
 
 	private int								playerPowerLevel				= 0;
 
@@ -149,9 +151,6 @@ public class TesseractMain extends ApplicationAdapter {
 	private Texture							openDoorTex						= null;
 	private Texture							closedDoorTex					= null;
 
-	private DialogueFinishListener			healNPCListener					= null;
-	private DialogueFinishListener			bossBattleListener				= null;
-	private DialogueFinishListener			doorOpenListener				= null;
 	private WorldSelectChangeListener		worldSelectChangeListener		= null;
 
 	private MonsterTileHandler				monsterTileHandler				= null;
@@ -262,9 +261,6 @@ public class TesseractMain extends ApplicationAdapter {
 		battleVictoryListener = new BattleVictoryListener();
 		battleDefeatListener = new BattleDefeatListener();
 
-		healNPCListener = new DialogueFinishListener();
-		bossBattleListener = new DialogueFinishListener();
-		doorOpenListener = new DialogueFinishListener();
 		worldSelectChangeListener = new WorldSelectChangeListener();
 
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -348,14 +344,14 @@ public class TesseractMain extends ApplicationAdapter {
 		initWorldSelectEngine(worldSelectEngine);
 	}
 
-	public void flagBattleChange(boolean boss) {
+	public static void flagBattleChange(boolean boss) {
 		battleChangeFlag = true;
 		bossIncomingFlag = boss;
 		transitionTime = BATTLE_START_TRANSITION_TIME;
 		vortexOn();
 	}
 
-	public void flagWorldChange(int newWorld) {
+	public static void flagWorldChange(int newWorld) {
 		worldChangeFlag = true;
 		diffWorldFlag = newWorld;
 
@@ -497,7 +493,8 @@ public class TesseractMain extends ApplicationAdapter {
 
 			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
 					(i == mapNames.length - 1 ? null : torchAnims[i]), new TextureRegion(openDoorTex),
-					new TextureRegion(closedDoorTex), healNPCListener, bossBattleListener, doorOpenListener);
+					new TextureRegion(closedDoorTex), new FullHealDialogueFinishListener(),
+					new BossBattleDialogueFinishListener(), new WorldWarpDialogueFinishListener(6));
 
 			engine.addEntity(maps[i].baseLayerEntity);
 
@@ -776,7 +773,7 @@ public class TesseractMain extends ApplicationAdapter {
 		vortexOff();
 	}
 
-	public void vortexOn() {
+	public static void vortexOn() {
 		if (useShader) {
 			batch.setShader(vortexProgram);
 			vortexProgram.begin();
@@ -789,7 +786,7 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 	}
 
-	public void vortexOff() {
+	public static void vortexOff() {
 		if (useShader) {
 			vortexProgram.begin();
 			vortexProgram.setUniformf("vortexFlag", 0.0f);
@@ -1036,27 +1033,6 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.debug("BATTLE_DEFEAT", "Battle defeat detected :(");
 			healOnTransition = true;
 			flagWorldChange(0);
-		}
-	}
-
-	public class DialogueFinishListener implements Listener<Entity> {
-		@Override
-		public void receive(Signal<Entity> signal, Entity object) {
-			// Dialogue dia =
-			// ComponentMapper.getFor(Dialogue.class).get(object);
-
-			Gdx.app.debug("DIA_FINISH", "Detected finish in dialogue.");
-
-			Enemy e = ComponentMapper.getFor(Enemy.class).get(object);
-			NPC npc = ComponentMapper.getFor(NPC.class).get(object);
-
-			if (e != null) {
-				startBossBattle();
-			} else if (npc != null) {
-				healToFull();
-			} else {
-				moveToLastWorld();
-			}
 		}
 	}
 

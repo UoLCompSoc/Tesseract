@@ -3,13 +3,13 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.TesseractMain.DialogueFinishListener;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
+import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
