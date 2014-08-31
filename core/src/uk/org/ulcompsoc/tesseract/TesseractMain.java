@@ -287,6 +287,8 @@ public class TesseractMain extends ApplicationAdapter {
 				for (int i = 0; i < 20; i++) {
 					doPlayerPowerUp();
 				}
+			} else if (Gdx.input.isKeyJustPressed(Keys.F9)) {
+				TesseractDebug.debugAllInEngine(currentEngine);
 			}
 		}
 
@@ -437,8 +439,8 @@ public class TesseractMain extends ApplicationAdapter {
 				diffWorld = diffWorld % maps.length;
 			}
 
-			if (diffWorld != currentMapIndex) {
-				this.currentEngine.removeEntity(worldPlayerEntity);
+			if (currentMapIndex != -1 && diffWorld != currentMapIndex) {
+				worldEngines[currentMapIndex].removeEntity(worldPlayerEntity);
 			}
 
 			currentMapIndex = diffWorld;
@@ -484,6 +486,7 @@ public class TesseractMain extends ApplicationAdapter {
 		worldPlayerEntity.componentAdded.add(monsterTileHandler.movingAddListener);
 		worldPlayerEntity.componentRemoved.add(monsterTileHandler.movingRemoveListener);
 		worldPlayerEntity.add(new Movable());
+		worldPlayerEntity.add(new Named("WorldPlayer"));
 
 		worldPlayerEntity.add(playerStats);
 
@@ -595,8 +598,6 @@ public class TesseractMain extends ApplicationAdapter {
 				screenRect.width, screenRect.height - menuH));
 
 		battlePlayerEntity.add(playerPos);
-
-		engine.addEntity(battlePlayerEntity);
 		engine.addEntity(statusDialog);
 		for (int i = 0; i < menuDialogs.length; i++) {
 			engine.addEntity(menuDialogs[i]);
