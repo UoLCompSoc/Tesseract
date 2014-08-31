@@ -2,6 +2,7 @@ package uk.org.ulcompsoc.desktop;
 
 import uk.org.ulcompsoc.tesseract.Difficulty;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
+import uk.org.ulcompsoc.tesseract.fonts.RegularFontResolver;
 
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Graphics.DisplayMode;
@@ -48,6 +49,6 @@ public class DesktopLauncher {
 
 		Difficulty diff = Difficulty.parseCommandLineArgs(args);
 
-		new LwjglApplication(new TesseractMain(diff, debug, silent), config);
+		new LwjglApplication(new TesseractMain(new RegularFontResolver(), diff, debug, silent), config);
 	}
 }

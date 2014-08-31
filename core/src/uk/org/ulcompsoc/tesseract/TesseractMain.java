@@ -26,6 +26,7 @@ import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.Text;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
+import uk.org.ulcompsoc.tesseract.fonts.FontResolver;
 import uk.org.ulcompsoc.tesseract.systems.BattleAISystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
@@ -61,8 +62,6 @@ import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -87,10 +86,10 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public static MusicManager				musicManager					= null;
 
+	private boolean							useShader						= false;
 	private ShaderProgram					vortexProgram					= null;
 
-	private FreeTypeFontGenerator			fontGenerator					= null;
-
+	private FontResolver					fontResolver					= null;
 	private BitmapFont						font10							= null;
 	private BitmapFont						font12							= null;
 	private BitmapFont						font16							= null;
@@ -210,11 +209,12 @@ public class TesseractMain extends ApplicationAdapter {
 	@SuppressWarnings("unused")
 	private GameState						gameState						= null;
 
-	public TesseractMain() {
-		this(Difficulty.EASY, false, false);
+	public TesseractMain(FontResolver fontResolver) {
+		this(fontResolver, Difficulty.EASY, false, false);
 	}
 
-	public TesseractMain(Difficulty diff, boolean debug, boolean silent) {
+	public TesseractMain(FontResolver fontResolver, Difficulty diff, boolean debug, boolean silent) {
+		this.fontResolver = fontResolver;
 		WorldConstants.DEBUG = debug;
 		WorldConstants.DIFFICULTY = diff;
 		WorldConstants.SILENT = silent;
@@ -240,32 +240,10 @@ public class TesseractMain extends ApplicationAdapter {
 
 		loadShader();
 
-		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/RobotoRegular.ttf"));
-		FreeTypeFontParameter para = new FreeTypeFontParameter();
-
-		para.size = 10;
-		font10 = fontGenerator.generateFont(para);
-		// font10 = new BitmapFont(Gdx.files.internal("fonts/robotobm10.fnt"),
-		// Gdx.files.internal("fonts/robotobm10.png"),
-		// false);
-
-		para.size = 12;
-		font12 = fontGenerator.generateFont(para);
-		// font12 = new BitmapFont(Gdx.files.internal("fonts/robotobm12.fnt"),
-		// Gdx.files.internal("fonts/robotobm12.png"),
-		// false);
-
-		para.size = 16;
-		font16 = fontGenerator.generateFont(para);
-		// font16 = new BitmapFont(Gdx.files.internal("fonts/robotobm16.fnt"),
-		// Gdx.files.internal("fonts/robotobm16.png"),
-		// false);
-
-		para.size = 24;
-		font24 = fontGenerator.generateFont(para);
-		// font24 = new BitmapFont(Gdx.files.internal("fonts/robotobm24.fnt"),
-		// Gdx.files.internal("fonts/robotobm24.png"),
-		// false);
+		font10 = fontResolver.resolve(10);
+		font12 = fontResolver.resolve(12);
+		font16 = fontResolver.resolve(16);
+		font24 = fontResolver.resolve(24);
 
 		loadPlayerFiles();
 
@@ -352,7 +330,6 @@ public class TesseractMain extends ApplicationAdapter {
 	@Override
 	public void resize(int width, int height) {
 		super.resize(width, height);
-		Gdx.app.debug("RESIZE", "Detected resize to (w, h) = (" + width + ", " + height + ").");
 
 		((OrthographicCamera) camera).setToOrtho(false, width, height);
 
@@ -443,11 +420,8 @@ public class TesseractMain extends ApplicationAdapter {
 			makeBattlePlayerEntity(currentEngine);
 		}
 
-		// ((OrthographicCamera) camera).setToOrtho(false,
-		// Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		((OrthographicCamera) camera).zoom = 1.0f;
 		camera.position.set(Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f, 0.0f);
-		debugCameraPosition(camera);
+		((OrthographicCamera) camera).zoom = 1.0f;
 		camera.update();
 
 		if (boss) {
@@ -487,23 +461,16 @@ public class TesseractMain extends ApplicationAdapter {
 			musicManager.play(currentMapIndex);
 		}
 
-		// ((OrthographicCamera) camera)
-		// .setToOrtho(false, Gdx.graphics.getWidth() / 2.0f,
-		// Gdx.graphics.getHeight() / 2.0f);
 		((OrthographicCamera) camera).zoom = 0.5f;
 		camera.update();
-		debugCameraPosition(camera);
 	}
 
 	public void changeToWorldSelect() {
 		this.currentEngine = worldSelectEngine;
 
-		// ((OrthographicCamera) camera).setToOrtho(false,
-		// Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		((OrthographicCamera) camera).zoom = 1.0f;
 		camera.position.set(Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f, 0.0f);
+		((OrthographicCamera) camera).zoom = 1.0f;
 		camera.update();
-		debugCameraPosition(camera);
 	}
 
 	public void initWorldEngines(Engine[] engines) {
@@ -583,13 +550,12 @@ public class TesseractMain extends ApplicationAdapter {
 		BattleDialog bd = Mappers.battleDialog.get(statusDialog);
 
 		final Rectangle statusRect = new Rectangle(statusX, statusY, bd.actualWidth, bd.actualHeight);
-		Gdx.app.debug("STATUS_W", "Expected status.w of " + (Gdx.graphics.getWidth() * 0.3f) + ", got "
-				+ statusRect.width + ".");
 
 		hpText = new Entity();
 		Text hpTextComponent = new Text("HP: 100/100", Color.WHITE, playerStats.hpChangeSignal);
 		hpText.add(new Position(0.0f, statusRect.height * 0.75f).smartCentreX(
 				Text.getTextWidth(hpTextComponent, font16), statusRect));
+		hpTextComponent.baseText = "HP: ";
 		hpText.add(hpTextComponent);
 
 		rageText = new Entity();
@@ -605,9 +571,6 @@ public class TesseractMain extends ApplicationAdapter {
 		final float menuHRel = 0.2f;
 		final float menuW = screenRect.width * menuWRel;
 		final float menuH = screenRect.height * menuHRel;
-
-		Gdx.app.debug("MENU_W", "Menu.w = " + menuW);
-		Gdx.app.debug("BATTLE_GUI_WIDTH", "Total GUI width = " + (statusRect.width + menuDialogCount * menuW) + ".");
 
 		menuDialogs = new Entity[menuDialogCount];
 		menuTexts = new Entity[menuDialogCount];
@@ -630,6 +593,11 @@ public class TesseractMain extends ApplicationAdapter {
 					Text.getTextHeight(text, font24), new Rectangle(menuX, 0.0f, menuW, menuH)));
 
 		}
+
+		Position playerPos = new Position(screenRect.width * 0.85f, 0.0f).centreY(new Rectangle(0.0f, menuH,
+				screenRect.width, screenRect.height - menuH));
+
+		battlePlayerEntity.add(playerPos);
 
 		engine.addEntity(battlePlayerEntity);
 		engine.addEntity(statusDialog);
@@ -700,8 +668,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 		int xIncr = (int) ((1.0f / squaresPerRow) * (screenWidthInTiles));
 		int yIncr = (int) ((1.0f / numCols) * screenHeightInTiles);
-		Gdx.app.debug("INIT_WORLD_SELECT", "Generating " + squaresPerRow + " squares per col, in " + numCols
-				+ " cols.\nXIncr = " + xIncr + "\nYIncr = " + yIncr);
 
 		int gridX = 5;
 		int gridY = 0;
@@ -743,8 +709,8 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		Entity boss = new Entity();
-		final float yMiddle = 12 * WorldConstants.TILE_HEIGHT;
-		boss.add(new Position(3 * WorldConstants.TILE_WIDTH, yMiddle));
+		boss.add(new Position(0.15f * camera.viewportWidth, 0.0f).centreY(new Rectangle(0.0f,
+				0.1f * camera.viewportHeight, camera.viewportWidth, camera.viewportHeight * 0.9f)));
 		boss.add(new Renderable(bossAnims[currentMapIndex]).setAnimationResolver(new PingPongFrameResolver(0.1f)));
 		boss.add(bossStats[currentMapIndex]);
 		boss.add(new Boss());
@@ -801,28 +767,35 @@ public class TesseractMain extends ApplicationAdapter {
 				Gdx.files.internal("shaders/vortexFragment.glslf"));
 		if (!vortexProgram.isCompiled()) {
 			Gdx.app.debug("LOAD_SHADER", "Shader compilation produced following log:\n" + vortexProgram.getLog());
-			throw new GdxRuntimeException("Shader compilation failed");
+			useShader = false;
+			// throw new GdxRuntimeException("Shader compilation failed");
+		} else {
+			useShader = true;
 		}
 
 		vortexOff();
 	}
 
 	public void vortexOn() {
-		batch.setShader(vortexProgram);
-		vortexProgram.begin();
-		vortexProgram.setUniformf("vortexFlag", 1.0f);
-		vortexProgram.setUniformf("transitionTime", 0.0f);
-		vortexProgram
-				.setUniformf("iResolution", new Vector2(camera.viewportWidth * 2.0f, camera.viewportHeight * 2.0f));
-		vortexProgram.setUniformf("expectedTransitionTime", TesseractMain.BATTLE_START_TRANSITION_TIME);
-		vortexProgram.end();
+		if (useShader) {
+			batch.setShader(vortexProgram);
+			vortexProgram.begin();
+			vortexProgram.setUniformf("vortexFlag", 1.0f);
+			vortexProgram.setUniformf("transitionTime", 0.0f);
+			vortexProgram.setUniformf("iResolution", new Vector2(camera.viewportWidth * 2.0f,
+					camera.viewportHeight * 2.0f));
+			vortexProgram.setUniformf("expectedTransitionTime", TesseractMain.BATTLE_START_TRANSITION_TIME);
+			vortexProgram.end();
+		}
 	}
 
 	public void vortexOff() {
-		vortexProgram.begin();
-		vortexProgram.setUniformf("vortexFlag", 0.0f);
-		vortexProgram.end();
-		batch.setShader(null);
+		if (useShader) {
+			vortexProgram.begin();
+			vortexProgram.setUniformf("vortexFlag", 0.0f);
+			vortexProgram.end();
+			batch.setShader(null);
+		}
 	}
 
 	public static TesseractMap getCurrentMap() {
@@ -970,8 +943,8 @@ public class TesseractMain extends ApplicationAdapter {
 	public void dispose() {
 		super.dispose();
 
-		if (fontGenerator != null) {
-			fontGenerator.dispose();
+		if (fontResolver != null) {
+			fontResolver.dispose();
 		}
 
 		for (TesseractMap map : maps) {
@@ -1099,8 +1072,6 @@ public class TesseractMain extends ApplicationAdapter {
 			@Override
 			public void receive(Signal<Entity> signal, Entity object) {
 				if (ComponentMapper.getFor(Moving.class).has(object)) {
-					// Gdx.app.debug("MOVING_ADD",
-					// "Moving component added to player.");
 					moving = true;
 				}
 			}
@@ -1110,7 +1081,6 @@ public class TesseractMain extends ApplicationAdapter {
 			@Override
 			public void receive(Signal<Entity> signal, Entity object) {
 				if (moving && !ComponentMapper.getFor(Moving.class).has(object)) {
-					// Gdx.app.debug("MOVING_REMOVE", "Moving removed.");
 					moving = false;
 
 					GridPoint2 pos = ComponentMapper.getFor(Position.class).get(object).getGridPosition();
@@ -1119,7 +1089,7 @@ public class TesseractMain extends ApplicationAdapter {
 						monsterTilesVisited++;
 						Gdx.app.debug("MONSTER_STEPS", "" + monsterTilesVisited + " steps taken.");
 						final double prob = 0.02 * monsterTilesVisited;
-						final double rand = Math.random();
+						final double rand = random.nextDouble();
 
 						if (rand <= prob) {
 							monsterTilesVisited = 0;
@@ -1129,10 +1099,5 @@ public class TesseractMain extends ApplicationAdapter {
 				}
 			}
 		}
-	}
-
-	private static void debugCameraPosition(Camera camera) {
-		Gdx.app.debug("CAMERA_POS", "Camera (x, y, z) = (" + camera.position.x + ", " + camera.position.y + ", "
-				+ camera.position.z + ").");
 	}
 }
