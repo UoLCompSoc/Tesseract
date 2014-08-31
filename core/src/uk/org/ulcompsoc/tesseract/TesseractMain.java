@@ -807,16 +807,18 @@ public class TesseractMain extends ApplicationAdapter {
 		playerLeftAnims = new Animation[playerFiles.length];
 		playerRightAnims = new Animation[playerFiles.length];
 
+		final float playerTimePerFrame = 0.3f;
+
 		for (int i = 0; i < playerFiles.length; i++) {
 			playerTextures[i] = new Texture(Gdx.files.internal(playerFiles[i]));
 
 			TextureRegion[][] playerRegions = TextureRegion.split(playerTextures[i], WorldConstants.TILE_WIDTH,
 					WorldConstants.TILE_HEIGHT);
 
-			Animation idle = (!playerFiles[i].equals("player_4.png") ? new Animation(0.2f, playerRegions[0][0],
-					playerRegions[0][1], playerRegions[0][2], playerRegions[0][3]) : new Animation(0.2f,
-					playerRegions[0][0], playerRegions[0][1], playerRegions[0][2], playerRegions[0][3],
-					playerRegions[0][4]));
+			Animation idle = (!playerFiles[i].equals("player_4.png") ? new Animation(playerTimePerFrame,
+					playerRegions[0][0], playerRegions[0][1], playerRegions[0][2], playerRegions[0][3])
+					: new Animation(playerTimePerFrame, playerRegions[0][0], playerRegions[0][1], playerRegions[0][2],
+							playerRegions[0][3], playerRegions[0][4]));
 
 			TextureRegion[] downArray = new TextureRegion[4];
 			System.arraycopy(playerRegions[1], 0, downArray, 0, 4);
@@ -830,10 +832,10 @@ public class TesseractMain extends ApplicationAdapter {
 			TextureRegion[] leftArray = new TextureRegion[4];
 			System.arraycopy(playerRegions[4], 0, leftArray, 0, 4);
 
-			Animation down = new Animation(0.2f, new Array<TextureRegion>(downArray));
-			Animation up = new Animation(0.2f, new Array<TextureRegion>(upArray));
-			Animation right = new Animation(0.2f, new Array<TextureRegion>(rightArray));
-			Animation left = new Animation(0.2f, new Array<TextureRegion>(leftArray));
+			Animation down = new Animation(playerTimePerFrame, new Array<TextureRegion>(downArray));
+			Animation up = new Animation(playerTimePerFrame, new Array<TextureRegion>(upArray));
+			Animation right = new Animation(playerTimePerFrame, new Array<TextureRegion>(rightArray));
+			Animation left = new Animation(playerTimePerFrame, new Array<TextureRegion>(leftArray));
 
 			idle.setPlayMode(PlayMode.LOOP_PINGPONG);
 			down.setPlayMode(PlayMode.LOOP_PINGPONG);
