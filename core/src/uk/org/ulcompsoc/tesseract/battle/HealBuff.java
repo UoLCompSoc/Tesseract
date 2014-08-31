@@ -1,27 +1,25 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class HealBuff implements BuffPerformer {
-	private ComponentMapper<Stats>	statsMapper	= ComponentMapper.getFor(Stats.class);
+	private Entity		target		= null;
+	private Stats		stats		= null;
 
-	private Entity					target		= null;
-	private Stats					stats		= null;
+	public final int	ticks;
+	public final float	duration;
+	public final float	timePerTick;
 
-	public final int				ticks;
-	public final float				duration;
-	public final float				timePerTick;
+	private float		timeElapsed	= 0.0f;
+	private float		ticksDone	= 0;
 
-	private float					timeElapsed	= 0.0f;
-	private float					ticksDone	= 0;
-
-	private int						healPerTick	= 0;
+	private int			healPerTick	= 0;
 
 	public HealBuff(int ticks) {
 		this(5.0f, ticks);
@@ -36,7 +34,7 @@ public class HealBuff implements BuffPerformer {
 	@Override
 	public void doBuff(Entity target) {
 		this.target = target;
-		this.stats = statsMapper.get(target);
+		this.stats = Mappers.stats.get(target);
 
 		this.healPerTick = (int) Math.floor(stats.maxHP * 0.05f);
 		this.timeElapsed = 0.0f;

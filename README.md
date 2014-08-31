@@ -36,7 +36,8 @@ Post-Ludum Dare Roadmap
   
 2. Code Improvements
   1. ~~Combine Position and RelativePosition~~
-  2. Remove globals where possible
-  3. ~~Enable HTML5 support~~
+  2. ~~Enable HTML5 support~~
+  3. ~~Use `Mappers` everywhere instead of local duplicates~~
+  3. Remove globals where possible
   4. More data stored in maps/JSON
   

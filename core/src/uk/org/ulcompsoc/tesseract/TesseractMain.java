@@ -42,7 +42,6 @@ import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.WorldPlayerInputSystem;
 import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
@@ -536,7 +535,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public void initBattleEngine(Engine engine) {
 		makeBattlePlayerEntity(engine);
-		Combatant playerCom = ComponentMapper.getFor(Combatant.class).get(battlePlayerEntity);
+		Combatant playerCom = Mappers.combatant.get(battlePlayerEntity);
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -687,7 +686,7 @@ public class TesseractMain extends ApplicationAdapter {
 			e.add(new MouseClickListener(new Rectangle(p.position.x, p.position.y, 64, 64), new MouseClickPerformer() {
 				@Override
 				public void perform(Entity invoker, Engine engine) {
-					Integer i = Integer.parseInt(ComponentMapper.getFor(Named.class).get(invoker).name);
+					Integer i = Integer.parseInt(Mappers.named.get(invoker).name);
 					flagWorldChange(i.intValue());
 				}
 			}));
@@ -704,6 +703,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		if (map.bossBeaten) {
 			Gdx.app.debug("ADD_BOSS", "Trying to fight a boss for the second time.");
+			return;
 		}
 
 		Entity boss = new Entity();
@@ -713,7 +713,7 @@ public class TesseractMain extends ApplicationAdapter {
 		boss.add(bossStats[currentMapIndex]);
 		boss.add(new Boss());
 		boss.add(new Combatant());
-		Enemy enemy = ComponentMapper.getFor(Enemy.class).get(map.bossEntity);
+		Enemy enemy = Mappers.enemy.get(map.bossEntity);
 		boss.add(enemy);
 		boss.add(new Named(enemy.speciesName));
 
@@ -877,7 +877,7 @@ public class TesseractMain extends ApplicationAdapter {
 		if (playerPowerLevel >= playerFiles.length) {
 			playerPowerLevel = playerFiles.length - 1;
 		} else {
-			Facing f = ComponentMapper.getFor(Renderable.class).get(worldPlayerEntity).facing;
+			Facing f = Mappers.renderable.get(worldPlayerEntity).facing;
 
 			worldPlayerEntity.add(getWorldPlayerPowerLevelRenderable(f));
 			battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());

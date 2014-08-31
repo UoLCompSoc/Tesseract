@@ -1,9 +1,8 @@
 package uk.org.ulcompsoc.tesseract.animations;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
-import uk.org.ulcompsoc.tesseract.components.Moving;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -27,7 +26,7 @@ public class PlayerAnimationFrameResolver extends AnimationFrameResolver {
 
 	@Override
 	public TextureRegion resolveFrame(Animation anim, float deltaTime) {
-		if (ComponentMapper.getFor(Moving.class).has(TesseractMain.worldPlayerEntity)) {
+		if (Mappers.moving.has(TesseractMain.worldPlayerEntity)) {
 			if (isAnim) {
 				if (anim != animCache) {
 					animFrame = 0;

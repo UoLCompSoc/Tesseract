@@ -7,7 +7,6 @@ import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
@@ -23,17 +22,15 @@ import com.badlogic.gdx.math.Vector3;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleInputSystem extends EntitySystem {
-	private ComponentMapper<BattleDialog>	bdMapper		= ComponentMapper.getFor(BattleDialog.class);
+	private Camera					camera			= null;
 
-	private Camera							camera			= null;
+	private Vector3					mouseCoordCache	= new Vector3(0.0f, 0.0f, 0.0f);
 
-	private Vector3							mouseCoordCache	= new Vector3(0.0f, 0.0f, 0.0f);
+	private boolean					hasReleased		= true;
 
-	private boolean							hasReleased		= true;
+	private Engine					engine			= null;
 
-	private Engine							engine			= null;
-
-	private ImmutableArray<Entity>			entities		= null;
+	private ImmutableArray<Entity>	entities		= null;
 
 	public BattleInputSystem(Camera camera, int priority) {
 		super(priority);
@@ -67,7 +64,7 @@ public class BattleInputSystem extends EntitySystem {
 	public boolean processEntity(Entity entity, float deltaTime) {
 		MouseClickListener mcl = Mappers.mouseClickListener.get(entity);
 		Rectangle pos = mcl.rect;
-		BattleDialog bd = bdMapper.get(entity);
+		BattleDialog bd = Mappers.battleDialog.get(entity);
 		Combatant com = (bd != null ? bd.combatant : null);
 
 		if (pos.contains(mouseCoordCache.x, mouseCoordCache.y)) {

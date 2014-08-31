@@ -7,11 +7,11 @@ import com.badlogic.gdx.Input.Keys;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldPlayerInputListener extends Component {
-	public int	upKey		= Keys.W;
-	public int	downKey		= Keys.S;
-	public int	leftKey		= Keys.A;
-	public int	rightKey	= Keys.D;
+	public int[]	upKeys		= { Keys.W, Keys.UP };
+	public int[]	downKeys	= { Keys.S, Keys.DOWN };
+	public int[]	leftKeys	= { Keys.A, Keys.LEFT };
+	public int[]	rightKeys	= { Keys.D, Keys.RIGHT };
 
-	public int	examineKey	= Keys.SPACE;
-	public int	hopKey		= Keys.ENTER;
+	public int		examineKey	= Keys.SPACE;
+	public int		hopKey		= Keys.ENTER;
 }

@@ -1,18 +1,16 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
-import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
-import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
@@ -25,13 +23,9 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class BattlePerformers {
 	public static class AttackPerformer implements MouseClickPerformer {
-		private ComponentMapper<Position>	posMapper	= ComponentMapper.getFor(Position.class);
-
 		@SuppressWarnings("unchecked")
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			// Gdx.app.debug("PERFORM_ATTACK", "Performing an attack.");
-
 			ImmutableArray<Entity> enemies = engine.getEntitiesFor(Family.getFor(Enemy.class));
 
 			if (enemies != null) {
@@ -39,9 +33,9 @@ public class BattlePerformers {
 
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
-					Vector2 pos = posMapper.get(e).position;
+					Vector2 pos = Mappers.position.get(e).position;
 
-					final Renderable r = ComponentMapper.getFor(Renderable.class).get(e);
+					final Renderable r = Mappers.renderable.get(e);
 					final float imgW = r.width;
 					final float imgH = r.height;
 
@@ -55,25 +49,22 @@ public class BattlePerformers {
 	public static class DefendPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			// Gdx.app.debug("PERFORM_JUMP", "Performing defend.");
 			battleMessageSystem.addMessage(TesseractStrings.getDefendMessage());
-			ComponentMapper.getFor(Combatant.class).get(TesseractMain.battlePlayerEntity).addBuff(new DefenceBuff());
+			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new DefenceBuff());
 		}
 	}
 
 	public static class QuaffPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			// Gdx.app.debug("PERFORM_QUAFF", "Performing a quaff.");
 			battleMessageSystem.addMessage(TesseractStrings.getQuaffMessage());
-			ComponentMapper.getFor(Combatant.class).get(TesseractMain.battlePlayerEntity).addBuff(new HealBuff(5));
+			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new HealBuff(5));
 		}
 	}
 
 	public static class FleePerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			// Gdx.app.debug("PERFORM_FLEE", "Performing a flee.");
 			battleMessageSystem.addMessage(TesseractStrings.getFleeMessage());
 		}
 	}
@@ -81,8 +72,6 @@ public class BattlePerformers {
 	public static class EnemyTargetPerformer implements MouseClickPerformer {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
-			// Gdx.app.debug("PERFORM_TARGET", "Attack was targetted.");
-
 			battleAttackSystem.addAttack(new BattleAttack(TesseractMain.battlePlayerEntity, invoker, AttackType.MELEE));
 			removeTargets(engine);
 		}

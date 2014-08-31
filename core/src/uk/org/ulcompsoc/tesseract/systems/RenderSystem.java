@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Renderable.RenderType;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
@@ -31,21 +31,22 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class RenderSystem extends EntitySystem {
-	private ComponentMapper<Position>		posMapper			= ComponentMapper.getFor(Position.class);
-	private ComponentMapper<Renderable>		renderMapper		= ComponentMapper.getFor(Renderable.class);
-	private ComponentMapper<TargetMarker>	targetMarkerMapper	= ComponentMapper.getFor(TargetMarker.class);
+	public static Comparator<Entity>	renderablePriorityComparator	= new RenderablePriorityComparator();
 
-	private Camera							camera				= null;
-	private Batch							batch				= null;
-	private ShapeRenderer					renderer			= null;
+	private Camera						camera							= null;
+	private Batch						batch							= null;
+	private ShapeRenderer				renderer						= null;
 
 	@SuppressWarnings("unchecked")
-	private Family							renderSystemFamily	= Family.getFor(Position.class, Renderable.class);
+	private Family						renderSystemFamily				= Family.getFor(Position.class,
+																				Renderable.class);
 
-	boolean									reorder				= true;
+	boolean								reorder							= true;
 
-	private ImmutableArray<Entity>			entitiesImmu		= null;
-	private List<Entity>					entities			= null;
+	private ImmutableArray<Entity>		entitiesImmu					= null;
+	private List<Entity>				entities						= null;
+
+	private EntityListener				renderSystemListener			= new RenderSystemListener();
 
 	public RenderSystem(Batch batch, ShapeRenderer renderer, Camera camera, int priority) {
 		super(priority);
@@ -95,8 +96,8 @@ public class RenderSystem extends EntitySystem {
 	}
 
 	public void processEntity(Entity entity, float deltaTime) {
-		Vector2 pos = posMapper.get(entity).position;
-		Renderable r = renderMapper.get(entity);
+		Vector2 pos = Mappers.position.get(entity).position;
+		Renderable r = Mappers.renderable.get(entity);
 
 		if (r.renderType == RenderType.TILED) {
 			r.tiledRenderer.setView((OrthographicCamera) camera);
@@ -122,8 +123,8 @@ public class RenderSystem extends EntitySystem {
 				batch.setColor(Color.WHITE);
 			}
 
-			if (targetMarkerMapper.has(entity)) {
-				TargetMarker tm = targetMarkerMapper.get(entity);
+			if (Mappers.targetMarker.has(entity)) {
+				TargetMarker tm = Mappers.targetMarker.get(entity);
 
 				renderer.setColor(tm.color);
 
@@ -134,34 +135,33 @@ public class RenderSystem extends EntitySystem {
 		}
 	}
 
-	private EntityListener				renderSystemListener			= new EntityListener() {
-																			@Override
-																			public void entityRemoved(Entity entity) {
-																				if (renderSystemFamily.matches(entity)) {
-																					entities.remove(entity);
-																				}
-																			}
+	private class RenderSystemListener implements EntityListener {
 
-																			@Override
-																			public void entityAdded(Entity entity) {
-																				if (renderSystemFamily.matches(entity)) {
-																					reorder = true;
-																				}
-																			}
-																		};
+		@Override
+		public void entityAdded(Entity entity) {
+			if (renderSystemFamily.matches(entity)) {
+				reorder = true;
+			}
+		}
 
-	public static Comparator<Entity>	renderablePriorityComparator	= new Comparator<Entity>() {
-																			ComponentMapper<Renderable>	rendMapper	= ComponentMapper
-																															.getFor(Renderable.class);
+		@Override
+		public void entityRemoved(Entity entity) {
+			if (renderSystemFamily.matches(entity)) {
+				entities.remove(entity);
+			}
+		}
 
-																			@Override
-																			public int compare(Entity o1, Entity o2) {
-																				Renderable r1 = rendMapper.get(o1);
-																				Renderable r2 = rendMapper.get(o2);
+	}
 
-																				return (r1.renderPriority > r2.renderPriority ? 1
-																						: (r1.renderPriority == r2.renderPriority ? 0
-																								: -1));
-																			}
-																		};
+	private static class RenderablePriorityComparator implements Comparator<Entity> {
+
+		@Override
+		public int compare(Entity o1, Entity o2) {
+			Renderable r1 = Mappers.renderable.get(o1);
+			Renderable r2 = Mappers.renderable.get(o2);
+
+			return (r1.renderPriority > r2.renderPriority ? 1 : (r1.renderPriority == r2.renderPriority ? 0 : -1));
+		}
+
+	}
 }

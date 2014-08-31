@@ -1,5 +1,6 @@
 package uk.org.ulcompsoc.tesseract.systems;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.Move;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
@@ -8,10 +9,8 @@ import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
-import uk.org.ulcompsoc.tesseract.components.Solid;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
@@ -28,15 +27,11 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldPlayerInputSystem extends IteratingSystem {
-	private ComponentMapper<Position>	posMapper				= ComponentMapper.getFor(Position.class);
-	private ComponentMapper<Renderable>	facingMapper			= ComponentMapper.getFor(Renderable.class);
-	private ComponentMapper<Moving>		movingMapper			= ComponentMapper.getFor(Moving.class);
+	private Engine			engine					= null;
 
-	private Engine						engine					= null;
+	private DialogueSystem	dialogueSystem			= null;
 
-	private DialogueSystem				dialogueSystem			= null;
-
-	public Signal<Boolean>				worldSelectChangeSignal	= null;
+	public Signal<Boolean>	worldSelectChangeSignal	= null;
 
 	@SuppressWarnings("unchecked")
 	public WorldPlayerInputSystem(Listener<Boolean> worldSelectChangeListener, int priority) {
@@ -62,31 +57,24 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		if (dialogueSystem == null) {
 			dialogueSystem = engine.getSystem(DialogueSystem.class);
 		}
-		Vector2 pos = posMapper.get(entity).position;
-		WorldPlayerInputListener listener = ComponentMapper.getFor(WorldPlayerInputListener.class).get(entity);
+		Vector2 pos = Mappers.position.get(entity).position;
+		WorldPlayerInputListener listener = Mappers.worldPlayerInputListener.get(entity);
 
 		final float xMove = WorldConstants.TILE_WIDTH;
 		final float yMove = WorldConstants.TILE_HEIGHT;
 
 		if (!engine.getSystem(DialogueSystem.class).checkProcessing() && !TesseractMain.isTransitioning()) {
-			Moving moving = movingMapper.get(entity);
+			Moving moving = Mappers.moving.get(entity);
 
 			if (moving == null || moving.move.isNearlyDone()) {
-				if (!ComponentMapper.getFor(Moving.class).has(entity)) {
-					if (Gdx.input.isKeyPressed(listener.upKey)) {
-						// Gdx.app.debug("MOVE_UP", "Attempting to move.");
+				if (!Mappers.moving.has(entity)) {
+					if (isAnyKeyPressed(listener.upKeys)) {
 						attemptMove(entity, Facing.UP, pos, pos.x, pos.y + yMove);
-
-					} else if (Gdx.input.isKeyPressed(listener.downKey)) {
-						// Gdx.app.debug("MOVE_DOWN", "Attempting to move.");
+					} else if (isAnyKeyPressed(listener.downKeys)) {
 						attemptMove(entity, Facing.DOWN, pos, pos.x, pos.y - yMove);
-
-					} else if (Gdx.input.isKeyPressed(listener.leftKey)) {
-						// Gdx.app.debug("MOVE_LEFT", "Attempting to move.");
+					} else if (isAnyKeyPressed(listener.leftKeys)) {
 						attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
-
-					} else if (Gdx.input.isKeyPressed(listener.rightKey)) {
-						// Gdx.app.debug("MOVE_RIGHT", "Attempting to move.");
+					} else if (isAnyKeyPressed(listener.rightKeys)) {
 						attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
 					} else if (Gdx.input.isKeyJustPressed(Keys.ENTER)) {
 						worldSelectChangeSignal.dispatch(true);
@@ -108,9 +96,8 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 	private boolean attemptMove(Entity entity, Renderable.Facing facing, Vector2 start, float x, float y) {
 		MovementSystem ms = engine.getSystem(MovementSystem.class);
 
-		Move move = ms.makeAndAddMoveIfPossible(entity, Move.Type.TILE, start, x, y, 0.1f,
-				ComponentMapper.getFor(Solid.class).has(entity));
-		ComponentMapper.getFor(Renderable.class).get(entity).setFacing(facing);
+		Move move = ms.makeAndAddMoveIfPossible(entity, Move.Type.TILE, start, x, y, 0.1f, Mappers.solid.has(entity));
+		Mappers.renderable.get(entity).setFacing(facing);
 
 		if (move != null) {
 			// move was/will be successful
@@ -124,8 +111,8 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 	}
 
 	private boolean attemptExamine(Entity entity) {
-		GridPoint2 pos = posMapper.get(entity).getGridPosition();
-		Facing f = facingMapper.get(entity).facing;
+		GridPoint2 pos = Mappers.position.get(entity).getGridPosition();
+		Facing f = Mappers.renderable.get(entity).facing;
 
 		GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
 
@@ -138,7 +125,7 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		for (int i = 0; i < npcEntities.size(); i++) {
 			Entity other = npcEntities.get(i);
 
-			GridPoint2 otherPos = posMapper.get(other).getGridPosition();
+			GridPoint2 otherPos = Mappers.position.get(other).getGridPosition();
 
 			if (pointInFront.equals(otherPos) || pointInFront2.equals(otherPos)) {
 				dialogueSystem.add(other);
@@ -146,5 +133,15 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		}
 
 		return true;
+	}
+
+	public boolean isAnyKeyPressed(int[] keys) {
+		for (int k : keys) {
+			if (Gdx.input.isKeyPressed(k)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

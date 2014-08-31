@@ -1,21 +1,20 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class DefenceBuff implements BuffPerformer {
-	private ComponentMapper<Stats>	statsMapper		= ComponentMapper.getFor(Stats.class);
-	public final float				duration;
-	public float					timeRemaining	= -1.0f;
+	public final float	duration;
+	public float		timeRemaining	= -1.0f;
 
-	private Entity					target			= null;
-	private Stats					stats			= null;
-	private int						buffAmt			= 0;
+	private Entity		target			= null;
+	private Stats		stats			= null;
+	private int			buffAmt			= 0;
 
 	public DefenceBuff() {
 		this(5.0f);
@@ -28,7 +27,7 @@ public class DefenceBuff implements BuffPerformer {
 	@Override
 	public void doBuff(Entity target) {
 		this.target = target;
-		stats = statsMapper.get(target);
+		stats = Mappers.stats.get(target);
 
 		buffAmt = stats.getDefence();
 

@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.Move;
 import uk.org.ulcompsoc.tesseract.Move.Type;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
@@ -10,7 +11,6 @@ import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.math.Vector2;
@@ -19,12 +19,10 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class MovementSystem extends EntitySystem {
-	private ComponentMapper<Position>	posMapper		= ComponentMapper.getFor(Position.class);
+	private TesseractMap	map				= null;
 
-	private TesseractMap				map				= null;
-
-	private List<Move>					moves			= new ArrayList<Move>();
-	private List<Integer>				movesToRemove	= new ArrayList<Integer>();
+	private List<Move>		moves			= new ArrayList<Move>();
+	private List<Integer>	movesToRemove	= new ArrayList<Integer>();
 
 	public MovementSystem(TesseractMap map, int priority) {
 		super(priority);
@@ -44,7 +42,7 @@ public class MovementSystem extends EntitySystem {
 
 			done = move.update(deltaTime);
 
-			Position pos = posMapper.get(move.mover);
+			Position pos = Mappers.position.get(move.mover);
 
 			pos.position.set(move.getCurrentX(), move.getCurrentY());
 

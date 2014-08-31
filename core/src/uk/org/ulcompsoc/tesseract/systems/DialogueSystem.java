@@ -3,10 +3,9 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
-import uk.org.ulcompsoc.tesseract.components.Position;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.Gdx;
@@ -22,20 +21,17 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class DialogueSystem extends EntitySystem {
-	private ComponentMapper<Position>	posMapper	= ComponentMapper.getFor(Position.class);
-	private ComponentMapper<Dialogue>	diaMapper	= ComponentMapper.getFor(Dialogue.class);
+	private Batch			batch		= null;
+	private Camera			camera		= null;
+	private BitmapFont		font		= null;
 
-	private Batch						batch		= null;
-	private Camera						camera		= null;
-	private BitmapFont					font		= null;
+	private List<Entity>	dias		= new ArrayList<Entity>();
 
-	private List<Entity>				dias		= new ArrayList<Entity>();
+	private ShapeRenderer	renderer	= new ShapeRenderer();
 
-	private ShapeRenderer				renderer	= new ShapeRenderer();
+	private int				currentMsg	= 0;
 
-	private int							currentMsg	= 0;
-
-	private boolean						pressed		= false;
+	private boolean			pressed		= false;
 
 	public DialogueSystem(Camera camera, Batch batch, BitmapFont font, int priority) {
 		super(priority);
@@ -47,8 +43,8 @@ public class DialogueSystem extends EntitySystem {
 	@Override
 	public void update(float deltaTime) {
 		Entity currentDia = dias.get(0);
-		Dialogue dia = diaMapper.get(currentDia);
-		Vector2 pos = posMapper.get(currentDia).position;
+		Dialogue dia = Mappers.dialogue.get(currentDia);
+		Vector2 pos = Mappers.position.get(currentDia).position;
 
 		renderer.setProjectionMatrix(camera.combined);
 
@@ -85,8 +81,6 @@ public class DialogueSystem extends EntitySystem {
 				return;
 			}
 		}
-
-		// Gdx.app.debug("DIALOGUE", dia.dialogueLines[currentMsg]);
 	}
 
 	@Override

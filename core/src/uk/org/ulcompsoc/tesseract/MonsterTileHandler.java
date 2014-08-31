@@ -2,10 +2,6 @@ package uk.org.ulcompsoc.tesseract;
 
 import java.util.Random;
 
-import uk.org.ulcompsoc.tesseract.components.Moving;
-import uk.org.ulcompsoc.tesseract.components.Position;
-
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Listener;
 import com.badlogic.ashley.signals.Signal;
@@ -28,7 +24,7 @@ public class MonsterTileHandler {
 	public class MonsterTileAddListener implements Listener<Entity> {
 		@Override
 		public void receive(Signal<Entity> signal, Entity object) {
-			if (ComponentMapper.getFor(Moving.class).has(object)) {
+			if (Mappers.moving.has(object)) {
 				moving = true;
 			}
 		}
@@ -37,10 +33,10 @@ public class MonsterTileHandler {
 	public class MonsterTileRemoveListener implements Listener<Entity> {
 		@Override
 		public void receive(Signal<Entity> signal, Entity object) {
-			if (moving && !ComponentMapper.getFor(Moving.class).has(object)) {
+			if (moving && !Mappers.moving.has(object)) {
 				moving = false;
 
-				GridPoint2 pos = ComponentMapper.getFor(Position.class).get(object).getGridPosition();
+				GridPoint2 pos = Mappers.position.get(object).getGridPosition();
 
 				if (TesseractMain.getCurrentMap().isMonsterTile(pos)) {
 					monsterTilesVisited++;
