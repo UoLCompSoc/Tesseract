@@ -779,8 +779,7 @@ public class TesseractMain extends ApplicationAdapter {
 			vortexProgram.begin();
 			vortexProgram.setUniformf("vortexFlag", 1.0f);
 			vortexProgram.setUniformf("transitionTime", 0.0f);
-			vortexProgram.setUniformf("iResolution", new Vector2(camera.viewportWidth * 2.0f,
-					camera.viewportHeight * 2.0f));
+			vortexProgram.setUniformf("iResolution", new Vector2(camera.viewportWidth, camera.viewportHeight));
 			vortexProgram.setUniformf("expectedTransitionTime", TesseractMain.BATTLE_START_TRANSITION_TIME);
 			vortexProgram.end();
 		}
