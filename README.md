@@ -11,7 +11,7 @@ Find out now!
 
 Instructions
 ------------
-Movement : WASD  
+Movement : WASD / Arrow Keys
 Interact with NPC/Boss : Space  
 World hop : Enter  
 
