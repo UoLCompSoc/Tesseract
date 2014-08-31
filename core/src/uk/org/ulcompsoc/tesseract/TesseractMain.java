@@ -16,7 +16,6 @@ import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Movable;
-import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Named;
 import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
@@ -134,8 +133,8 @@ public class TesseractMain extends ApplicationAdapter {
 	private Animation						playerLeft						= null;
 	private Animation						playerRight						= null;
 
-	private Texture[]						slimeTextures					= null;
-	private Animation[]						slimeAnims						= null;
+	private Texture							slimeDesat						= null;
+	private Animation						slimeDesatAnim					= null;
 
 	private Texture[]						torchTextures					= null;
 	private Animation[]						torchAnims						= null;
@@ -554,6 +553,7 @@ public class TesseractMain extends ApplicationAdapter {
 				Text.getTextWidth(hpTextComponent, font16), statusRect));
 		hpTextComponent.baseText = "HP: ";
 		hpText.add(hpTextComponent);
+		healToFull();
 
 		rageText = new Entity();
 		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
@@ -745,7 +745,7 @@ public class TesseractMain extends ApplicationAdapter {
 		for (int i = 0; i < count; i++) {
 			Entity slimeEntity = new Entity();
 			slimeEntity.add(positions[i]).add(
-					new Renderable(slimeAnims[currentMapIndex]).setPrioritity(50).setAnimationResolver(
+					new Renderable(slimeDesatAnim, mapColors[currentMapIndex]).setPrioritity(50).setAnimationResolver(
 							new SlimeFrameResolver()));
 			Stats slimeStats = new Stats(50 + 10 * playerPowerLevel, 10, 10, 5 + (random.nextInt(3) + 1) * 5);
 			slimeEntity.add(slimeStats);
@@ -896,16 +896,10 @@ public class TesseractMain extends ApplicationAdapter {
 	}
 
 	public void loadSlimeFiles() {
-		slimeTextures = new Texture[slimeFiles.length];
-		slimeAnims = new Animation[slimeFiles.length];
-
-		for (int i = 0; i < slimeFiles.length; i++) {
-			slimeTextures[i] = new Texture(Gdx.files.internal(slimeFiles[i]));
-			TextureRegion[] slimeRegions = TextureRegion.split(slimeTextures[i], WorldConstants.TILE_WIDTH,
-					WorldConstants.TILE_HEIGHT)[0];
-			slimeAnims[i] = new Animation(0.75f, slimeRegions[0], slimeRegions[1]);
-			slimeAnims[i].setPlayMode(PlayMode.NORMAL);
-		}
+		slimeDesat = new Texture(Gdx.files.internal("monsters/slime_desat.png"));
+		TextureRegion[] desatRegions = TextureRegion.split(slimeDesat, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0];
+		slimeDesatAnim = new Animation(0.75f, desatRegions[0], desatRegions[1]);
 	}
 
 	public void loadBossFiles() {
@@ -971,11 +965,9 @@ public class TesseractMain extends ApplicationAdapter {
 			}
 		}
 
-		for (int i = 0; i < slimeTextures.length; i++) {
-			if (slimeTextures[i] != null) {
-				slimeAnims[i] = null;
-				slimeTextures[i].dispose();
-			}
+		slimeDesatAnim = null;
+		if (slimeDesat != null) {
+			slimeDesat.dispose();
 		}
 
 		for (int i = 0; i < bossTextures.length; i++) {
@@ -1033,47 +1025,6 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.debug("BATTLE_DEFEAT", "Battle defeat detected :(");
 			healOnTransition = true;
 			flagWorldChange(0);
-		}
-	}
-
-	public class MonsterTileHandler {
-		boolean						moving					= false;
-
-		int							monsterTilesVisited		= 0;
-
-		MonsterTileAddListener		movingAddListener		= new MonsterTileAddListener();
-		MonsterTileRemoveListener	movingRemoveListener	= new MonsterTileRemoveListener();
-
-		public class MonsterTileAddListener implements Listener<Entity> {
-			@Override
-			public void receive(Signal<Entity> signal, Entity object) {
-				if (ComponentMapper.getFor(Moving.class).has(object)) {
-					moving = true;
-				}
-			}
-		}
-
-		public class MonsterTileRemoveListener implements Listener<Entity> {
-			@Override
-			public void receive(Signal<Entity> signal, Entity object) {
-				if (moving && !ComponentMapper.getFor(Moving.class).has(object)) {
-					moving = false;
-
-					GridPoint2 pos = ComponentMapper.getFor(Position.class).get(object).getGridPosition();
-
-					if (getCurrentMap().isMonsterTile(pos)) {
-						monsterTilesVisited++;
-						Gdx.app.debug("MONSTER_STEPS", "" + monsterTilesVisited + " steps taken.");
-						final double prob = 0.02 * monsterTilesVisited;
-						final double rand = random.nextDouble();
-
-						if (rand <= prob) {
-							monsterTilesVisited = 0;
-							flagBattleChange(false);
-						}
-					}
-				}
-			}
 		}
 	}
 }

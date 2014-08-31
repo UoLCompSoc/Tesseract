@@ -6,6 +6,7 @@ import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
@@ -73,6 +74,8 @@ public class Renderable extends Component {
 	public float					width			= WorldConstants.TILE_WIDTH;
 	public float					height			= WorldConstants.TILE_HEIGHT;
 
+	public Color					color			= null;
+
 	// lower = first
 	public int						renderPriority	= 0;
 
@@ -99,6 +102,16 @@ public class Renderable extends Component {
 		this.downTexture = sprite;
 		this.width = sprite.getRegionWidth();
 		this.height = sprite.getRegionHeight();
+	}
+
+	public Renderable(Animation animation, Color color) {
+		this.color = color;
+		this.animation = animation;
+		this.resolver = new PingPongFrameResolver();
+
+		this.renderType = RenderType.ANIM_SPRITE_LOOP;
+		this.width = animation.getKeyFrames()[0].getRegionWidth();
+		this.height = animation.getKeyFrames()[0].getRegionHeight();
 	}
 
 	public Renderable(Animation animation) {
