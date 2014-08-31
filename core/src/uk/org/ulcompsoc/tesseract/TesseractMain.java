@@ -289,13 +289,10 @@ public class TesseractMain extends ApplicationAdapter {
 		doorOpenListener = new DialogueFinishListener();
 		worldSelectChangeListener = new WorldSelectChangeListener();
 
-		battleEngine = new Engine();
-		worldEngines = new Engine[mapNames.length];
-		worldSelectEngine = new Engine();
+		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		initBattleEngine(battleEngine);
+		worldEngines = new Engine[mapNames.length];
 		initWorldEngines(worldEngines);
-		initWorldSelectEngine(worldSelectEngine);
 
 		changeToWorld(0);
 	}
@@ -350,6 +347,28 @@ public class TesseractMain extends ApplicationAdapter {
 
 		musicManager.update(deltaTime);
 		currentEngine.update(deltaTime);
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		super.resize(width, height);
+		Gdx.app.debug("RESIZE", "Detected resize to (w, h) = (" + width + ", " + height + ").");
+
+		((OrthographicCamera) camera).setToOrtho(false, width, height);
+
+		if (battleEngine != null) {
+			battleEngine.removeAllEntities();
+		}
+
+		battleEngine = new Engine();
+		initBattleEngine(battleEngine);
+
+		if (worldSelectEngine != null) {
+			worldSelectEngine.removeAllEntities();
+		}
+
+		worldSelectEngine = new Engine();
+		initWorldSelectEngine(worldSelectEngine);
 	}
 
 	public void flagBattleChange(boolean boss) {
@@ -568,7 +587,7 @@ public class TesseractMain extends ApplicationAdapter {
 				+ statusRect.width + ".");
 
 		hpText = new Entity();
-		Text hpTextComponent = new Text("HP: ", Color.WHITE, playerStats.hpChangeSignal);
+		Text hpTextComponent = new Text("HP: 100/100", Color.WHITE, playerStats.hpChangeSignal);
 		hpText.add(new Position(0.0f, statusRect.height * 0.75f).smartCentreX(
 				Text.getTextWidth(hpTextComponent, font16), statusRect));
 		hpText.add(hpTextComponent);
@@ -667,9 +686,36 @@ public class TesseractMain extends ApplicationAdapter {
 
 		for (int i = 0; i < worldSelectTexFiles.length; i++) {
 			worldSelectTextures[i] = new Texture(Gdx.files.internal(worldSelectTexFiles[i]));
+		}
+
+		final int texWidthInTiles = worldSelectTextures[0].getWidth() / WorldConstants.TILE_WIDTH;
+		final int widthPadding = 5;
+
+		final int screenWidthInTiles = (int) (camera.viewportWidth / WorldConstants.TILE_WIDTH) - (widthPadding * 2)
+				- texWidthInTiles;
+		final int screenHeightInTiles = (int) (camera.viewportHeight / WorldConstants.TILE_HEIGHT);
+
+		final int numCols = 3;
+		final int squaresPerRow = worldSelectTexFiles.length / (numCols);
+
+		int xIncr = (int) ((1.0f / squaresPerRow) * (screenWidthInTiles));
+		int yIncr = (int) ((1.0f / numCols) * screenHeightInTiles);
+		Gdx.app.debug("INIT_WORLD_SELECT", "Generating " + squaresPerRow + " squares per col, in " + numCols
+				+ " cols.\nXIncr = " + xIncr + "\nYIncr = " + yIncr);
+
+		int gridX = 5;
+		int gridY = 0;
+
+		for (int i = 0; i < worldSelectTexFiles.length; i++) {
+			if (i % numCols == 0) {
+				gridY += yIncr;
+				gridX = 5;
+			}
 
 			Entity e = new Entity();
-			Position p = new Position().setFromGrid(3 + 2 * 3 * (i % 3), (6 + (i > 2 ? 8 : 0)));
+			Position p = new Position().setFromGrid(gridX, gridY);
+
+			gridX += xIncr;
 
 			e.add(p);
 			e.add(new Renderable(new TextureRegion(worldSelectTextures[i])));

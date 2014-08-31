@@ -27,13 +27,14 @@ Post-Ludum Dare Roadmap
 -----------------------
 
 1. Bugfixing
-  1. Last world access
-  2. HP Rendering Bug at game start
-  3. Fix multiple clicks on world change restarting the world change process
-  4. Fix dirty hacks with interactions
+  1. ~~Last world access~~
+  2. ~~HP Rendering Bug at game start~~
+  3. ~~HD + Resizing support~~
+  4. Fix multiple clicks on world change restarting the world change process
+  5. Fix dirty hacks with interactions
   
 2. Code Improvements
-  1. Combine Position and RelativePosition
+  1. ~~Combine Position and RelativePosition~~
   2. Remove globals where possible
   3. Enable HTML5 support
   4. More data stored in maps
