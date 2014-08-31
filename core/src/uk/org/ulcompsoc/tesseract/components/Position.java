@@ -118,7 +118,7 @@ public class Position extends Component {
 	 * @return this for chaining.
 	 */
 	public Position smartCentreY(float thisHeight, Rectangle other) {
-		this.position.y = other.y + (other.height / 2.0f) - (thisHeight / 2.0f);
+		this.position.y = other.y + (other.height / 2.0f) + (thisHeight / 2.0f);
 		return this;
 	}
 
