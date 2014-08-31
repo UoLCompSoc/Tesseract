@@ -31,7 +31,7 @@ Post-Ludum Dare Roadmap
   2. ~~HP Rendering Bug at game start~~
   3. ~~HD + Resizing support~~
   4. ~~Fix mulitple player graphical bug~~
-  5. Fix multiple clicks on world change restarting the world change process
+  5. ~~Fix multiple clicks on world change restarting the world change process~~
   6. Fix dirty hacks with interactions
   
 2. Code Improvements

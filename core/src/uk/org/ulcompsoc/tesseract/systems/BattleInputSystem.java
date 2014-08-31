@@ -1,5 +1,7 @@
 package uk.org.ulcompsoc.tesseract.systems;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
+import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Combatant;
@@ -21,20 +23,17 @@ import com.badlogic.gdx.math.Vector3;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleInputSystem extends EntitySystem {
-	private ComponentMapper<MouseClickListener>	mclMapper		= ComponentMapper.getFor(MouseClickListener.class);
-	// private ComponentMapper<Combatant> combatantMapper =
-	// ComponentMapper.getFor(Combatant.class);
-	private ComponentMapper<BattleDialog>		bdMapper		= ComponentMapper.getFor(BattleDialog.class);
+	private ComponentMapper<BattleDialog>	bdMapper		= ComponentMapper.getFor(BattleDialog.class);
 
-	private Camera								camera			= null;
+	private Camera							camera			= null;
 
-	private Vector3								mouseCoordCache	= new Vector3(0.0f, 0.0f, 0.0f);
+	private Vector3							mouseCoordCache	= new Vector3(0.0f, 0.0f, 0.0f);
 
-	private boolean								hasReleased		= true;
+	private boolean							hasReleased		= true;
 
-	private Engine								engine			= null;
+	private Engine							engine			= null;
 
-	private ImmutableArray<Entity>				entities		= null;
+	private ImmutableArray<Entity>			entities		= null;
 
 	public BattleInputSystem(Camera camera, int priority) {
 		super(priority);
@@ -66,7 +65,7 @@ public class BattleInputSystem extends EntitySystem {
 	}
 
 	public boolean processEntity(Entity entity, float deltaTime) {
-		MouseClickListener mcl = mclMapper.get(entity);
+		MouseClickListener mcl = Mappers.mouseClickListener.get(entity);
 		Rectangle pos = mcl.rect;
 		BattleDialog bd = bdMapper.get(entity);
 		Combatant com = (bd != null ? bd.combatant : null);
@@ -89,13 +88,15 @@ public class BattleInputSystem extends EntitySystem {
 	@Override
 	public boolean checkProcessing() {
 		if (Gdx.input.isButtonPressed(Buttons.LEFT)) {
-			if (hasReleased) {
-				mouseCoordCache.set(Gdx.input.getX(Buttons.LEFT), Gdx.input.getY(Buttons.LEFT), 0.0f);
-				mouseCoordCache = camera.unproject(mouseCoordCache);
+			if (!TesseractMain.isTransitioning()) {
+				if (hasReleased) {
+					mouseCoordCache.set(Gdx.input.getX(Buttons.LEFT), Gdx.input.getY(Buttons.LEFT), 0.0f);
+					mouseCoordCache = camera.unproject(mouseCoordCache);
 
-				hasReleased = false;
+					hasReleased = false;
 
-				return true;
+					return true;
+				}
 			}
 		} else {
 			hasReleased = true;
