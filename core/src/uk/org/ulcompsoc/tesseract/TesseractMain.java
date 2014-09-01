@@ -198,8 +198,6 @@ public class TesseractMain extends ApplicationAdapter {
 	private static TesseractMap[]		maps							= null;
 	public static int					currentMapIndex					= 0;
 
-	final float							yTile							= 12 * WorldConstants.TILE_HEIGHT;
-
 	@SuppressWarnings("unused")
 	private GameState					gameState						= null;
 
