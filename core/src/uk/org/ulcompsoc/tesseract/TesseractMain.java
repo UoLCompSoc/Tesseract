@@ -815,7 +815,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		if (!vortexProgram.isCompiled()) {
 			useShader = false;
-			Gdx.app.log("LOAD_SHADER", "Vortex hader compilation failed");
+			Gdx.app.log("LOAD_SHADER", "Vortex shader compilation failed");
 		} else {
 			useShader = true;
 		}
@@ -830,7 +830,6 @@ public class TesseractMain extends ApplicationAdapter {
 			vortexProgram.setUniformf("vortexFlag", 1.0f);
 			vortexProgram.setUniformf("transitionTime", 0.0f);
 			vortexProgram.setUniformf("iResolution", new Vector2(camera.viewportWidth, camera.viewportHeight));
-			vortexProgram.setUniformf("expectedTransitionTime", TesseractMain.BATTLE_START_TRANSITION_TIME);
 			vortexProgram.end();
 		}
 	}
