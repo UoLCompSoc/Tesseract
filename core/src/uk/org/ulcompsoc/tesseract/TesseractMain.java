@@ -163,14 +163,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public static final String[]		mapNames						= { "world1/world1.tmx", "world2/world2.tmx",
 			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx", "world7/world7.tmx" };
-	public static final Color[]			mapColors						= {
-			new Color(80.0f / 255.0f, 172.0f / 255.0f, 61.0f / 255.0f, 1.0f),
-			new Color(61.0f / 255.0f, 111.f / 255.0f, 172.0f / 255.0f, 1.0f),
-			new Color(169.0f / 255.0f, 117.0f / 255.0f, 65.0f / 255.0f, 1.0f),
-			new Color(152.0f / 255.0f, 61.0f / 255.0f, 172.0f / 255.0f, 1.0f),
-			new Color(188.0f / 255.0f, 44.0f / 255.0f, 52.0f / 255.0f, 1.0f),
-			new Color(116.0f / 255.0f, 116.0f / 255.0f, 116.0f / 255.0f, 1.0f),
-			new Color(246.0f / 255.0f, 241.0f / 255.0f, 83.0f / 255.0f, 1.0f) };
 
 	public static final String[]		slimeFiles						= { "monsters/world1_slime.png",
 			"monsters/world2_slime.png", "monsters/world3_slime.png", "monsters/world4_slime.png",
@@ -218,7 +210,7 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		}
 
-		ShaderProgram.pedantic = false;
+		ShaderProgram.pedantic = true;
 
 		random = new Random();
 
@@ -241,7 +233,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		loadSlimeFiles();
 
-		loadTorchFiles();
+		// loadTorchFiles();
 
 		loadBossFiles();
 
@@ -273,9 +265,9 @@ public class TesseractMain extends ApplicationAdapter {
 	@Override
 	public void render() {
 		float deltaTime = Gdx.graphics.getDeltaTime();
+		Color mapColor = getCurrentMap().color;
 
-		Gdx.gl.glClearColor(mapColors[currentMapIndex].r, mapColors[currentMapIndex].g, mapColors[currentMapIndex].b,
-				mapColors[currentMapIndex].a);
+		Gdx.gl.glClearColor(mapColor.r, mapColor.g, mapColor.b, mapColor.a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		if (Gdx.app.getLogLevel() == Application.LOG_DEBUG) {
@@ -525,14 +517,14 @@ public class TesseractMain extends ApplicationAdapter {
 			Engine engine = new Engine();
 
 			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
-					(i == mapNames.length - 1 ? null : torchAnims[i]), new TextureRegion(openDoorTex),
-					new TextureRegion(closedDoorTex), new FullHealDialogueFinishListener(),
-					new BossBattleDialogueFinishListener(), new WorldWarpDialogueFinishListener(6));
+					new TextureRegion(openDoorTex), new TextureRegion(closedDoorTex),
+					new FullHealDialogueFinishListener(), new BossBattleDialogueFinishListener(),
+					new WorldWarpDialogueFinishListener(6));
 
 			engine.addEntity(maps[i].baseLayerEntity);
 
-			if (maps[i].torches != null) {
-				for (Entity e : maps[i].torches) {
+			if (maps[i].jsonEntites != null) {
+				for (Entity e : maps[i].jsonEntites) {
 					engine.addEntity(e);
 				}
 			}
@@ -797,7 +789,7 @@ public class TesseractMain extends ApplicationAdapter {
 		for (int i = 0; i < count; i++) {
 			Entity slimeEntity = new Entity();
 			slimeEntity.add(positions[i]).add(
-					new Renderable(slimeDesatAnim, mapColors[currentMapIndex]).setPrioritity(50).setAnimationResolver(
+					new Renderable(slimeDesatAnim, getCurrentMap().color).setPrioritity(50).setAnimationResolver(
 							new SlimeFrameResolver()));
 			Stats slimeStats = new Stats(50 + 10 * Mappers.player.get(battlePlayerEntity).powerLevel, 10, 10,
 					5 + (random.nextInt(3) + 1) * 5);
@@ -815,10 +807,15 @@ public class TesseractMain extends ApplicationAdapter {
 	public void loadShader() {
 		vortexProgram = new ShaderProgram(Gdx.files.internal("shaders/passVertex.glslv"),
 				Gdx.files.internal("shaders/vortexFragment.glslf"));
+
+		String log = vortexProgram.getLog();
+		if (log.length() > 0) {
+			Gdx.app.debug("LOAD_SHADER", "Vortex shader compilation produced following log:\n" + log);
+		}
+
 		if (!vortexProgram.isCompiled()) {
-			Gdx.app.debug("LOAD_SHADER", "Shader compilation produced following log:\n" + vortexProgram.getLog());
 			useShader = false;
-			// throw new GdxRuntimeException("Shader compilation failed");
+			Gdx.app.log("LOAD_SHADER", "Vortex hader compilation failed");
 		} else {
 			useShader = true;
 		}
@@ -937,18 +934,20 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 	}
 
-	public void loadTorchFiles() {
-		torchTextures = new Texture[torchFiles.length];
-		torchAnims = new Animation[torchFiles.length];
-
-		for (int i = 0; i < torchFiles.length; i++) {
-			torchTextures[i] = new Texture(Gdx.files.internal(torchFiles[i]));
-			TextureRegion[] torchRegions = TextureRegion.split(torchTextures[i], WorldConstants.TILE_WIDTH,
-					WorldConstants.TILE_HEIGHT)[0];
-			torchAnims[i] = new Animation(0.15f, torchRegions[0], torchRegions[1], torchRegions[2]);
-			torchAnims[i].setPlayMode(PlayMode.LOOP_PINGPONG);
-		}
-	}
+	// public void loadTorchFiles() {
+	// torchTextures = new Texture[torchFiles.length];
+	// torchAnims = new Animation[torchFiles.length];
+	//
+	// for (int i = 0; i < torchFiles.length; i++) {
+	// torchTextures[i] = new Texture(Gdx.files.internal(torchFiles[i]));
+	// TextureRegion[] torchRegions = TextureRegion.split(torchTextures[i],
+	// WorldConstants.TILE_WIDTH,
+	// WorldConstants.TILE_HEIGHT)[0];
+	// torchAnims[i] = new Animation(0.15f, torchRegions[0], torchRegions[1],
+	// torchRegions[2]);
+	// torchAnims[i].setPlayMode(PlayMode.LOOP_PINGPONG);
+	// }
+	// }
 
 	public void loadSlimeFiles() {
 		slimeDesat = new Texture(Gdx.files.internal("monsters/slime_desat.png"));
@@ -1013,10 +1012,12 @@ public class TesseractMain extends ApplicationAdapter {
 			}
 		}
 
-		for (int i = 0; i < torchTextures.length; i++) {
-			if (torchTextures[i] != null) {
-				torchAnims[i] = null;
-				torchTextures[i].dispose();
+		if (torchTextures != null) {
+			for (int i = 0; i < torchTextures.length; i++) {
+				if (torchTextures[i] != null) {
+					torchAnims[i] = null;
+					torchTextures[i].dispose();
+				}
 			}
 		}
 

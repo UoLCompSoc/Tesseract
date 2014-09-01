@@ -1,0 +1,8 @@
+{
+    "animation": {
+        "location": "maps/world5/torches.png",
+        "frames": 3,
+        "resolver": "pingpong",
+        "frameDuration": 0.15f,
+    }
+}

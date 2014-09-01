@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.animations.AnimationJSONParser;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.NPC;
@@ -14,7 +15,8 @@ import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
@@ -26,6 +28,8 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -35,7 +39,7 @@ public class TesseractMap implements Disposable {
 	public final boolean[]			collisionArray;
 	public final boolean[]			monsterTiles;
 	public final Entity[]			NPCs;
-	public final Entity[]			torches;
+	public final Entity[]			jsonEntites;
 	public final Entity				baseLayerEntity;
 	public final Entity				zLayerEntity;
 	public final Entity				bossEntity;
@@ -43,13 +47,17 @@ public class TesseractMap implements Disposable {
 	public final Entity				openDoorEntity;
 	public final TiledMapRenderer	renderer;
 
+	public final Color				color;
+
 	public final int				widthInTiles;
 	public final int				heightInTiles;
 
+	public final List<Texture>		ownedTextures;
+
 	public boolean					bossBeaten	= false;
 
-	public TesseractMap(TiledMap map, Batch batch, Animation torchAnim, TextureRegion openDoorSprite,
-			TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
+	public TesseractMap(TiledMap map, Batch batch, TextureRegion openDoorSprite, TextureRegion closedDoorSprite,
+			DialogueFinishListener healListener, DialogueFinishListener bossListener,
 			DialogueFinishListener doorOpenListener) {
 		this.map = map;
 
@@ -57,13 +65,17 @@ public class TesseractMap implements Disposable {
 			Gdx.app.debug("INVALID_MAP", "Map contains no text prefix, exiting.");
 		}
 
-		widthInTiles = TiledUtil.getMapWidthInTiles(map);
-		heightInTiles = TiledUtil.getMapHeightInTiles(map);
+		this.ownedTextures = new ArrayList<Texture>();
+
+		this.widthInTiles = TiledUtil.getMapWidthInTiles(map);
+		this.heightInTiles = TiledUtil.getMapHeightInTiles(map);
+
+		this.color = TiledUtil.getMapColor(map);
 
 		this.renderer = new OrthogonalTiledMapRenderer(map, batch);
 
 		this.collisionArray = generateCollisionArray(map);
-		this.torches = generateTorchEntities(map, torchAnim);
+		this.jsonEntites = generateEntitiesFromJSON(map, ownedTextures);
 		this.NPCs = generateNPCEntities(map, healListener);
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
@@ -117,6 +129,21 @@ public class TesseractMap implements Disposable {
 		this.bossBeaten = true;
 	}
 
+	@Override
+	public void dispose() {
+		if (ownedTextures != null) {
+			for (Texture t : ownedTextures) {
+				if (t != null) {
+					t.dispose();
+				}
+			}
+		}
+
+		if (map != null) {
+			map.dispose();
+		}
+	}
+
 	public static boolean[] generateCollisionArray(TiledMap map) {
 		boolean[] retVal = null;
 		MapLayers layers = map.getLayers();
@@ -142,44 +169,33 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public static Entity[] generateTorchEntities(TiledMap map, Animation torchAnim) {
-		Entity[] retVal = null;
+	public static Entity[] generateEntitiesFromJSON(TiledMap map, List<Texture> ownedTextures) {
+		List<TiledMapTileLayer> layers = TiledUtil.getJSONLayers(map);
+		List<Entity> entities = new ArrayList<Entity>();
+		JsonReader reader = new JsonReader();
 
-		List<GridPoint2> torchPos = new ArrayList<GridPoint2>();
+		for (TiledMapTileLayer layer : layers) {
+			if (TiledUtil.isJSONLayer(layer)) {
+				final String jsonString = Gdx.files.internal(TiledUtil.getJSONFile(layer)).readString();
+				JsonValue val = reader.parse(jsonString);
 
-		final int width = TiledUtil.getMapWidthInTiles(map);
-		final int height = TiledUtil.getMapHeightInTiles(map);
-
-		for (MapLayer layer_ : map.getLayers()) {
-			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
-
-			if (TiledUtil.isTorchLayer(layer)) {
-				for (int y = 0; y < height; y++) {
-					for (int x = 0; x < width; x++) {
-						if (layer.getCell(x, y) != null) {
-							torchPos.add(new GridPoint2(x, y));
+				if (val.child.name.equals("animation")) {
+					for (int y = 0; y < layer.getHeight(); y++) {
+						for (int x = 0; x < layer.getWidth(); x++) {
+							if (layer.getCell(x, y) != null) {
+								Entity e = new Entity();
+								e.add(new Position().setFromGrid(x, y));
+								e.add(AnimationJSONParser.parseAnimation(jsonString, ownedTextures));
+								entities.add(e);
+							}
 						}
 					}
 				}
 			}
 		}
 
-		if (torchPos.size() == 0) {
-			return null;
-		}
-
-		retVal = new Entity[torchPos.size()];
-		for (int i = 0; i < torchPos.size(); i++) {
-			GridPoint2 point = torchPos.get(i);
-
-			Entity e = new Entity();
-			Renderable r = new Renderable(torchAnim).setPrioritity(25);
-
-			e.add(new Position().setFromGrid(point)).add(r);
-			retVal[i] = e;
-		}
-
-		return retVal;
+		Entity[] retVal = new Entity[entities.size()];
+		return entities.toArray(retVal);
 	}
 
 	public static Entity generateBaseLayerEntity(TiledMap map, TiledMapRenderer renderer) {
@@ -374,12 +390,5 @@ public class TesseractMap implements Disposable {
 		e.add(new Renderable(openDoorSprite).setPrioritity(0));
 
 		return e;
-	}
-
-	@Override
-	public void dispose() {
-		if (map != null) {
-			map.dispose();
-		}
 	}
 }

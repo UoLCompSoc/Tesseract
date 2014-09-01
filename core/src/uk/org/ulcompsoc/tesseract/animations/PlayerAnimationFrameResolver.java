@@ -19,12 +19,20 @@ public class PlayerAnimationFrameResolver extends AnimationFrameResolver {
 
 	public float				frameDuration			= DEFAULT_FRAME_DURATION;
 
+	public PlayerAnimationFrameResolver() {
+		this(false, DEFAULT_FRAME_DURATION);
+	}
+
 	/**
 	 * @param always
 	 *        true if the animation should play even if the player is not moving
 	 */
 	public PlayerAnimationFrameResolver(boolean always) {
 		this(always, DEFAULT_FRAME_DURATION);
+	}
+
+	public PlayerAnimationFrameResolver(float frameDuration) {
+		this(false, frameDuration);
 	}
 
 	public PlayerAnimationFrameResolver(boolean always, float frameDuration) {
