@@ -16,7 +16,7 @@
 
 #define PI 3.1416
 #define WAVE_SIZE 0.5
-#define SPEED 4.0
+#define SPEED 10.0
 
 varying LOWP vec4 v_color; 
 varying vec2 v_texCoords; 

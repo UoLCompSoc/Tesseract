@@ -493,7 +493,7 @@ public class TesseractMain extends ApplicationAdapter {
 		camera.update();
 	}
 
-	public void initWorldEngines(Engine[] engines) {
+	private void initWorldEngines(Engine[] engines) {
 		maps = new TesseractMap[mapNames.length];
 		TmxMapLoader mapLoader = new TmxMapLoader();
 
@@ -557,7 +557,7 @@ public class TesseractMain extends ApplicationAdapter {
 		currentEngine = worldEngines[0]; // DIRTY HACK
 	}
 
-	public void initBattleEngine(Engine engine) {
+	private void initBattleEngine(Engine engine) {
 		makeBattlePlayerEntity(engine);
 		Combatant playerCom = Mappers.combatant.get(battlePlayerEntity);
 
@@ -702,11 +702,13 @@ public class TesseractMain extends ApplicationAdapter {
 
 			Entity e = new Entity();
 			Position p = new Position().setFromGrid(gridX, gridY);
+			Renderable r = new Renderable(new TextureRegion(worldSelectTextures[i]));
 
 			gridX += xIncr;
 
 			e.add(p);
-			e.add(new Renderable(new TextureRegion(worldSelectTextures[i])));
+			e.add(new Dimension(r.width, r.height));
+			e.add(r);
 			e.add(new Named("" + i));
 			e.add(new MouseClickListener(new MouseClickPerformer() {
 				@Override
@@ -828,7 +830,7 @@ public class TesseractMain extends ApplicationAdapter {
 			batch.setShader(vortexProgram);
 			vortexProgram.begin();
 			vortexProgram.setUniformf("vortexFlag", 1.0f);
-			vortexProgram.setUniformf("transitionTime", 0.0f);
+			vortexProgram.setUniformf("transitionTime", transitionTime);
 			vortexProgram.setUniformf("iResolution", new Vector2(camera.viewportWidth, camera.viewportHeight));
 			vortexProgram.end();
 		}
