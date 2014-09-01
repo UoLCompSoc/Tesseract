@@ -139,8 +139,8 @@ public class TesseractMain extends ApplicationAdapter {
 	private Texture[]					bossTextures					= null;
 	private Animation[]					bossAnims						= null;
 	private Stats[]						bossStats						= { new Stats(20, 15, 10, 3),
-			new Stats(100, 15, 10, 1), new Stats(150, 20, 10, 5), new Stats(150, 25, 10, 5), new Stats(150, 30, 10, 2),
-			new Stats(150, 35, 10, 5), new Stats(100, 40, 5, 2)		};
+			new Stats(100, 15, 10, 1), new Stats(300, 15, 10, 5), new Stats(200, 20, 10, 5), new Stats(150, 20, 10, 2),
+			new Stats(200, 20, 10, 5), new Stats(350, 25, 5, 2)		};
 
 	private Texture[]					worldSelectTextures				= null;
 
@@ -739,7 +739,7 @@ public class TesseractMain extends ApplicationAdapter {
 		boss.add(new Renderable(bossAnims[currentMapIndex]).setAnimationResolver(new PingPongFrameResolver(0.1f)));
 		boss.add(bossStats[currentMapIndex]);
 		boss.add(new Boss());
-		boss.add(new Combatant());
+		boss.add(new Combatant().setThinkingTime(bossStats[currentMapIndex].getThinkTime() / 2.0f));
 		Enemy enemy = Mappers.enemy.get(map.bossEntity);
 		boss.add(enemy);
 		boss.add(new Named(enemy.speciesName));
