@@ -32,6 +32,8 @@ Post-Ludum Dare Roadmap
   3. ~~HD + Resizing support~~
   4. ~~Fix mulitple player graphical bug~~
   5. ~~Fix multiple clicks on world change restarting the world change process~~
+  6. ~~Fix player animation bugs~~
+  7. Fix hack with talking to bosses (esp final boss) and fix collision maps after a boss is beaten
   
 2. Code Improvements
   1. ~~Combine Position and RelativePosition~~

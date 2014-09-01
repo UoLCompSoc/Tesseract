@@ -73,101 +73,97 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class TesseractMain extends ApplicationAdapter {
-	public static final String				PLAYER_NAME						= "Valiant Hero™";
-	public static final float				BATTLE_END_TRANSITION_TIME		= 4.0f;
-	public static final float				BATTLE_START_TRANSITION_TIME	= 2.0f;
-	public static final float				WORLD_SELECT_LOAD_TIME			= 0.25f;
-	public static final float				WORLD_SELECT_CHANGE_TIME		= 1.0f;
+	public static final String			PLAYER_NAME						= "Valiant Hero™";
+	public static final float			BATTLE_END_TRANSITION_TIME		= 4.0f;
+	public static final float			BATTLE_START_TRANSITION_TIME	= 2.0f;
+	public static final float			WORLD_SELECT_LOAD_TIME			= 0.25f;
+	public static final float			WORLD_SELECT_CHANGE_TIME		= 1.0f;
 
-	private Random							random							= null;
+	private Random						random							= null;
 
-	private static SpriteBatch				batch							= null;
-	private static ShapeRenderer			shapeRenderer					= null;
-	private static Camera					camera							= null;
+	private static SpriteBatch			batch							= null;
+	private static ShapeRenderer		shapeRenderer					= null;
+	private static Camera				camera							= null;
 
-	public static MusicManager				musicManager					= null;
+	public static MusicManager			musicManager					= null;
 
-	private static boolean					useShader						= false;
-	private static ShaderProgram			vortexProgram					= null;
+	private static boolean				useShader						= false;
+	private static ShaderProgram		vortexProgram					= null;
 
-	private FontResolver					fontResolver					= null;
-	private BitmapFont						font10							= null;
-	private BitmapFont						font12							= null;
-	private BitmapFont						font16							= null;
-	private BitmapFont						font24							= null;
+	private FontResolver				fontResolver					= null;
+	private BitmapFont					font10							= null;
+	private BitmapFont					font12							= null;
+	private BitmapFont					font16							= null;
+	private BitmapFont					font24							= null;
 
-	private Engine							currentEngine					= null;
+	private Engine						currentEngine					= null;
 
-	private static Engine					battleEngine					= null;
-	private static Engine					worldSelectEngine				= null;
-	private static Engine[]					worldEngines					= null;
+	private static Engine				battleEngine					= null;
+	private static Engine				worldSelectEngine				= null;
+	private static Engine[]				worldEngines					= null;
 
-	public static Entity					battlePlayerEntity				= null;
-	public static Entity					worldPlayerEntity				= null;
-	public static Stats						playerStats						= null;
+	public static Entity				battlePlayerEntity				= null;
+	public static Entity				worldPlayerEntity				= null;
+	public static Stats					playerStats						= null;
 
-	private BattleVictoryListener			battleVictoryListener			= null;
-	private BattleDefeatListener			battleDefeatListener			= null;
+	private BattleVictoryListener		battleVictoryListener			= null;
+	private BattleDefeatListener		battleDefeatListener			= null;
 
-	private static boolean					bossIncomingFlag				= false;
-	private static boolean					battleChangeFlag				= false;
-	private static boolean					worldChangeFlag					= false;
+	private static boolean				bossIncomingFlag				= false;
+	private static boolean				battleChangeFlag				= false;
+	private static boolean				worldChangeFlag					= false;
 
-	private boolean							healOnTransition				= false;
-	private static boolean					worldSelectChangeFlag			= false;
-	private static int						diffWorldFlag					= -1;
-	private static float					transitionTime					= -1.0f;
+	private boolean						healOnTransition				= false;
+	private static boolean				worldSelectChangeFlag			= false;
+	private static int					diffWorldFlag					= -1;
+	private static float				transitionTime					= -1.0f;
 
-	private int								playerPowerLevel				= 0;
+	private Texture[]					playerTextures					= null;
+	private Animation[]					playerIdleAnims					= null;
+	private Animation[]					playerUpAnims					= null;
+	private Animation[]					playerDownAnims					= null;
+	private Animation[]					playerLeftAnims					= null;
+	private Animation[]					playerRightAnims				= null;
+	private Animation					playerIdle						= null;
+	private Animation					playerUp						= null;
+	private Animation					playerDown						= null;
+	private Animation					playerLeft						= null;
+	private Animation					playerRight						= null;
 
-	private PlayerAnimationFrameResolver	playerAnimationFrameResolver	= null;
-	private Texture[]						playerTextures					= null;
-	private Animation[]						playerIdleAnims					= null;
-	private Animation[]						playerUpAnims					= null;
-	private Animation[]						playerDownAnims					= null;
-	private Animation[]						playerLeftAnims					= null;
-	private Animation[]						playerRightAnims				= null;
-	private Animation						playerIdle						= null;
-	private Animation						playerUp						= null;
-	private Animation						playerDown						= null;
-	private Animation						playerLeft						= null;
-	private Animation						playerRight						= null;
+	private Texture						slimeDesat						= null;
+	private Animation					slimeDesatAnim					= null;
 
-	private Texture							slimeDesat						= null;
-	private Animation						slimeDesatAnim					= null;
+	private Texture[]					torchTextures					= null;
+	private Animation[]					torchAnims						= null;
 
-	private Texture[]						torchTextures					= null;
-	private Animation[]						torchAnims						= null;
-
-	private Texture[]						bossTextures					= null;
-	private Animation[]						bossAnims						= null;
-	private Stats[]							bossStats						= { new Stats(20, 15, 10, 3),
+	private Texture[]					bossTextures					= null;
+	private Animation[]					bossAnims						= null;
+	private Stats[]						bossStats						= { new Stats(20, 15, 10, 3),
 			new Stats(100, 15, 10, 1), new Stats(150, 20, 10, 5), new Stats(150, 25, 10, 5), new Stats(150, 30, 10, 2),
-			new Stats(150, 35, 10, 5), new Stats(100, 40, 5, 2)			};
+			new Stats(150, 35, 10, 5), new Stats(100, 40, 5, 2)		};
 
-	private Texture[]						worldSelectTextures				= null;
+	private Texture[]					worldSelectTextures				= null;
 
-	private Texture							openDoorTex						= null;
-	private Texture							closedDoorTex					= null;
+	private Texture						openDoorTex						= null;
+	private Texture						closedDoorTex					= null;
 
-	private WorldSelectChangeListener		worldSelectChangeListener		= null;
+	private WorldSelectChangeListener	worldSelectChangeListener		= null;
 
-	private MonsterTileHandler				monsterTileHandler				= null;
+	private MonsterTileHandler			monsterTileHandler				= null;
 
-	private Entity							statusDialog					= null;
-	private Entity[]						menuDialogs						= null;
-	private Entity[]						menuTexts						= null;
-	private Entity							hpText							= null;
-	private Entity							rageText						= null;
+	private Entity						statusDialog					= null;
+	private Entity[]					menuDialogs						= null;
+	private Entity[]					menuTexts						= null;
+	private Entity						hpText							= null;
+	private Entity						rageText						= null;
 
-	public static final String[]			playerFiles						= { "player/player_0.png",
+	public static final String[]		playerFiles						= { "player/player_0.png",
 			"player/player_1.png", "player/player_2.png", "player/player_3.png", "player/player_4.png",
-			"player/player_5.png",											};
+			"player/player_5.png",										};
 
-	public static final String[]			mapNames						= { "world1/world1.tmx",
-			"world2/world2.tmx", "world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx",
-			"world7/world7.tmx"											};
-	public static final Color[]				mapColors						= {
+	public static final String[]		mapNames						= { "world1/world1.tmx", "world2/world2.tmx",
+			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx", "world7/world7.tmx" };
+	public static final Color[]			mapColors						= {
 			new Color(80.0f / 255.0f, 172.0f / 255.0f, 61.0f / 255.0f, 1.0f),
 			new Color(61.0f / 255.0f, 111.f / 255.0f, 172.0f / 255.0f, 1.0f),
 			new Color(169.0f / 255.0f, 117.0f / 255.0f, 65.0f / 255.0f, 1.0f),
@@ -176,36 +172,36 @@ public class TesseractMain extends ApplicationAdapter {
 			new Color(116.0f / 255.0f, 116.0f / 255.0f, 116.0f / 255.0f, 1.0f),
 			new Color(246.0f / 255.0f, 241.0f / 255.0f, 83.0f / 255.0f, 1.0f) };
 
-	public static final String[]			slimeFiles						= { "monsters/world1_slime.png",
+	public static final String[]		slimeFiles						= { "monsters/world1_slime.png",
 			"monsters/world2_slime.png", "monsters/world3_slime.png", "monsters/world4_slime.png",
-			"monsters/world5_slime.png", "monsters/world6_slime.png"		};
+			"monsters/world5_slime.png", "monsters/world6_slime.png"	};
 
-	public static final String[]			torchFiles						= { "torches/world1_torches.png",
+	public static final String[]		torchFiles						= { "torches/world1_torches.png",
 			"torches/world2_torches.png", "torches/world3_torches.png", "torches/world4_torches.png",
-			"torches/world5_torches.png", "torches/world6_torches.png"		};
+			"torches/world5_torches.png", "torches/world6_torches.png"	};
 
-	public static final String[]			bossFiles						= { "bosses/final_boss.png",
+	public static final String[]		bossFiles						= { "bosses/final_boss.png",
 			"bosses/world2_boss.png", "bosses/world3_boss.png", "bosses/world4_boss.png", "bosses/world5_boss.png",
-			"bosses/world6_boss.png", "bosses/final_boss.png"				};
+			"bosses/world6_boss.png", "bosses/final_boss.png"			};
 
-	public static final GridPoint2[]		bossSizes						= { new GridPoint2(128, 128),
+	public static final GridPoint2[]	bossSizes						= { new GridPoint2(128, 128),
 			new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64), new GridPoint2(64, 64),
-			new GridPoint2(64, 64), new GridPoint2(128, 128)				};
+			new GridPoint2(64, 64), new GridPoint2(128, 128)			};
 
-	public static final String[]			worldSelectTexFiles				= { "worldtextures/world1_64.png",
+	public static final String[]		worldSelectTexFiles				= { "worldtextures/world1_64.png",
 			"worldtextures/world2_64.png", "worldtextures/world3_64.png", "worldtextures/world4_64.png",
-			"worldtextures/world5_64.png", "worldtextures/world6_64.png"	};
+			"worldtextures/world5_64.png", "worldtextures/world6_64.png" };
 
-	public static final String[]			musicFiles						= { "music/world1.ogg", "music/world2.ogg",
+	public static final String[]		musicFiles						= { "music/world1.ogg", "music/world2.ogg",
 			"music/world3.ogg", "music/world4.ogg", "music/world5.ogg", "music/world6.ogg", "music/world7.ogg" };
 
-	private static TesseractMap[]			maps							= null;
-	public static int						currentMapIndex					= 0;
+	private static TesseractMap[]		maps							= null;
+	public static int					currentMapIndex					= 0;
 
-	final float								yTile							= 12 * WorldConstants.TILE_HEIGHT;
+	final float							yTile							= 12 * WorldConstants.TILE_HEIGHT;
 
 	@SuppressWarnings("unused")
-	private GameState						gameState						= null;
+	private GameState					gameState						= null;
 
 	public TesseractMain(FontResolver fontResolver) {
 		this(fontResolver, Difficulty.EASY, false, false);
@@ -515,7 +511,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		worldPlayerEntity = new Entity();
 		worldPlayerEntity.add(new Renderable(Facing.IDLE, playerIdle, playerUp, playerDown, playerLeft, playerRight,
-				new PlayerAnimationFrameResolver()).setPrioritity(50));
+				new PlayerAnimationFrameResolver(false)).setPrioritity(50));
 		worldPlayerEntity.add(new FocusTaker(camera));
 		worldPlayerEntity.add(new Player(PLAYER_NAME));
 		worldPlayerEntity.add(new WorldPlayerInputListener());
@@ -664,8 +660,11 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
 	}
 
-	public void makeBattlePlayerEntity(Engine engine) {
+	private void makeBattlePlayerEntity(Engine engine) {
 		battlePlayerEntity = new Entity();
+
+		Player playerComp = new Player(PLAYER_NAME);
+		battlePlayerEntity.add(playerComp);
 
 		// dirty hack with positioning here
 		battlePlayerEntity.add(new Position(0.85f * camera.viewportWidth, 0.0f).smartCentreY(
@@ -675,8 +674,6 @@ public class TesseractMain extends ApplicationAdapter {
 		battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());
 		battlePlayerEntity.add(playerStats);
 
-		Player playerComp = new Player(PLAYER_NAME);
-		battlePlayerEntity.add(playerComp);
 		Combatant playerCombatant = new Combatant();
 		battlePlayerEntity.add(playerCombatant);
 		battlePlayerEntity.add(new Named(playerComp.name));
@@ -684,7 +681,7 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(battlePlayerEntity);
 	}
 
-	public void initWorldSelectEngine(Engine engine) {
+	private void initWorldSelectEngine(Engine engine) {
 		worldSelectTextures = new Texture[worldSelectTexFiles.length];
 
 		for (int i = 0; i < worldSelectTexFiles.length; i++) {
@@ -804,7 +801,8 @@ public class TesseractMain extends ApplicationAdapter {
 			slimeEntity.add(positions[i]).add(
 					new Renderable(slimeDesatAnim, mapColors[currentMapIndex]).setPrioritity(50).setAnimationResolver(
 							new SlimeFrameResolver()));
-			Stats slimeStats = new Stats(50 + 10 * playerPowerLevel, 10, 10, 5 + (random.nextInt(3) + 1) * 5);
+			Stats slimeStats = new Stats(50 + 10 * Mappers.player.get(battlePlayerEntity).powerLevel, 10, 10,
+					5 + (random.nextInt(3) + 1) * 5);
 			slimeEntity.add(slimeStats);
 			Gdx.app.debug("SLIME_THINK_TIME", "Slimes think for " + slimeStats.getThinkTime() + "s.");
 			slimeEntity.add(new Combatant().setThinkingTime(0.0f + random.nextFloat()));
@@ -856,7 +854,6 @@ public class TesseractMain extends ApplicationAdapter {
 	}
 
 	public void loadPlayerFiles() {
-		playerAnimationFrameResolver = new PlayerAnimationFrameResolver();
 		playerTextures = new Texture[playerFiles.length];
 		playerIdleAnims = new Animation[playerFiles.length];
 		playerUpAnims = new Animation[playerFiles.length];
@@ -906,11 +903,11 @@ public class TesseractMain extends ApplicationAdapter {
 			playerLeftAnims[i] = left;
 			playerRightAnims[i] = right;
 		}
-
-		playerPowerLevel = 0;
 	}
 
-	public Renderable getWorldPlayerPowerLevelRenderable(Facing facing) {
+	private Renderable getWorldPlayerPowerLevelRenderable(Facing facing) {
+		final int playerPowerLevel = Mappers.player.get(battlePlayerEntity).powerLevel;
+
 		playerIdle = playerIdleAnims[playerPowerLevel];
 		playerUp = playerUpAnims[playerPowerLevel];
 		playerDown = playerDownAnims[playerPowerLevel];
@@ -918,20 +915,22 @@ public class TesseractMain extends ApplicationAdapter {
 		playerRight = playerRightAnims[playerPowerLevel];
 
 		return new Renderable(facing, playerIdle, playerUp, playerDown, playerLeft, playerRight,
-				playerAnimationFrameResolver).setPrioritity(50);
+				new PlayerAnimationFrameResolver(false)).setPrioritity(50);
 	}
 
-	public Renderable getBattlePlayerPowerLevelRenderable() {
+	private Renderable getBattlePlayerPowerLevelRenderable() {
 		return getWorldPlayerPowerLevelRenderable(Facing.IDLE).setPrioritity(50).setAnimationResolver(
-				new PingPongFrameResolver());
+				new PlayerAnimationFrameResolver(true, 0.17f));
 	}
 
 	public void doPlayerPowerUp() {
-		playerPowerLevel++;
+		Player playerComp = Mappers.player.get(battlePlayerEntity);
+		playerComp.powerLevel++;
+
 		playerStats.addExperience(10);
 
-		if (playerPowerLevel >= playerFiles.length) {
-			playerPowerLevel = playerFiles.length - 1;
+		if (playerComp.powerLevel >= playerFiles.length) {
+			playerComp.powerLevel = playerFiles.length - 1;
 		} else {
 			Facing f = Mappers.renderable.get(worldPlayerEntity).facing;
 

@@ -10,12 +10,27 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class PlayerAnimationFrameResolver extends AnimationFrameResolver {
-	private boolean				isAnim			= false;
-	private Animation			animCache		= null;
-	private int					animFrame		= 0;
-	private int					animDir			= 1;
+	public static final float	DEFAULT_FRAME_DURATION	= 0.08f;
 
-	public static final float	FRAME_DURATION	= 0.2f;
+	private Animation			lastAnim				= null;
+	private int					animFrame				= 0;
+
+	private boolean				always					= false;
+
+	public float				frameDuration			= DEFAULT_FRAME_DURATION;
+
+	/**
+	 * @param always
+	 *        true if the animation should play even if the player is not moving
+	 */
+	public PlayerAnimationFrameResolver(boolean always) {
+		this(always, DEFAULT_FRAME_DURATION);
+	}
+
+	public PlayerAnimationFrameResolver(boolean always, float frameDuration) {
+		this.always = always;
+		this.frameDuration = frameDuration;
+	}
 
 	@Override
 	public float resolveTime(float deltaTime) {
@@ -26,40 +41,37 @@ public class PlayerAnimationFrameResolver extends AnimationFrameResolver {
 
 	@Override
 	public TextureRegion resolveFrame(Animation anim, float deltaTime) {
-		if (Mappers.moving.has(TesseractMain.worldPlayerEntity)) {
-			if (isAnim) {
-				if (anim != animCache) {
-					animFrame = 0;
-					animCache = anim;
-					animTime = 0.0f;
-					animDir = 1;
-				}
-
-				resolveTime(deltaTime);
-
-				if (animTime >= FRAME_DURATION) {
-					animTime -= FRAME_DURATION;
-					animFrame += animDir;
-
-					if (animFrame == animCache.getKeyFrames().length - 1) {
-						animDir = -1;
-
-					} else if (animFrame == 0) {
-						isAnim = false;
-						animTime = 0.0f;
-						animDir = 1;
-						animFrame = 0;
-					}
-				}
-			} else {
-				animCache = anim;
-				animDir = 1;
-				animTime = 0.0f;
+		if (always || Mappers.moving.has(TesseractMain.worldPlayerEntity)) {
+			if (anim != lastAnim) {
 				animFrame = 0;
-				isAnim = true;
+				lastAnim = anim;
+				animTime = 0.0f;
+			}
+
+			resolveTime(deltaTime);
+
+			if (animTime >= frameDuration) {
+				animTime -= frameDuration;
+				animFrame++;
+
+				if (animFrame == lastAnim.getKeyFrames().length) {
+					animFrame = 0;
+				}
 			}
 		}
 
+		// Gdx.app.debug("FRAME", "Frame is " + animFrame + ".");
+
 		return anim.getKeyFrames()[animFrame];
+	}
+
+	/**
+	 * @param always
+	 *        true if the animation should play even if the player is not moving
+	 * @return this for chaining
+	 */
+	public PlayerAnimationFrameResolver setAlways(boolean always) {
+		this.always = always;
+		return this;
 	}
 }
