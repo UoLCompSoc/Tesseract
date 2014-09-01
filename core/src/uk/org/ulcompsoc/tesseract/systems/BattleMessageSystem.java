@@ -6,6 +6,7 @@ import java.util.List;
 import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Text;
 
@@ -36,7 +37,7 @@ public class BattleMessageSystem extends EntitySystem {
 
 	private ShapeRenderer		renderer				= null;
 
-	private final Rectangle		boxPos;
+	private Rectangle			boxPos;
 
 	private BattleMessage		currentBattleMessage	= null;
 	private Entity				currentMessageText		= null;
@@ -48,13 +49,14 @@ public class BattleMessageSystem extends EntitySystem {
 		this.camera = camera;
 
 		Position pos = Mappers.position.get(baseDialogEntity);
+		Dimension dim = Mappers.dimension.get(baseDialogEntity);
 		BattleDialog bd = Mappers.battleDialog.get(baseDialogEntity);
 
-		if (pos == null || bd == null) {
+		if (pos == null || bd == null || dim == null) {
 			throw new GdxRuntimeException("Constructor of BattleMessageSystem called with invalid baseDialogEntity.");
 		}
 
-		this.boxPos = new Rectangle(pos.position.x, pos.position.y, bd.actualWidth, bd.actualHeight);
+		this.boxPos = new Rectangle(pos.position.x, pos.position.y, dim.width, dim.height);
 	}
 
 	@Override
@@ -108,6 +110,13 @@ public class BattleMessageSystem extends EntitySystem {
 
 	public void addMessage(BattleMessage message) {
 		messages.add(message);
+	}
+
+	public void handleResize(float xScale, float yScale) {
+		boxPos.x *= xScale;
+		boxPos.y *= yScale;
+		boxPos.width *= xScale;
+		boxPos.height *= yScale;
 	}
 
 	public void clearAllMessages() {

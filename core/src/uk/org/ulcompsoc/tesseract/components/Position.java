@@ -42,6 +42,96 @@ public class Position extends Component {
 
 	/**
 	 * <p>
+	 * Modifies the x position.
+	 * </p>
+	 * 
+	 * @param x
+	 *        the new x position
+	 * @return this for chaining
+	 */
+	public Position setX(float x) {
+		position.x = x;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 * Adds x to the the x position.
+	 * </p>
+	 * 
+	 * @param x
+	 *        the change in x
+	 * @return this for chaining
+	 */
+	public Position adjustX(float x) {
+		position.x += x;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 * Modifies the y position.
+	 * </p>
+	 * 
+	 * @param y
+	 *        the new y position
+	 * @return this for chaining
+	 */
+	public Position setY(float y) {
+		position.y = y;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 * Adds y to the the y position.
+	 * </p>
+	 * 
+	 * @param y
+	 *        the change in y
+	 * @return this for chaining
+	 */
+	public Position adjustY(float y) {
+		position.y += y;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 * Modifies the x and y positions.
+	 * </p>
+	 * 
+	 * @param x
+	 *        the new x position
+	 * @param y
+	 *        the new y position
+	 * @return this for chaining
+	 */
+	public Position set(float x, float y) {
+		position.x = x;
+		position.y = y;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 * Adds x to the x position and y to the the y position.
+	 * </p>
+	 * 
+	 * @param x
+	 *        the change in x
+	 * @param y
+	 *        the change in y
+	 * @return this for chaining
+	 */
+	public Position adjust(float x, float y) {
+		position.x += x;
+		position.y += y;
+		return this;
+	}
+
+	/**
+	 * <p>
 	 * Sets this position centred in other's X axis, leaving this.position.y
 	 * unmodified.
 	 * </p>
@@ -77,7 +167,27 @@ public class Position extends Component {
 	 * @return this for chaining.
 	 */
 	public Position smartCentreX(float thisWidth, Rectangle other) {
-		this.position.x = other.x + (other.width / 2.0f) - (thisWidth / 2.0f);
+		return smartCentreX(thisWidth, other.x, other.width);
+	}
+
+	/**
+	 * <p>
+	 * Sets this position centred in a given X axis, leaving this.position.y
+	 * unmodified. thisWidth is used to make this position seem properly centred
+	 * in the target's x axis.
+	 * </p>
+	 * 
+	 * @param thisWidth
+	 *        the width of the entity being repositioned.
+	 * @param x
+	 *        the x position of the rect to centre in (we don't need y because
+	 *        it's ignored)
+	 * @param width
+	 *        the width of the rect
+	 * @return this for chaining
+	 */
+	public Position smartCentreX(float thisWidth, float x, float width) {
+		this.position.x = 0.5f * (2.0f * x + width - thisWidth);
 		return this;
 	}
 
@@ -118,7 +228,26 @@ public class Position extends Component {
 	 * @return this for chaining.
 	 */
 	public Position smartCentreY(float thisHeight, Rectangle other) {
-		this.position.y = other.y + (other.height / 2.0f) + (thisHeight / 2.0f);
+		return smartCentreY(thisHeight, other.y, other.height);
+	}
+
+	/**
+	 * <p>
+	 * Sets this position centred in a given Y axis, leaving this.position.x
+	 * unmodified. thisHeight is used to make this position seem properly
+	 * centred in the target's y axis.
+	 * </p>
+	 * 
+	 * @param thisHeight
+	 *        the height of the entity being repositioned.
+	 * @param y
+	 *        the y coordinate of the space in which we're centring
+	 * @param height
+	 *        the height of the space in which we're centring
+	 * @return this for chaining
+	 */
+	public Position smartCentreY(float thisHeight, float y, float height) {
+		this.position.y = 0.5f * (2.0f * y + height + thisHeight);
 		return this;
 	}
 
@@ -160,6 +289,31 @@ public class Position extends Component {
 	 */
 	public Position smartCentre(float thisWidth, float thisHeight, Rectangle other) {
 		return smartCentreX(thisWidth, other).smartCentreY(thisHeight, other);
+	}
+
+	/**
+	 * <p>
+	 * Sets this position centred in given X and Y axes. thisWidth and
+	 * thisHeight are used to make this position seem properly centred in the
+	 * target's axes.
+	 * </p>
+	 * 
+	 * @param thisWidth
+	 *        the width of the entity being repositioned
+	 * @param thisHeight
+	 *        the height of the entity being repositioned
+	 * @param x
+	 *        the x coordinate of the rectangle in which we're centring
+	 * @param y
+	 *        the y coordinate of the rectangle in which we're centring
+	 * @param width
+	 *        the width of the rectangle in which we're centring
+	 * @param height
+	 *        the height of the rectangle in which we're centring
+	 * @return this for chaining.
+	 */
+	public Position smartCentre(float thisWidth, float thisHeight, float x, float y, float width, float height) {
+		return smartCentreX(thisWidth, x, width).smartCentreY(thisHeight, y, height);
 	}
 
 	/**
@@ -257,5 +411,25 @@ public class Position extends Component {
 	public GridPoint2 getGridPosition() {
 		return gridPosition.set((int) Math.floor(position.x / WorldConstants.TILE_WIDTH),
 				(int) Math.floor(position.y / WorldConstants.TILE_HEIGHT));
+	}
+
+	/**
+	 * <p>
+	 * Should be called when the window is resized to adjust positions
+	 * appropriately.
+	 * </p>
+	 * 
+	 * <p>
+	 * The scaling factor is the old window size divided by the new window size.
+	 * </p>
+	 * 
+	 * @param xScale
+	 *        The scaling factor of the change in window size in the x axis.
+	 * @param yScale
+	 *        The scaling factor of the change in window size in the y axis.
+	 */
+	public void handleResize(float xScale, float yScale) {
+		position.x *= xScale;
+		position.y *= yScale;
 	}
 }

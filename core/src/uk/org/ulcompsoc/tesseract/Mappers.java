@@ -17,6 +17,7 @@ import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 import uk.org.ulcompsoc.tesseract.components.Text;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
+import uk.org.ulcompsoc.tesseract.components.Dimension;
 
 import com.badlogic.ashley.core.ComponentMapper;
 
@@ -66,4 +67,6 @@ public class Mappers {
 	
 	public static ComponentMapper<WorldPlayerInputListener> worldPlayerInputListener =
 			ComponentMapper.getFor(WorldPlayerInputListener.class);
+            
+    public static ComponentMapper<Dimension>            dimension           = ComponentMapper.getFor(Dimension.class);
 }

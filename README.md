@@ -32,12 +32,12 @@ Post-Ludum Dare Roadmap
   3. ~~HD + Resizing support~~
   4. ~~Fix mulitple player graphical bug~~
   5. ~~Fix multiple clicks on world change restarting the world change process~~
-  6. Fix dirty hacks with interactions
   
 2. Code Improvements
   1. ~~Combine Position and RelativePosition~~
   2. ~~Enable HTML5 support~~
   3. ~~Use `Mappers` everywhere instead of local duplicates~~
-  3. Remove globals where possible
-  4. More data stored in maps/JSON
+  4. Remove globals where possible
+  5. More data stored in maps/JSON
+  6. Fix dirty hacks with interactions and `BattleMessageSystem.handleResize`
   

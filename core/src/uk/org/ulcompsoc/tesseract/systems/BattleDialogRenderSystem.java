@@ -2,6 +2,7 @@ package uk.org.ulcompsoc.tesseract.systems;
 
 import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
+import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Position;
 
 import com.badlogic.ashley.core.Entity;
@@ -21,7 +22,7 @@ public class BattleDialogRenderSystem extends IteratingSystem {
 
 	@SuppressWarnings("unchecked")
 	public BattleDialogRenderSystem(ShapeRenderer renderer, Camera camera, int priority) {
-		super(Family.getFor(Position.class, BattleDialog.class), priority);
+		super(Family.getFor(Position.class, Dimension.class, BattleDialog.class), priority);
 
 		this.camera = camera;
 		this.renderer = renderer;
@@ -30,6 +31,7 @@ public class BattleDialogRenderSystem extends IteratingSystem {
 	@Override
 	public void processEntity(Entity entity, float deltaTime) {
 		BattleDialog dialog = Mappers.battleDialog.get(entity);
+		Dimension dim = Mappers.dimension.get(entity);
 		Vector2 pos = Mappers.position.get(entity).position;
 
 		renderer.setProjectionMatrix(camera.combined);
@@ -37,14 +39,14 @@ public class BattleDialogRenderSystem extends IteratingSystem {
 		renderer.setColor(dialog.fillColor);
 		renderer.begin(ShapeType.Filled);
 
-		renderer.rect(pos.x, pos.y, dialog.actualWidth, dialog.actualHeight);
+		renderer.rect(pos.x, pos.y, dim.width, dim.height);
 
 		renderer.end();
 
 		renderer.setColor(dialog.lineColor);
 		renderer.begin(ShapeType.Line);
 
-		renderer.rect(pos.x, pos.y, dialog.actualWidth, dialog.actualHeight);
+		renderer.rect(pos.x, pos.y, dim.width, dim.height);
 
 		renderer.end();
 	}

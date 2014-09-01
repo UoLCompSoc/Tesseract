@@ -12,6 +12,7 @@ import uk.org.ulcompsoc.tesseract.battle.BattlePerformers;
 import uk.org.ulcompsoc.tesseract.components.BattleDialog;
 import uk.org.ulcompsoc.tesseract.components.Boss;
 import uk.org.ulcompsoc.tesseract.components.Combatant;
+import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
@@ -261,7 +262,13 @@ public class TesseractMain extends ApplicationAdapter {
 
 		worldSelectChangeListener = new WorldSelectChangeListener();
 
-		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		battleEngine = new Engine();
+		initBattleEngine(battleEngine);
+
+		worldSelectEngine = new Engine();
+		initWorldSelectEngine(worldSelectEngine);
+
+		// resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		worldEngines = new Engine[mapNames.length];
 		initWorldEngines(worldEngines);
@@ -323,21 +330,52 @@ public class TesseractMain extends ApplicationAdapter {
 		currentEngine.update(deltaTime);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void resize(int width, int height) {
-		super.resize(width, height);
+		final float xScale = width / camera.viewportWidth;
+		final float yScale = height / camera.viewportHeight;
+
+		Gdx.app.debug("RESIZE", "Resize: xScale = " + xScale + ", yScale = " + yScale + ".");
+
+		final Family posFamily = Family.getFor(Position.class);
 
 		((OrthographicCamera) camera).setToOrtho(false, width, height);
 
 		if (battleEngine != null) {
-			battleEngine.removeAllEntities();
+			// this handleResize is a dirty hack
+			battleEngine.getSystem(BattleMessageSystem.class).handleResize(xScale, yScale);
+			ImmutableArray<Entity> ents = battleEngine.getEntitiesFor(posFamily);
+
+			for (int i = 0; i < ents.size(); i++) {
+				Entity e = ents.get(i);
+
+				Mappers.position.get(e).handleResize(xScale, yScale);
+
+				if (Mappers.dimension.has(e)) {
+					Dimension d = Mappers.dimension.get(e);
+
+					d.width *= xScale;
+					d.height *= yScale;
+				}
+			}
 		}
 
-		battleEngine = new Engine();
-		initBattleEngine(battleEngine);
-
 		if (worldSelectEngine != null) {
-			worldSelectEngine.removeAllEntities();
+			ImmutableArray<Entity> ents = worldSelectEngine.getEntitiesFor(posFamily);
+
+			for (int i = 0; i < ents.size(); i++) {
+				Entity e = ents.get(i);
+
+				Mappers.position.get(e).handleResize(xScale, yScale);
+
+				if (Mappers.dimension.has(e)) {
+					Dimension d = Mappers.dimension.get(e);
+
+					d.width *= xScale;
+					d.height *= yScale;
+				}
+			}
 		}
 
 		worldSelectEngine = new Engine();
@@ -537,21 +575,21 @@ public class TesseractMain extends ApplicationAdapter {
 		makeBattlePlayerEntity(engine);
 		Combatant playerCom = Mappers.combatant.get(battlePlayerEntity);
 
-		Rectangle screenRect = new Rectangle(0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Rectangle screenRect = new Rectangle(0.0f, 0.0f, camera.viewportWidth, camera.viewportHeight);
 
 		final float statusX = 0.0f;
 		final float statusY = 0.0f;
 		statusDialog = new Entity();
 		statusDialog.add(new Position(statusX, statusY));
-		statusDialog.add(new BattleDialog(screenRect, 0.3f, 0.2f, playerCom));
+		statusDialog.add(Dimension.relativeDimension(screenRect, 0.3f, 0.2f));
+		statusDialog.add(new BattleDialog(playerCom));
 
-		BattleDialog bd = Mappers.battleDialog.get(statusDialog);
-
-		final Rectangle statusRect = new Rectangle(statusX, statusY, bd.actualWidth, bd.actualHeight);
+		Dimension statusDim = Mappers.dimension.get(statusDialog);
+		final Rectangle statusRect = new Rectangle(statusX, statusY, statusDim.width, statusDim.height);
 
 		hpText = new Entity();
 		Text hpTextComponent = new Text("HP: 100/100", Color.WHITE, playerStats.hpChangeSignal);
-		hpText.add(new Position(0.0f, statusRect.height * 0.75f).smartCentreX(
+		hpText.add(new Position(0.0f, statusRect.height * 0.8f).smartCentreX(
 				Text.getTextWidth(hpTextComponent, font16), statusRect));
 		hpTextComponent.baseText = "HP: ";
 		hpText.add(hpTextComponent);
@@ -559,7 +597,7 @@ public class TesseractMain extends ApplicationAdapter {
 
 		rageText = new Entity();
 		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
-		rageText.add(new Position(0.0f, statusRect.height * 0.25f).smartCentreX(
+		rageText.add(new Position(0.0f, statusRect.height * 0.4f).smartCentreX(
 				Text.getTextWidth(rageTextComponent, font16), statusRect));
 		rageText.add(rageTextComponent);
 
@@ -581,9 +619,9 @@ public class TesseractMain extends ApplicationAdapter {
 			final String thisString = dialogStrings[i];
 
 			menuDialogs[i].add(new Position(menuX, 0.0f));
-			menuDialogs[i].add(new BattleDialog(screenRect, menuWRel, menuHRel, playerCom));
-			menuDialogs[i].add(new MouseClickListener(new Rectangle(menuX, 0, menuW, menuH),
-					BattlePerformers.performers[i]));
+			menuDialogs[i].add(new BattleDialog(playerCom));
+			menuDialogs[i].add(Dimension.relativeDimension(screenRect, menuWRel, menuHRel));
+			menuDialogs[i].add(new MouseClickListener(BattlePerformers.performers[i]));
 
 			menuTexts[i] = new Entity();
 			Text text = new Text(thisString);
@@ -593,10 +631,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 		}
 
-		Position playerPos = new Position(screenRect.width * 0.85f, 0.0f).centreY(new Rectangle(0.0f, menuH,
-				screenRect.width, screenRect.height - menuH));
-
-		battlePlayerEntity.add(playerPos);
 		engine.addEntity(statusDialog);
 		for (int i = 0; i < menuDialogs.length; i++) {
 			engine.addEntity(menuDialogs[i]);
@@ -606,11 +640,12 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(rageText);
 
 		Entity battleMessageEntity = new Entity();
-		BattleDialog battleMessageEntityDialog = new BattleDialog(screenRect, 0.7f, 0.1f, playerCom);
+		BattleDialog battleMessageEntityDialog = new BattleDialog(playerCom);
 
 		battleMessageEntity.add(battleMessageEntityDialog);
+		battleMessageEntity.add(Dimension.relativeDimension(screenRect, 0.7f, 0.1f));
 		battleMessageEntity.add(new Position(0.0f, screenRect.height * 0.85f).smartCentreX(
-				battleMessageEntityDialog.actualWidth, screenRect));
+				Mappers.dimension.get(battleMessageEntity).width, screenRect));
 
 		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(battleMessageEntity, shapeRenderer, font24,
 				camera, 300);
@@ -632,10 +667,13 @@ public class TesseractMain extends ApplicationAdapter {
 	public void makeBattlePlayerEntity(Engine engine) {
 		battlePlayerEntity = new Entity();
 
-		battlePlayerEntity.add(new Position(17 * WorldConstants.TILE_WIDTH, yTile));
+		// dirty hack with positioning here
+		battlePlayerEntity.add(new Position(0.85f * camera.viewportWidth, 0.0f).smartCentreY(
+				WorldConstants.TILE_HEIGHT, 0.2f * camera.viewportHeight, 0.8f * camera.viewportHeight));
+		Gdx.app.debug("PLAYER_BATTLE_POS", "x = " + Mappers.position.get(battlePlayerEntity).position.x + ", y = "
+				+ Mappers.position.get(battlePlayerEntity).position.y + ".");
 		battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());
 		battlePlayerEntity.add(playerStats);
-		Gdx.app.debug("PLAYER_THINK_TIME", "Player has " + playerStats.getThinkTime() + "s think time.");
 
 		Player playerComp = new Player(PLAYER_NAME);
 		battlePlayerEntity.add(playerComp);
@@ -683,7 +721,7 @@ public class TesseractMain extends ApplicationAdapter {
 			e.add(p);
 			e.add(new Renderable(new TextureRegion(worldSelectTextures[i])));
 			e.add(new Named("" + i));
-			e.add(new MouseClickListener(new Rectangle(p.position.x, p.position.y, 64, 64), new MouseClickPerformer() {
+			e.add(new MouseClickListener(new MouseClickPerformer() {
 				@Override
 				public void perform(Entity invoker, Engine engine) {
 					Integer i = Integer.parseInt(Mappers.named.get(invoker).name);
@@ -725,23 +763,41 @@ public class TesseractMain extends ApplicationAdapter {
 			throw new GdxRuntimeException("Only between 1-3 slimes supported.");
 		}
 
-		final float yMiddle = 12 * WorldConstants.TILE_HEIGHT;
+		final float fartherX = 0.15f * camera.viewportWidth;
+		final float closerX = 0.10f * camera.viewportWidth;
+
+		final float slimeH = slimeDesat.getHeight();
+
+		// dirty hack with positioning here
+		final float screenY = camera.viewportHeight * 0.2f;
+		final float screenH = camera.viewportHeight * 0.8f;
 
 		Position[] positions = null;
 
 		if (count == 1) {
 			positions = new Position[1];
-			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle);
+
+			positions[0] = new Position(fartherX, 0.0f).smartCentreY(slimeH, screenY, screenH);
 		} else if (count == 2) {
 			positions = new Position[2];
-			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle + 2 * WorldConstants.TILE_HEIGHT);
-			positions[1] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle - 2 * WorldConstants.TILE_HEIGHT);
+
+			positions[0] = new Position(fartherX, 0.0f).smartCentreY(slimeH, screenY, screenH).adjustY(slimeH * 3.0f);
+
+			positions[1] = new Position(fartherX, 0.0f).smartCentreY(slimeH, screenY, screenH).adjustY(slimeH * -3.0f);
 		} else if (count == 3) {
 			positions = new Position[3];
-			positions[0] = new Position(3 * WorldConstants.TILE_WIDTH, yMiddle);
-			positions[1] = new Position(2 * WorldConstants.TILE_WIDTH, yMiddle + 2 * WorldConstants.TILE_HEIGHT);
-			positions[2] = new Position(2 * WorldConstants.TILE_WIDTH, yMiddle - 2 * WorldConstants.TILE_HEIGHT);
+
+			positions[0] = new Position(fartherX, 0.0f).smartCentreY(slimeH, screenY, screenH);
+
+			positions[1] = new Position(closerX, 0.0f).smartCentreY(slimeH, screenY, screenH).adjustY(slimeH * 3.0f);
+
+			positions[2] = new Position(closerX, 0.0f).smartCentreY(slimeH, screenY, screenH).adjustY(slimeH * -3.0f);
+
 		}
+		Gdx.app.debug("PLAYER_BATTLE_POS", "x = " + Mappers.position.get(battlePlayerEntity).position.x + ", y = "
+				+ Mappers.position.get(battlePlayerEntity).position.y + ".");
+		Gdx.app.debug("SLIME_POS", "Slime positioned at x = " + positions[0].position.x + ", y = "
+				+ positions[0].position.y + ".");
 
 		for (int i = 0; i < count; i++) {
 			Entity slimeEntity = new Entity();

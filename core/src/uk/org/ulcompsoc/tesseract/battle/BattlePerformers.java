@@ -4,6 +4,7 @@ import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
+import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
@@ -15,8 +16,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -33,14 +32,14 @@ public class BattlePerformers {
 
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
-					Vector2 pos = Mappers.position.get(e).position;
 
 					final Renderable r = Mappers.renderable.get(e);
 					final float imgW = r.width;
 					final float imgH = r.height;
 
 					e.add(new TargetMarker());
-					e.add(new MouseClickListener(new Rectangle(pos.x, pos.y, imgW, imgH), enemyTargetPerformer));
+					e.add(new Dimension(imgW, imgH));
+					e.add(new MouseClickListener(enemyTargetPerformer));
 				}
 			}
 		}
@@ -95,6 +94,7 @@ public class BattlePerformers {
 			Entity e = targets.get(0);
 			e.remove(TargetMarker.class);
 			e.remove(MouseClickListener.class);
+			e.remove(Dimension.class);
 
 			targets = engine.getEntitiesFor(Family.getFor(TargetMarker.class));
 		}
