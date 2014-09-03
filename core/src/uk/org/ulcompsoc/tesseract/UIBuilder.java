@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.GridPoint2;
@@ -28,6 +30,10 @@ public class UIBuilder implements Disposable {
 	private final int							tileHeight;
 
 	private final Map<GridPoint2, FrameBuffer>	owned;
+
+	private SpriteBatch							batch					= new SpriteBatch();
+
+	private GridPoint2							gpCache					= new GridPoint2();
 
 	// u = upper, m = middle, b = bottom
 	// corresponding to rows 0, 1, 2 of tile set
@@ -69,55 +75,79 @@ public class UIBuilder implements Disposable {
 		br = regions[2][2];
 	}
 
-	public void draw(Batch batch, Color color, float x, float y, int uiWidthInTiles, int uiHeightInTiles) {
-		final int widthInTiles = Math.max(3, uiWidthInTiles);
-		final int heightInTiles = Math.max(3, uiHeightInTiles);
+	public void build(int uiWidthInTiles, int uiHeightInTiles) {
+		final int widthInTiles = Math.max(2, uiWidthInTiles);
+		final int heightInTiles = Math.max(2, uiHeightInTiles);
 
-		Color cTemp = batch.getColor();
-		batch.setColor(color);
+		final GridPoint2 key = new GridPoint2(widthInTiles, heightInTiles);
 
+		if (owned.containsKey(key)) {
+			return;
+		}
+
+		final int expectedFBWidth = widthInTiles * tileWidth;
+		final int expectedFBHeight = heightInTiles * tileHeight;
+
+		FrameBuffer fb = new FrameBuffer(texture.getTextureData().getFormat(), expectedFBWidth, expectedFBHeight, false);
+
+		fb.begin();
+		Gdx.gl20.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		OrthographicCamera camera = new OrthographicCamera();
+		camera.setToOrtho(false, fb.getWidth(), fb.getHeight());
+
+		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 
-		drawBottom(batch, x, y, widthInTiles);
-		drawMiddle(batch, x, y, widthInTiles, heightInTiles - 2);
-		drawTop(batch, x, y, widthInTiles, heightInTiles);
+		drawBottom(batch, widthInTiles);
+		drawMiddle(batch, widthInTiles, heightInTiles - 2);
+		drawTop(batch, widthInTiles, heightInTiles);
 
 		batch.end();
+		fb.end();
 
-		batch.setColor(cTemp);
+		Gdx.app.log("FB_SIZE", "Expected:\nwidth = " + expectedFBWidth + ", height = " + expectedFBHeight
+				+ "\ngot:\nwidth = " + fb.getWidth() + ", height = " + fb.getHeight() + ".");
+
+		owned.put(key, fb);
 	}
 
-	private void drawBottom(Batch target, float x, float y, int widthInTiles) {
-		target.draw(bl, x, y);
+	public Texture get(int widthInTiles, int heightInTiles) {
+		return owned.get(gpCache.set(widthInTiles, heightInTiles)).getColorBufferTexture();
+	}
+
+	private void drawBottom(Batch target, int widthInTiles) {
+		target.draw(bl, 0, 0);
 
 		for (int i = 1; i < (widthInTiles - 1); i++) {
-			target.draw(bm, x + i * tileWidth, y);
+			target.draw(bm, i * tileWidth, 0);
 		}
 
-		target.draw(br, (widthInTiles - 1) * tileWidth + x, y);
+		target.draw(br, (widthInTiles - 1) * tileWidth, 0);
 	}
 
-	private void drawMiddle(Batch target, float x, float y, int widthInTiles, int heightInTiles) {
+	private void drawMiddle(Batch target, int widthInTiles, int heightInTiles) {
 		for (int j = 1; j <= heightInTiles; j++) {
-			target.draw(ml, x, tileHeight * j + y);
+			target.draw(ml, 0, tileHeight * j);
 
 			for (int i = 1; i < (widthInTiles - 1); i++) {
-				target.draw(mm, x + i * tileWidth, y + tileHeight * j);
+				target.draw(mm, i * tileWidth, tileHeight * j);
 			}
 
-			target.draw(mr, x + (widthInTiles - 1) * tileWidth, y + tileHeight * j);
+			target.draw(mr, (widthInTiles - 1) * tileWidth, tileHeight * j);
 		}
 	}
 
-	private void drawTop(Batch target, float x, float y, int widthInTiles, int heightInTiles) {
+	private void drawTop(Batch target, int widthInTiles, int heightInTiles) {
 		final int actualY = (heightInTiles - 1) * tileHeight;
-		target.draw(ul, x, y + actualY);
+		target.draw(ul, 0, actualY);
 
 		for (int i = 1; i < (widthInTiles - 1); i++) {
-			target.draw(um, x + i * tileWidth, y + actualY);
+			target.draw(um, i * tileWidth, actualY);
 		}
 
-		target.draw(ur, (widthInTiles - 1) * tileWidth + x, y + actualY);
+		target.draw(ur, (widthInTiles - 1) * tileWidth, actualY);
 	}
 
 	@Override

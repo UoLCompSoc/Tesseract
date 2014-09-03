@@ -225,6 +225,7 @@ public class TesseractMain extends ApplicationAdapter {
 		musicManager = (!WorldConstants.SILENT ? new StandardMusicManager(musicFiles) : new SilentMusicManager());
 
 		uiBuilder = new UIBuilder("ui/ui.png", 32, 32);
+		uiBuilder.build(2, 2);
 
 		loadShader();
 
@@ -324,7 +325,16 @@ public class TesseractMain extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Keys.HOME)) {
 			Vector2 pos = Mappers.position.get(worldPlayerEntity).position;
 
-			uiBuilder.draw(batch, Color.RED, pos.x, pos.y, 3, 3);
+			float oldZoom = ((OrthographicCamera) camera).zoom;
+			((OrthographicCamera) camera).zoom = 1.0f;
+			Color temp = batch.getColor();
+			batch.setProjectionMatrix(camera.combined);
+			batch.begin();
+			batch.setColor(Color.NAVY);
+			batch.draw(uiBuilder.get(2, 2), pos.x, pos.y + 32);
+			batch.end();
+			batch.setColor(temp);
+			((OrthographicCamera) camera).zoom = oldZoom;
 		}
 	}
 
