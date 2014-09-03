@@ -1,4 +1,4 @@
-package uk.org.ulcompsoc.tesseract;
+package uk.org.ulcompsoc.tesseract.ui;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.GridPoint2;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -31,9 +32,9 @@ public class UIBuilder implements Disposable {
 
 	private final Map<GridPoint2, FrameBuffer>	owned;
 
-	private SpriteBatch							batch					= new SpriteBatch();
+	private final SpriteBatch					batch					= new SpriteBatch();
 
-	private GridPoint2							gpCache					= new GridPoint2();
+	private final GridPoint2					gpCache					= new GridPoint2();
 
 	// u = upper, m = middle, b = bottom
 	// corresponding to rows 0, 1, 2 of tile set
@@ -115,6 +116,21 @@ public class UIBuilder implements Disposable {
 
 	public Texture get(int widthInTiles, int heightInTiles) {
 		return owned.get(gpCache.set(widthInTiles, heightInTiles)).getColorBufferTexture();
+	}
+
+	public Rectangle getRectangle(int widthInTiles, int heightInTiles) {
+		FrameBuffer fb = owned.get(gpCache.set(widthInTiles, heightInTiles));
+		return new Rectangle(2.0f, 2.0f, fb.getWidth(), fb.getHeight());
+	}
+
+	public UIPopup getUIPopup(int widthInTiles, int heightInTiles) {
+		gpCache.set(widthInTiles, heightInTiles);
+
+		if (!owned.containsKey(gpCache)) {
+			build(widthInTiles, heightInTiles);
+		}
+
+		return new UIPopup(owned.get(gpCache).getColorBufferTexture(), getRectangle(widthInTiles, heightInTiles));
 	}
 
 	private void drawBottom(Batch target, int widthInTiles) {

@@ -42,6 +42,7 @@ import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.TextRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.WorldPlayerInputSystem;
 import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
+import uk.org.ulcompsoc.tesseract.ui.UIBuilder;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -237,8 +238,6 @@ public class TesseractMain extends ApplicationAdapter {
 		loadPlayerFiles();
 
 		loadSlimeFiles();
-
-		// loadTorchFiles();
 
 		loadBossFiles();
 
@@ -952,21 +951,6 @@ public class TesseractMain extends ApplicationAdapter {
 			battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());
 		}
 	}
-
-	// public void loadTorchFiles() {
-	// torchTextures = new Texture[torchFiles.length];
-	// torchAnims = new Animation[torchFiles.length];
-	//
-	// for (int i = 0; i < torchFiles.length; i++) {
-	// torchTextures[i] = new Texture(Gdx.files.internal(torchFiles[i]));
-	// TextureRegion[] torchRegions = TextureRegion.split(torchTextures[i],
-	// WorldConstants.TILE_WIDTH,
-	// WorldConstants.TILE_HEIGHT)[0];
-	// torchAnims[i] = new Animation(0.15f, torchRegions[0], torchRegions[1],
-	// torchRegions[2]);
-	// torchAnims[i].setPlayMode(PlayMode.LOOP_PINGPONG);
-	// }
-	// }
 
 	public void loadSlimeFiles() {
 		slimeDesat = new Texture(Gdx.files.internal("monsters/slime_desat.png"));
