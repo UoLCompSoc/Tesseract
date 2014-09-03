@@ -1,0 +1,10 @@
+{
+    "player_0": {
+        "filename": "player/player_0.png",
+        "animation": {
+            "frames": 4,
+            "name": "idle",
+            "row": 0,
+        }
+    }
+}

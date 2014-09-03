@@ -1,0 +1,25 @@
+{
+    "textPrefix": "maps/world6/npc/",
+    "color": {
+        "r": "0.454902f",
+        "g": "0.454902f",
+        "b": "0.454902f",
+        "a": "1.0f"
+    },
+    "uiColor": {
+        "r": "0.070588f",
+        "g": "0.070588f",
+        "b": "0.070588f",
+        "a": "1.0f"
+    },
+    "layerData": {
+        "torches": {
+            "animation": {
+                "location": "maps/world6/torches.png",
+                "frames": 3,
+                "resolver": "pingpong",
+                "frameDuration": "0.15f"
+            }
+        }
+    }
+}

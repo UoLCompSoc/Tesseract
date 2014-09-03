@@ -1,0 +1,25 @@
+{
+    "textPrefix": "maps/world5/npc/",
+    "color": {
+        "r": "0.737255f",
+        "g": "0.172549f",
+        "b": "0.203922f",
+        "a": "1.0f"
+    },
+    "uiColor": {
+        "r": "0.262745f",
+        "g": "0.827410f",
+        "b": "0.796078f",
+        "a": "1.0f"
+    },
+    "layerData": {
+        "torches": {
+            "animation": {
+                "location": "maps/world5/torches.png",
+                "frames": 3,
+                "resolver": "pingpong",
+                "frameDuration": "0.15f"
+            }
+        }
+    }
+}

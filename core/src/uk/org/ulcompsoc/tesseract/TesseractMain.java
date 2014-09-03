@@ -65,12 +65,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.Json;
 
 public class TesseractMain extends ApplicationAdapter {
 	public static final String			PLAYER_NAME						= "Valiant Hero™";
@@ -86,6 +86,8 @@ public class TesseractMain extends ApplicationAdapter {
 	private static Camera				camera							= null;
 
 	public static MusicManager			musicManager					= null;
+
+	private UIBuilder					uiBuilder						= null;
 
 	private static boolean				useShader						= false;
 	private static ShaderProgram		vortexProgram					= null;
@@ -161,8 +163,8 @@ public class TesseractMain extends ApplicationAdapter {
 			"player/player_1.png", "player/player_2.png", "player/player_3.png", "player/player_4.png",
 			"player/player_5.png",										};
 
-	public static final String[]		mapNames						= { "world1/world1.tmx", "world2/world2.tmx",
-			"world3/world3.tmx", "world4/world4.tmx", "world5/world5.tmx", "world6/world6.tmx", "world7/world7.tmx" };
+	public static final String[]		mapNames						= { "world1", "world2", "world3", "world4",
+			"world5", "world6", "world7"								};
 
 	public static final String[]		slimeFiles						= { "monsters/world1_slime.png",
 			"monsters/world2_slime.png", "monsters/world3_slime.png", "monsters/world4_slime.png",
@@ -222,6 +224,8 @@ public class TesseractMain extends ApplicationAdapter {
 
 		musicManager = (!WorldConstants.SILENT ? new StandardMusicManager(musicFiles) : new SilentMusicManager());
 
+		uiBuilder = new UIBuilder("ui/ui.png", 32, 32);
+
 		loadShader();
 
 		font10 = fontResolver.resolve(10);
@@ -279,6 +283,8 @@ public class TesseractMain extends ApplicationAdapter {
 				for (int i = 0; i < 20; i++) {
 					doPlayerPowerUp();
 				}
+			} else if (Gdx.input.isKeyJustPressed(Keys.O)) {
+				Gdx.app.debug("PLAYER_ANIM_JSON", new Json().prettyPrint(playerIdle));
 			} else if (Gdx.input.isKeyJustPressed(Keys.F9)) {
 				TesseractDebug.debugAllInEngine(currentEngine);
 			}
@@ -314,6 +320,12 @@ public class TesseractMain extends ApplicationAdapter {
 
 		musicManager.update(deltaTime);
 		currentEngine.update(deltaTime);
+
+		if (Gdx.input.isKeyPressed(Keys.HOME)) {
+			Vector2 pos = Mappers.position.get(worldPlayerEntity).position;
+
+			uiBuilder.draw(batch, Color.RED, pos.x, pos.y, 3, 3);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -495,7 +507,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private void initWorldEngines(Engine[] engines) {
 		maps = new TesseractMap[mapNames.length];
-		TmxMapLoader mapLoader = new TmxMapLoader();
 
 		currentMapIndex = -1;
 
@@ -516,9 +527,8 @@ public class TesseractMain extends ApplicationAdapter {
 		for (int i = 0; i < mapNames.length; i++) {
 			Engine engine = new Engine();
 
-			maps[i] = new TesseractMap(mapLoader.load(Gdx.files.internal("maps/" + mapNames[i]).path()), batch,
-					new TextureRegion(openDoorTex), new TextureRegion(closedDoorTex),
-					new FullHealDialogueFinishListener(), new BossBattleDialogueFinishListener(),
+			maps[i] = new TesseractMap("maps/", mapNames[i], batch, new TextureRegion(openDoorTex), new TextureRegion(
+					closedDoorTex), new FullHealDialogueFinishListener(), new BossBattleDialogueFinishListener(),
 					new WorldWarpDialogueFinishListener(6));
 
 			engine.addEntity(maps[i].baseLayerEntity);
@@ -659,8 +669,6 @@ public class TesseractMain extends ApplicationAdapter {
 		// dirty hack with positioning here
 		battlePlayerEntity.add(new Position(0.85f * camera.viewportWidth, 0.0f).smartCentreY(
 				WorldConstants.TILE_HEIGHT, 0.2f * camera.viewportHeight, 0.8f * camera.viewportHeight));
-		Gdx.app.debug("PLAYER_BATTLE_POS", "x = " + Mappers.position.get(battlePlayerEntity).position.x + ", y = "
-				+ Mappers.position.get(battlePlayerEntity).position.y + ".");
 		battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());
 		battlePlayerEntity.add(playerStats);
 

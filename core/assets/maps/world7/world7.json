@@ -1,0 +1,62 @@
+{
+    "textPrefix": "maps/world7/npc/",
+    "color": {
+        "r": "0.964706f",
+        "g": "0.945098f",
+        "b": "0.325490f",
+        "a": "1.0f"
+    },
+    "uiColor": {
+        "r": "0.235294f",
+        "g": "0.035294f",
+        "b": "0.6745098f",
+        "a": "1.0f"
+    },
+    "layerData": {
+        "fence_l": {
+            "animation": {
+                "location": "maps/world7/fence_l.png",
+                "frames": "5",
+                "resolver": "pingpong",
+                "frameDuration": "0.15f",
+                "priority": "-50"
+            }
+        },
+        "fence_m": {
+            "animation": {
+                "location": "maps/world7/fence_m.png",
+                "frames": "5",
+                "resolver": "pingpong",
+                "frameDuration": "0.15f",
+                "priority": "-50"
+            }
+        },
+        "fence_r": {
+            "animation": {
+                "location": "maps/world7/fence_r.png",
+                "frames": "5",
+                "resolver": "pingpong",
+                "frameDuration": "0.15f",
+                "priority": "-50"
+            }
+        },
+        "floor_animated": {
+            "animation": {
+                "location": "maps/world7/floor_animated.png",
+                "frames": "5",
+                "resolver": "pingpong",
+                "frameDuration": "0.15f",
+                "priority": "-100"
+            }
+        },
+        "floor_circle": {
+            "animation": {
+                "location": "maps/world7/floor_circle.png",
+                "frames": "5",
+                "resolver": "pingpong",
+                "frameDuration": "0.15f",
+                "priority": "-100"
+            }
+        }
+    }
+}

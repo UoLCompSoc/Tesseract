@@ -1,0 +1,25 @@
+{
+    "textPrefix": "maps/world3/npc/",
+    "color": {
+        "r": "0.662745f",
+        "g": "0.458824f",
+        "b": "0.254902f",
+        "a": "1.0f"
+    },
+    "uiColor": {
+        "r": "0.337254f",
+        "g": "0.541176f",
+        "b": "0.745098f",
+        "a": "1.0f"
+    },
+    "layerData": {
+        "torches": {
+            "animation": {
+                "location": "maps/world3/torches.png",
+                "frames": 3,
+                "resolver": "pingpong",
+                "frameDuration": "0.15f"
+            }
+        }
+    }
+}

@@ -1,9 +1,9 @@
 {
     "animation": {
         "location": "maps/world7/fence_r.png",
-        "frames": 5,
+        "frames": "5",
         "resolver": "pingpong",
-        "frameDuration": 0.15f,
-        "priority": -50,
+        "frameDuration": "0.15f",
+        "priority": "-50"
     }
 }

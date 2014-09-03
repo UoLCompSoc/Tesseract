@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" width="32" height="32" tilewidth="32" tileheight="32">
- <properties>
-  <property name="mapA" value="255.0f"/>
-  <property name="mapB" value="116.0f"/>
-  <property name="mapG" value="116.0f"/>
-  <property name="mapR" value="116.0f"/>
-  <property name="textPrefix" value="maps/world6/npc/"/>
- </properties>
  <tileset firstgid="1" name="maptiles" tilewidth="32" tileheight="32">
   <image source="World6Tileset.png" width="352" height="256"/>
   <tile id="44">

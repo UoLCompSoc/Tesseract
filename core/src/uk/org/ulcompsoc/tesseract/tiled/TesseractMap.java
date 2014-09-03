@@ -24,10 +24,12 @@ import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
@@ -47,7 +49,9 @@ public class TesseractMap implements Disposable {
 	public final Entity				openDoorEntity;
 	public final TiledMapRenderer	renderer;
 
+	public final String				mapJson;
 	public final Color				color;
+	public final Color				uiColor;
 
 	public final int				widthInTiles;
 	public final int				heightInTiles;
@@ -56,31 +60,64 @@ public class TesseractMap implements Disposable {
 
 	public boolean					bossBeaten	= false;
 
-	public TesseractMap(TiledMap map, Batch batch, TextureRegion openDoorSprite, TextureRegion closedDoorSprite,
-			DialogueFinishListener healListener, DialogueFinishListener bossListener,
+	/**
+	 * <p>
+	 * Loads a new TesseractMap from TMX and JSON files. The TMX file is
+	 * resolved to be:<br />
+	 * path + mapName + "/" + mapName + ".tmx"<br />
+	 * and the json file is resolved to be:<br />
+	 * path + mapName + "/" + mapName + ".json"
+	 * </p>
+	 * 
+	 * @param path
+	 *        The path to the folder containing the TMX and JSON files.
+	 * @param mapName
+	 *        The name of the map.
+	 * @param batch
+	 *        A sprite batch to use when rendering the map.
+	 * @param openDoorSprite
+	 *        temp hack for LD
+	 * @param closedDoorSprite
+	 *        temp hack for LD
+	 * @param healListener
+	 *        temp hack for LD
+	 * @param bossListener
+	 *        temp hack for LD
+	 * @param doorOpenListener
+	 *        temp hack for LD
+	 */
+	public TesseractMap(String path, String mapName, Batch batch, TextureRegion openDoorSprite,
+			TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
 			DialogueFinishListener doorOpenListener) {
-		this.map = map;
+		final String tmxFileLocation = path + mapName + "/" + mapName + ".tmx";
+		final String jsonFileLocation = path + mapName + "/" + mapName + ".json";
+		this.map = new TmxMapLoader().load(tmxFileLocation);
+		this.mapJson = Gdx.files.internal(jsonFileLocation).readString();
 
-		if (!TiledUtil.isValidTesseractMap(map)) {
-			Gdx.app.debug("INVALID_MAP", "Map contains no text prefix, exiting.");
+		Gdx.app.debug("JSON", mapName + " json = \n" + mapJson);
+
+		if (!TiledUtil.isValidTesseractMap(map, mapJson)) {
+			Gdx.app.debug("INVALID_MAP", "Map is in an invalid format, exiting.");
+			throw new GdxRuntimeException("Invalid file: " + mapName);
 		}
+
+		this.color = TiledUtil.getMapColor(mapJson);
+		this.uiColor = TiledUtil.getUIColor(mapJson);
 
 		this.ownedTextures = new ArrayList<Texture>();
 
 		this.widthInTiles = TiledUtil.getMapWidthInTiles(map);
 		this.heightInTiles = TiledUtil.getMapHeightInTiles(map);
 
-		this.color = TiledUtil.getMapColor(map);
-
 		this.renderer = new OrthogonalTiledMapRenderer(map, batch);
 
 		this.collisionArray = generateCollisionArray(map);
 		this.jsonEntites = generateEntitiesFromJSON(map, ownedTextures);
-		this.NPCs = generateNPCEntities(map, healListener);
+		this.NPCs = generateNPCEntities(map, mapJson, healListener);
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
-		this.bossEntity = generateBossEntity(map, bossListener);
+		this.bossEntity = generateBossEntity(map, mapJson, bossListener);
 
 		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
 		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
@@ -239,10 +276,10 @@ public class TesseractMap implements Disposable {
 		return e;
 	}
 
-	public static Entity[] generateNPCEntities(TiledMap map, DialogueFinishListener listener) {
+	public static Entity[] generateNPCEntities(TiledMap map, String mapJson, DialogueFinishListener listener) {
 		List<Entity> npcs = new ArrayList<Entity>();
 		MapLayers layers = map.getLayers();
-		String mapTextPrefix = TiledUtil.getMapTextPrefix(map);
+		String mapTextPrefix = TiledUtil.getMapTextPrefix(mapJson);
 
 		for (MapLayer layer_ : layers) {
 			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
@@ -311,7 +348,7 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public static Entity generateBossEntity(TiledMap map, DialogueFinishListener dfl) {
+	public static Entity generateBossEntity(TiledMap map, String mapJson, DialogueFinishListener dfl) {
 		Entity boss = new Entity();
 
 		MapLayers layers = map.getLayers();
@@ -335,7 +372,7 @@ public class TesseractMap implements Disposable {
 		boss.add(new Enemy(name));
 
 		final String[] dia = Dialogue.parseDialogueLines(Gdx.files.internal(
-				map.getProperties().get("textPrefix") + "boss_start.txt").readString());
+				TiledUtil.getMapTextPrefix(mapJson) + "boss_start.txt").readString());
 		boss.add(new Dialogue(dia).addFinishListener(dfl));
 
 		return boss;

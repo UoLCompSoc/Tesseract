@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" width="8" height="8" tilewidth="32" tileheight="32">
- <properties>
-  <property name="mapA" value="255.0f"/>
-  <property name="mapB" value="83.0f"/>
-  <property name="mapG" value="241.0f"/>
-  <property name="mapR" value="246.0f"/>
-  <property name="textPrefix" value="maps/world7/npc/"/>
- </properties>
  <tileset firstgid="1" name="maptiles" tilewidth="32" tileheight="32">
   <image source="World7Tileset.png" width="96" height="96"/>
  </tileset>
  <tileset firstgid="10" name="npcs" tilewidth="32" tileheight="32">
   <image source="world7_npc.png" width="64" height="32"/>
  </tileset>
- <layer name="floor" width="8" height="8">
+ <layer name="floor_animated" width="8" height="8">
   <properties>
    <property name="json" value="maps/world7/floor_animated.json"/>
   </properties>
