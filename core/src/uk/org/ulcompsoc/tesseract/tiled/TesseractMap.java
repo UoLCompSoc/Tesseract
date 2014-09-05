@@ -94,8 +94,6 @@ public class TesseractMap implements Disposable {
 		this.map = new TmxMapLoader().load(tmxFileLocation);
 		this.mapJson = Gdx.files.internal(jsonFileLocation).readString();
 
-		Gdx.app.debug("JSON", mapName + " json = \n" + mapJson);
-
 		if (!TiledUtil.isValidTesseractMap(map, mapJson)) {
 			Gdx.app.debug("INVALID_MAP", "Map is in an invalid format, exiting.");
 			throw new GdxRuntimeException("Invalid file: " + mapName);

@@ -3,8 +3,6 @@ package uk.org.ulcompsoc.tesseract.systems;
 import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
-import uk.org.ulcompsoc.tesseract.components.BattleDialog;
-import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Position;
@@ -67,19 +65,12 @@ public class BattleInputSystem extends EntitySystem {
 		MouseClickListener mcl = Mappers.mouseClickListener.get(entity);
 		Vector2 pos = Mappers.position.get(entity).position;
 		Dimension dim = Mappers.dimension.get(entity);
-		BattleDialog bd = Mappers.battleDialog.get(entity);
-		Combatant com = (bd != null ? bd.combatant : null);
 
 		final float x = mouseCoordCache.x;
 		final float y = mouseCoordCache.y;
 
 		if (x >= pos.x && y >= pos.y && x <= (dim.width + pos.x) && y <= (dim.height + pos.y)) {
-			if (com == null || com.canAct()) {
-				if (com != null) {
-					com.thinkingTime = 0.0f;
-				}
-
-				mcl.perform(entity, engine);
+			if (mcl.perform(entity, engine)) {
 				return true;
 			} else {
 				engine.getSystem(BattleMessageSystem.class).addMessage(TesseractStrings.getAttackNotReadyMessage());

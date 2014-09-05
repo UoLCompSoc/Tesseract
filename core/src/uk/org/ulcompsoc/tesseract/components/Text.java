@@ -28,6 +28,7 @@ public class Text extends Component {
 		this.baseText = text;
 		this.color = color;
 
+		// TODO: Fix dirty hack
 		if (signal != null) {
 			signal.add(new Listener<Stats>() {
 				@Override
@@ -42,30 +43,30 @@ public class Text extends Component {
 		return baseText + val;
 	}
 
-	public static float getTextWidth(Text text, BitmapFont font) {
+	public static float getTextWidth(Text text, float wrapWidth, BitmapFont font) {
 		TextBounds bounds = font.getMultiLineBounds(text.getText());
 		return bounds.width;
 	}
 
-	public static float getTextHeight(Text text, BitmapFont font) {
-		TextBounds bounds = font.getMultiLineBounds(text.getText());
+	public static float getTextHeight(Text text, float wrapWidth, BitmapFont font) {
+		TextBounds bounds = font.getWrappedBounds(text.getText(), wrapWidth);
 		return bounds.height;
 	}
 
-	public static Rectangle getTextRectangle(float x, float y, Text text, BitmapFont font) {
-		return getTextRectangle(x, y, text.getText(), font);
+	public static Rectangle getTextRectangle(float x, float y, float wrapWidth, Text text, BitmapFont font) {
+		return getTextRectangle(x, y, wrapWidth, text.getText(), font);
 	}
 
-	public static Rectangle getTextRectangle(Text text, BitmapFont font) {
-		return getTextRectangle(0.0f, 0.0f, text.getText(), font);
+	public static Rectangle getTextRectangle(Text text, float wrapWidth, BitmapFont font) {
+		return getTextRectangle(0.0f, 0.0f, wrapWidth, text.getText(), font);
 	}
 
-	public static Rectangle getTextRectangle(String str, BitmapFont font) {
-		return getTextRectangle(0.0f, 0.0f, str, font);
+	public static Rectangle getTextRectangle(String str, float wrapWidth, BitmapFont font) {
+		return getTextRectangle(0.0f, 0.0f, wrapWidth, str, font);
 	}
 
-	public static Rectangle getTextRectangle(float x, float y, String str, BitmapFont font) {
-		TextBounds bounds = font.getMultiLineBounds(str);
+	public static Rectangle getTextRectangle(float x, float y, float wrapWidth, String str, BitmapFont font) {
+		TextBounds bounds = font.getWrappedBounds(str, wrapWidth);
 
 		return new Rectangle(x, y, bounds.width, bounds.height);
 	}

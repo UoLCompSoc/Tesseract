@@ -12,29 +12,29 @@ public class TesseractStrings {
 		return chooseTarget;
 	}
 
-	private static float	killedMessageDuration	= 1.5f;
-	private static String	wasKilled				= "\nwas killed!";
+	private static float	killedMessageDuration	= 1.25f;
+	private static String	wasKilled				= " was killed!";
 
 	public static BattleMessage getKilledMessage(String victim) {
 		BattleMessage killedMessage = new BattleMessage(victim + wasKilled, killedMessageDuration);
 		return killedMessage;
 	}
 
-	private static BattleMessage	defendMessage	= new BattleMessage("You brace yourself against attacks!", 2.5f);
+	private static BattleMessage	defendMessage	= new BattleMessage("You brace yourself against attacks!", 1.25f);
 
 	public static BattleMessage getDefendMessage() {
 		return defendMessage;
 	}
 
-	private static BattleMessage	quaffMessage	= new BattleMessage("You quaff a delicious potion!", 2.5f);
+	private static BattleMessage	quaffMessage	= new BattleMessage("You quaff a delicious potion!", 1.25f);
 
 	public static BattleMessage getQuaffMessage() {
 		return quaffMessage;
 	}
 
 	private static BattleMessage	fleeMessage	= new BattleMessage(
-														"You attempt to flee!\nOh, it's just going to chase you...",
-														2.5f);
+														"You attempt to flee! Oh, it's just going to chase you...",
+														2.0f);
 
 	public static BattleMessage getFleeMessage() {
 		return fleeMessage;
@@ -46,7 +46,7 @@ public class TesseractStrings {
 	private static BattleMessage	victoryMessage2			= new BattleMessage("A staggering victory!",
 																	VICTORY_MESSAGE_TIME);
 	private static BattleMessage	victoryMessage3			= new BattleMessage(
-																	"You can almost hear\na victory trumpet playing!",
+																	"You can almost hear a victory trumpet playing!",
 																	VICTORY_MESSAGE_TIME);
 
 	public static BattleMessage getVictoryMessage() {

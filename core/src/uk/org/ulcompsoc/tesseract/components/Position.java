@@ -333,6 +333,46 @@ public class Position extends Component {
 		return this;
 	}
 
+	public Position above(Position other, float otherHeight) {
+		this.position.x = other.position.x;
+		this.position.y = other.position.y + otherHeight;
+
+		return this;
+	}
+
+	public Position below(Rectangle other, float thisHeight) {
+		this.position.x = other.x;
+		this.position.y = other.y - thisHeight;
+
+		return this;
+	}
+
+	public Position below(Position other, float thisHeight) {
+		this.position.x = other.position.x;
+		this.position.y = other.position.y - thisHeight;
+
+		return this;
+	}
+
+	public Position left(Rectangle other, float thisWidth) {
+		this.position.x = other.x - thisWidth;
+		this.position.y = other.y;
+		return this;
+	}
+
+	public Position left(Position other, float thisWidth) {
+		this.position.x = other.position.x - thisWidth;
+		this.position.y = other.position.y;
+		return this;
+	}
+
+	public Position bottomRightOf(Rectangle other, float thisWidth) {
+		this.position.x = other.width - thisWidth;
+		this.position.y = other.y;
+
+		return this;
+	}
+
 	/**
 	 * <p>
 	 * Sets this position right of other (the x position of this will be set to

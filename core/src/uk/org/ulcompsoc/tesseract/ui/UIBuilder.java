@@ -27,8 +27,8 @@ public class UIBuilder implements Disposable {
 	public static final int						DEFAULT_UI_TILE_HEIGHT	= 32;
 
 	private final Texture						texture;
-	private final int							tileWidth;
-	private final int							tileHeight;
+	public final int							tileWidth;
+	public final int							tileHeight;
 
 	private final Map<GridPoint2, FrameBuffer>	owned;
 
@@ -114,23 +114,40 @@ public class UIBuilder implements Disposable {
 		owned.put(key, fb);
 	}
 
+	public UIPopup buildAndGet(int widthInTiles, int heightInTiles) {
+		return getUIPopup(widthInTiles, heightInTiles);
+	}
+
+	public UIPopup buildFromActualSize(float width, float height) {
+		final int widthInTiles = (int) ((width / tileWidth) + ((width % tileWidth) == 0 ? 0 : 1));
+		final int heightInTiles = (int) ((height / tileHeight) + ((height % tileHeight) == 0 ? 0 : 1));
+
+		return getUIPopup(widthInTiles, heightInTiles);
+	}
+
 	public Texture get(int widthInTiles, int heightInTiles) {
 		return owned.get(gpCache.set(widthInTiles, heightInTiles)).getColorBufferTexture();
 	}
 
 	public Rectangle getRectangle(int widthInTiles, int heightInTiles) {
 		FrameBuffer fb = owned.get(gpCache.set(widthInTiles, heightInTiles));
-		return new Rectangle(2.0f, 2.0f, fb.getWidth(), fb.getHeight());
+		return new Rectangle(0.0f, 0.0f, fb.getWidth(), fb.getHeight());
 	}
 
-	public UIPopup getUIPopup(int widthInTiles, int heightInTiles) {
+	public UIPopup getUIPopup(int uiWidthInTiles, int uiHeightInTiles) {
+		final int widthInTiles = Math.max(2, uiWidthInTiles);
+		final int heightInTiles = Math.max(2, uiHeightInTiles);
 		gpCache.set(widthInTiles, heightInTiles);
 
 		if (!owned.containsKey(gpCache)) {
 			build(widthInTiles, heightInTiles);
 		}
 
-		return new UIPopup(owned.get(gpCache).getColorBufferTexture(), getRectangle(widthInTiles, heightInTiles));
+		gpCache.set(widthInTiles, heightInTiles);
+
+		Texture foundTex = owned.get(gpCache).getColorBufferTexture();
+		Rectangle foundRect = getRectangle(widthInTiles, heightInTiles);
+		return new UIPopup(foundTex, foundRect);
 	}
 
 	private void drawBottom(Batch target, int widthInTiles) {

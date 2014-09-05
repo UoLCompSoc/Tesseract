@@ -578,7 +578,6 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private void initBattleEngine(Engine engine) {
 		makeBattlePlayerEntity(engine);
-		Combatant playerCom = Mappers.combatant.get(battlePlayerEntity);
 
 		Rectangle screenRect = new Rectangle(0.0f, 0.0f, camera.viewportWidth, camera.viewportHeight);
 
@@ -586,33 +585,39 @@ public class TesseractMain extends ApplicationAdapter {
 		final float statusY = 0.0f;
 		statusDialog = new Entity();
 		statusDialog.add(new Position(statusX, statusY));
-		statusDialog.add(Dimension.relativeDimension(screenRect, 0.3f, 0.2f));
-		statusDialog.add(new BattleDialog(playerCom));
+		statusDialog.add(new Dimension(13 * uiBuilder.tileWidth, 4 * uiBuilder.tileHeight));
 
 		Dimension statusDim = Mappers.dimension.get(statusDialog);
 		final Rectangle statusRect = new Rectangle(statusX, statusY, statusDim.width, statusDim.height);
 
+		statusDialog.add(new BattleDialog(uiBuilder.buildAndGet(13, 4)));
+
 		hpText = new Entity();
 		Text hpTextComponent = new Text("HP: 100/100", Color.WHITE, playerStats.hpChangeSignal);
 		hpText.add(new Position(0.0f, statusRect.height * 0.8f).smartCentreX(
-				Text.getTextWidth(hpTextComponent, font16), statusRect));
+				Text.getTextWidth(hpTextComponent, statusRect.width, font16), statusRect));
 		hpTextComponent.baseText = "HP: ";
 		hpText.add(hpTextComponent);
 		healToFull();
 
 		rageText = new Entity();
-		Text rageTextComponent = new Text("Rage Level:\nReally mad.");
+		Text rageTextComponent = new Text("Rage Level: Really mad.");
 		rageText.add(new Position(0.0f, statusRect.height * 0.4f).smartCentreX(
-				Text.getTextWidth(rageTextComponent, font16), statusRect));
+				Text.getTextWidth(rageTextComponent, statusRect.width, font16), statusRect));
 		rageText.add(rageTextComponent);
 
 		final int menuDialogCount = 4;
 		final String[] dialogStrings = { "Attack", "Defend", "Quaff", "Flee" };
+		final Position[] menuPositions = new Position[dialogStrings.length];
 
-		final float menuWRel = ((screenRect.width - statusRect.width) / menuDialogCount) / screenRect.width;
-		final float menuHRel = 0.2f;
-		final float menuW = screenRect.width * menuWRel;
-		final float menuH = screenRect.height * menuHRel;
+		final float menuW = uiBuilder.tileWidth * 3;
+		final float menuH = uiBuilder.tileHeight * 2;
+
+		menuPositions[3] = new Position().bottomRightOf(screenRect, menuW);
+		menuPositions[2] = new Position().left(menuPositions[3], menuW);
+
+		menuPositions[0] = new Position().above(menuPositions[2], menuH);
+		menuPositions[1] = new Position().above(menuPositions[3], menuH);
 
 		menuDialogs = new Entity[menuDialogCount];
 		menuTexts = new Entity[menuDialogCount];
@@ -620,19 +625,21 @@ public class TesseractMain extends ApplicationAdapter {
 		for (int i = 0; i < menuDialogCount; i++) {
 			menuDialogs[i] = new Entity();
 
-			final float menuX = statusRect.width + (menuW * (float) i);
 			final String thisString = dialogStrings[i];
-
-			menuDialogs[i].add(new Position(menuX, 0.0f));
-			menuDialogs[i].add(new BattleDialog(playerCom));
-			menuDialogs[i].add(Dimension.relativeDimension(screenRect, menuWRel, menuHRel));
-			menuDialogs[i].add(new MouseClickListener(BattlePerformers.performers[i]));
 
 			menuTexts[i] = new Entity();
 			Text text = new Text(thisString);
 			menuTexts[i].add(text);
-			menuTexts[i].add(new Position().smartCentre(Text.getTextWidth(text, font24),
-					Text.getTextHeight(text, font24), new Rectangle(menuX, 0.0f, menuW, menuH)));
+
+			menuDialogs[i].add(menuPositions[i]);
+			BattleDialog menuDialog = new BattleDialog(uiBuilder.buildFromActualSize(menuW, menuH));
+			menuDialogs[i].add(menuDialog);
+			menuDialogs[i].add(new Dimension(menuW, menuH));
+			menuDialogs[i].add(new MouseClickListener(BattlePerformers.performers[i]));
+
+			menuTexts[i].add(new Position().smartCentre(Text.getTextWidth(text, menuW, font24), Text.getTextHeight(
+					text, menuW, font24), new Rectangle(menuPositions[i].position.x, menuPositions[i].position.y,
+					menuW, menuH)));
 
 		}
 
@@ -645,10 +652,16 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(rageText);
 
 		Entity battleMessageEntity = new Entity();
-		BattleDialog battleMessageEntityDialog = new BattleDialog(playerCom);
+		Dimension bmeDim = Dimension.relativeDimension(screenRect, 0.7f, 0.1f);
+		BattleDialog battleMessageEntityDialog = new BattleDialog(uiBuilder.buildFromActualSize((int) bmeDim.width,
+				(int) bmeDim.height));
+
+		bmeDim.width = battleMessageEntityDialog.popup.innerRectangle.width;
+		bmeDim.height = battleMessageEntityDialog.popup.innerRectangle.height;
+
+		battleMessageEntity.add(bmeDim);
 
 		battleMessageEntity.add(battleMessageEntityDialog);
-		battleMessageEntity.add(Dimension.relativeDimension(screenRect, 0.7f, 0.1f));
 		battleMessageEntity.add(new Position(0.0f, screenRect.height * 0.85f).smartCentreX(
 				Mappers.dimension.get(battleMessageEntity).width, screenRect));
 
@@ -665,7 +678,7 @@ public class TesseractMain extends ApplicationAdapter {
 				battleDefeatListener));
 		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
-		engine.addSystem(new BattleDialogRenderSystem(shapeRenderer, camera, 2000));
+		engine.addSystem(new BattleDialogRenderSystem(batch, camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
 	}
 
