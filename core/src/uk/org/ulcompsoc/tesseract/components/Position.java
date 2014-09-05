@@ -148,7 +148,11 @@ public class Position extends Component {
 	 * @return this for chaining
 	 */
 	public Position centreX(Rectangle other) {
-		this.position.x = other.x + (other.width / 2.0f);
+		return centreX(other.x, other.width);
+	}
+
+	public Position centreX(float x, float width) {
+		this.position.x = x + (width / 2.0f);
 		return this;
 	}
 
@@ -209,7 +213,11 @@ public class Position extends Component {
 	 * @return this for chaining
 	 */
 	public Position centreY(Rectangle other) {
-		this.position.y = other.y + (other.height / 2.0f);
+		return centreY(other.y, other.height);
+	}
+
+	public Position centreY(float y, float height) {
+		this.position.y = y + (height / 2.0f);
 		return this;
 	}
 
@@ -269,6 +277,10 @@ public class Position extends Component {
 	 */
 	public Position centre(Rectangle other) {
 		return centreX(other).centreY(other);
+	}
+
+	public Position centre(float x, float y, float width, float height) {
+		return centreX(x, width).centreY(y, height);
 	}
 
 	/**

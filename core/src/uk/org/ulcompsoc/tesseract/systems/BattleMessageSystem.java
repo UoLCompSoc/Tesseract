@@ -3,24 +3,21 @@ package uk.org.ulcompsoc.tesseract.systems;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.Mappers;
+import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
-import uk.org.ulcompsoc.tesseract.components.BattleDialog;
-import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Text;
+import uk.org.ulcompsoc.tesseract.ui.UIBuilder;
+import uk.org.ulcompsoc.tesseract.ui.UIPopup;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -35,28 +32,24 @@ public class BattleMessageSystem extends EntitySystem {
 	private BitmapFont			font					= null;
 	private Camera				camera					= null;
 
-	private ShapeRenderer		renderer				= null;
+	private Batch				batch					= null;
 
-	private Rectangle			boxPos;
+	private Rectangle			boxPos					= null;
+	private UIPopup				popup					= null;
 
 	private BattleMessage		currentBattleMessage	= null;
 	private Entity				currentMessageText		= null;
 
-	public BattleMessageSystem(Entity baseDialogEntity, ShapeRenderer renderer, BitmapFont font, Camera camera,
+	public BattleMessageSystem(float x, float y, UIBuilder builder, Batch batch, Camera camera, BitmapFont font,
 			int priority) {
-		this.renderer = renderer;
 		this.font = font;
 		this.camera = camera;
+		this.batch = batch;
 
-		Position pos = Mappers.position.get(baseDialogEntity);
-		Dimension dim = Mappers.dimension.get(baseDialogEntity);
-		BattleDialog bd = Mappers.battleDialog.get(baseDialogEntity);
+		this.popup = builder.buildAndGet(15, 2);
 
-		if (pos == null || bd == null || dim == null) {
-			throw new GdxRuntimeException("Constructor of BattleMessageSystem called with invalid baseDialogEntity.");
-		}
-
-		this.boxPos = new Rectangle(pos.position.x, pos.position.y, dim.width, dim.height);
+		this.boxPos = new Rectangle(x, y, popup.innerRectangle.width, popup.innerRectangle.height);
+		this.boxPos.x *= 1.25f;
 	}
 
 	@Override
@@ -74,24 +67,24 @@ public class BattleMessageSystem extends EntitySystem {
 		if (displayTimeRemaining > 0.0f) {
 			displayTimeRemaining -= deltaTime;
 
-			renderer.setProjectionMatrix(camera.combined);
-			renderer.setColor(currentBattleMessage.bgColor);
-			renderer.begin(ShapeType.Filled);
-			renderer.rect(boxPos.x, boxPos.y, boxPos.width, boxPos.height);
-			renderer.end();
+			batch.setProjectionMatrix(camera.combined);
+			Color temp = batch.getColor();
+			batch.setColor(TesseractMain.getCurrentMap().uiColor);
 
-			renderer.begin(ShapeType.Line);
-			renderer.setColor(Color.WHITE);
-			renderer.rect(boxPos.x, boxPos.y, boxPos.width, boxPos.height);
-			renderer.end();
+			batch.begin();
+			batch.draw(popup.texture, boxPos.x, boxPos.y);
+			batch.end();
+
+			batch.setColor(temp);
+
 		} else if (currentBattleMessage == null) {
 			currentBattleMessage = messages.get(0);
 
-			TextBounds bounds = font.getBounds(messages.get(0).message);
+			Rectangle bounds = Text.getTextRectangle(currentBattleMessage.message, boxPos.width, font);
 
 			currentMessageText = new Entity();
 			currentMessageText.add(new Position().smartCentre(bounds.width, bounds.height, boxPos));
-			currentMessageText.add(new Text(currentBattleMessage.message, currentBattleMessage.textColor));
+			currentMessageText.add(new Text(currentBattleMessage.message, Color.WHITE, boxPos.width));
 			engine.addEntity(currentMessageText);
 
 			displayTimeRemaining = currentBattleMessage.time;

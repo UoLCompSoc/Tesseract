@@ -598,17 +598,17 @@ public class TesseractMain extends ApplicationAdapter {
 		statusDialog.add(new BattleDialog(uiBuilder.buildAndGet(13, 4)));
 
 		hpText = new Entity();
-		Text hpTextComponent = new Text("HP: 100/100", Color.WHITE, playerStats.hpChangeSignal);
-		hpText.add(new Position(0.0f, statusRect.height * 0.8f).smartCentreX(
-				Text.getTextWidth(hpTextComponent, statusRect.width, font16), statusRect));
+		Text hpTextComponent = new Text("HP: 999/999", Color.WHITE, statusRect.width, playerStats.hpChangeSignal);
+		hpText.add(new Position(0.0f, statusY + statusRect.height * 0.75f).smartCentreX(
+				Text.getTextWidth(hpTextComponent, font16), statusRect));
 		hpTextComponent.baseText = "HP: ";
 		hpText.add(hpTextComponent);
-		healToFull();
+		playerStats.hpChangeSignal.dispatch(playerStats);
 
 		rageText = new Entity();
-		Text rageTextComponent = new Text("Rage Level: Really mad.");
-		rageText.add(new Position(0.0f, statusRect.height * 0.4f).smartCentreX(
-				Text.getTextWidth(rageTextComponent, statusRect.width, font16), statusRect));
+		Text rageTextComponent = new Text("Rage Level: Really mad.", statusRect.width);
+		rageText.add(new Position(0.0f, statusY + statusRect.height * 0.25f).smartCentreX(
+				Text.getTextWidth(rageTextComponent, font16), statusRect));
 		rageText.add(rageTextComponent);
 
 		final int menuDialogCount = 4;
@@ -633,7 +633,7 @@ public class TesseractMain extends ApplicationAdapter {
 			final String thisString = dialogStrings[i];
 
 			menuTexts[i] = new Entity();
-			Text text = new Text(thisString);
+			Text text = new Text(thisString, menuW);
 			menuTexts[i].add(text);
 
 			menuDialogs[i].add(menuPositions[i]);
@@ -642,9 +642,8 @@ public class TesseractMain extends ApplicationAdapter {
 			menuDialogs[i].add(new Dimension(menuW, menuH));
 			menuDialogs[i].add(new MouseClickListener(BattlePerformers.performers[i]));
 
-			menuTexts[i].add(new Position().smartCentre(Text.getTextWidth(text, menuW, font24), Text.getTextHeight(
-					text, menuW, font24), new Rectangle(menuPositions[i].position.x, menuPositions[i].position.y,
-					menuW, menuH)));
+			menuTexts[i].add(new Position().smartCentre(Text.getTextWidth(text, font24), Text.getTextHeight(text,
+					font24), new Rectangle(menuPositions[i].position.x, menuPositions[i].position.y, menuW, menuH)));
 
 		}
 
@@ -656,22 +655,8 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addEntity(hpText);
 		engine.addEntity(rageText);
 
-		Entity battleMessageEntity = new Entity();
-		Dimension bmeDim = Dimension.relativeDimension(screenRect, 0.7f, 0.1f);
-		BattleDialog battleMessageEntityDialog = new BattleDialog(uiBuilder.buildFromActualSize((int) bmeDim.width,
-				(int) bmeDim.height));
-
-		bmeDim.width = battleMessageEntityDialog.popup.innerRectangle.width;
-		bmeDim.height = battleMessageEntityDialog.popup.innerRectangle.height;
-
-		battleMessageEntity.add(bmeDim);
-
-		battleMessageEntity.add(battleMessageEntityDialog);
-		battleMessageEntity.add(new Position(0.0f, screenRect.height * 0.85f).smartCentreX(
-				Mappers.dimension.get(battleMessageEntity).width, screenRect));
-
-		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(battleMessageEntity, shapeRenderer, font24,
-				camera, 300);
+		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(0.25f * screenRect.width,
+				0.85f * screenRect.height, uiBuilder, batch, camera, font24, 300);
 		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, 200);
 		BattlePerformers.battleAttackSystem = battleAttackSystem;
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
@@ -684,7 +669,7 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(batch, camera, 2000));
-		engine.addSystem(new TextRenderSystem(batch, font16, 3000));
+		engine.addSystem(new TextRenderSystem(batch, camera, font16, 3000));
 	}
 
 	private void makeBattlePlayerEntity(Engine engine) {

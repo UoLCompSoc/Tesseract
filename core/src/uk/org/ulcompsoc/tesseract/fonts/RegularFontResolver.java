@@ -28,6 +28,7 @@ public class RegularFontResolver implements FontResolver {
 		}
 
 		para.size = size;
+		para.flip = false;
 		return fontGenerator.generateFont(para);
 	}
 

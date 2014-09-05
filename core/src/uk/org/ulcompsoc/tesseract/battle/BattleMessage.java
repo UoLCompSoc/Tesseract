@@ -1,6 +1,5 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
-import com.badlogic.gdx.graphics.Color;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -8,9 +7,6 @@ import com.badlogic.gdx.graphics.Color;
 public class BattleMessage {
 	public String	message;
 	public float	time;
-
-	public Color	bgColor		= Color.NAVY;
-	public Color	textColor	= Color.WHITE;
 
 	public BattleMessage(String message) {
 		this.message = message;

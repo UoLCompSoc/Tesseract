@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import uk.org.ulcompsoc.tesseract.Mappers;
+import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Text;
@@ -76,13 +77,17 @@ public class DialogueSystem extends EntitySystem {
 
 		batch.begin();
 		batch.setColor(uiColor);
-		batch.draw(builder.buildAndGet(boxW, boxH).texture, pos.x, pos.y);
+		batch.draw(builder.buildAndGet(boxW, boxH).texture, pos.x, pos.y + WorldConstants.TILE_HEIGHT);
 
 		batch.setColor(oldCol);
 
-		Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH * builder.tileHeight) + ", textH = " + cacheRect.height);
-		cachePos.setX(pos.x).smartCentreY(cacheRect.height, pos.y - boxPaddingH, boxDrawable)
-				.adjust(boxPaddingW, -boxPaddingH);
+		cachePos.smartCentreX(cacheRect.width, pos.x, boxW * builder.tileWidth)
+				.smartCentreY(cacheRect.height, pos.y, boxH * builder.tileHeight)
+				.adjustY(cacheRect.height + WorldConstants.TILE_HEIGHT);
+
+		Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH * builder.tileHeight) + ", textH = " + cacheRect.height
+				+ "\ntextY = " + cachePos.position.y);
+
 		font.drawWrapped(batch, thisMsg, cachePos.position.x, cachePos.position.y, boxDrawable);
 
 		batch.end();
