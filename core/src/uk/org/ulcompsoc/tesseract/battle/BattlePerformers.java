@@ -34,8 +34,10 @@ public class BattlePerformers {
 					Entity e = enemies.get(i);
 
 					final Renderable r = Mappers.renderable.get(e);
-					final float imgW = r.width;
-					final float imgH = r.height;
+					final float scaleAmt = (Mappers.scaled.has(e) ? Mappers.scaled.get(e).scaleAmt : 1.0f);
+
+					final float imgW = r.width * scaleAmt;
+					final float imgH = r.height * scaleAmt;
 
 					e.add(new TargetMarker());
 					e.add(new Dimension(imgW, imgH));

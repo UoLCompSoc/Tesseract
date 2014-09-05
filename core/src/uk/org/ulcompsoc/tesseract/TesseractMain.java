@@ -22,6 +22,7 @@ import uk.org.ulcompsoc.tesseract.components.Player;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
+import uk.org.ulcompsoc.tesseract.components.Scaled;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 import uk.org.ulcompsoc.tesseract.components.Text;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
@@ -679,10 +680,11 @@ public class TesseractMain extends ApplicationAdapter {
 		battlePlayerEntity.add(playerComp);
 
 		// dirty hack with positioning here
-		battlePlayerEntity.add(new Position(0.85f * camera.viewportWidth, 0.0f).smartCentreY(
+		battlePlayerEntity.add(new Position(0.70f * camera.viewportWidth, 0.0f).smartCentreY(
 				WorldConstants.TILE_HEIGHT, 0.2f * camera.viewportHeight, 0.8f * camera.viewportHeight));
 		battlePlayerEntity.add(getBattlePlayerPowerLevelRenderable());
 		battlePlayerEntity.add(playerStats);
+		battlePlayerEntity.add(new Scaled(2.0f));
 
 		Combatant playerCombatant = new Combatant();
 		battlePlayerEntity.add(playerCombatant);
@@ -754,11 +756,12 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		Entity boss = new Entity();
-		boss.add(new Position(0.15f * camera.viewportWidth, 0.0f).centreY(new Rectangle(0.0f,
+		boss.add(new Position(0.30f * camera.viewportWidth, 0.0f).centreY(new Rectangle(0.0f,
 				0.1f * camera.viewportHeight, camera.viewportWidth, camera.viewportHeight * 0.9f)));
 		boss.add(new Renderable(bossAnims[currentMapIndex]).setAnimationResolver(new PingPongFrameResolver(0.1f)));
 		boss.add(bossStats[currentMapIndex]);
 		boss.add(new Boss());
+		boss.add(new Scaled(1.5f));
 		boss.add(new Combatant().setThinkingTime(bossStats[currentMapIndex].getThinkTime() / 2.0f));
 		Enemy enemy = Mappers.enemy.get(map.bossEntity);
 		boss.add(enemy);
@@ -772,10 +775,11 @@ public class TesseractMain extends ApplicationAdapter {
 			throw new GdxRuntimeException("Only between 1-3 slimes supported.");
 		}
 
-		final float fartherX = 0.15f * camera.viewportWidth;
-		final float closerX = 0.10f * camera.viewportWidth;
+		final float fartherX = 0.25f * camera.viewportWidth;
+		final float closerX = 0.20f * camera.viewportWidth;
+		final float scaleAmt = 2.0f;
 
-		final float slimeH = slimeDesat.getHeight();
+		final float slimeH = slimeDesat.getHeight() * scaleAmt;
 
 		// dirty hack with positioning here
 		final float screenY = camera.viewportHeight * 0.2f;
@@ -803,10 +807,13 @@ public class TesseractMain extends ApplicationAdapter {
 			positions[2] = new Position(closerX, 0.0f).smartCentreY(slimeH, screenY, screenH).adjustY(slimeH * -3.0f);
 
 		}
-		Gdx.app.debug("PLAYER_BATTLE_POS", "x = " + Mappers.position.get(battlePlayerEntity).position.x + ", y = "
-				+ Mappers.position.get(battlePlayerEntity).position.y + ".");
-		Gdx.app.debug("SLIME_POS", "Slime positioned at x = " + positions[0].position.x + ", y = "
-				+ positions[0].position.y + ".");
+
+		// Gdx.app.debug("PLAYER_BATTLE_POS", "x = " +
+		// Mappers.position.get(battlePlayerEntity).position.x + ", y = "
+		// + Mappers.position.get(battlePlayerEntity).position.y + ".");
+		// Gdx.app.debug("SLIME_POS", "Slime positioned at x = " +
+		// positions[0].position.x + ", y = "
+		// + positions[0].position.y + ".");
 
 		for (int i = 0; i < count; i++) {
 			Entity slimeEntity = new Entity();
@@ -822,6 +829,7 @@ public class TesseractMain extends ApplicationAdapter {
 			Enemy slime1 = new Enemy("Slime");
 			slimeEntity.add(slime1);
 			slimeEntity.add(new Named(slime1.speciesName + " " + (i + 1)));
+			slimeEntity.add(new Scaled(scaleAmt));
 			engine.addEntity(slimeEntity);
 		}
 	}

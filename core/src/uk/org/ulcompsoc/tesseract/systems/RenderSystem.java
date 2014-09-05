@@ -107,6 +107,7 @@ public class RenderSystem extends EntitySystem {
 				batch.end();
 			}
 		} else {
+			final float scaleAmt = (Mappers.scaled.has(entity) ? Mappers.scaled.get(entity).scaleAmt : 1.0f);
 			TextureRegion current = r.getCurrent(deltaTime);
 
 			if (r.color != null) {
@@ -115,7 +116,7 @@ public class RenderSystem extends EntitySystem {
 
 			batch.begin();
 
-			batch.draw(current, pos.x, pos.y);
+			batch.draw(current, pos.x, pos.y, current.getRegionWidth() * scaleAmt, current.getRegionHeight() * scaleAmt);
 
 			batch.end();
 
@@ -129,7 +130,7 @@ public class RenderSystem extends EntitySystem {
 				renderer.setColor(tm.color);
 
 				renderer.begin(ShapeType.Line);
-				renderer.rect(pos.x, pos.y, current.getRegionWidth(), current.getRegionHeight());
+				renderer.rect(pos.x, pos.y, current.getRegionWidth() * scaleAmt, current.getRegionHeight() * scaleAmt);
 				renderer.end();
 			}
 		}
