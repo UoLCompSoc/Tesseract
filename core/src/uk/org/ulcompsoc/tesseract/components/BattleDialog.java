@@ -9,25 +9,22 @@ import com.badlogic.gdx.graphics.Color;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class BattleDialog extends Component {
-	public final Color		fillColor;
-	public final Color		lineColor;
-
 	public final UIPopup	popup;
 
+	public Color			fillColor;
+
 	public BattleDialog(UIPopup popup) {
-		this(popup, Color.NAVY, Color.GRAY);
+		this(popup, Color.NAVY);
 	}
 
 	/**
-	 * Note that line colour is not used atm
-	 * 
 	 * @param popup
+	 *        A popup to draw for this dialog.
 	 * @param fillColor
-	 * @param lineColor
+	 *        The colour to use for this dialog.
 	 */
-	public BattleDialog(UIPopup popup, Color fillColor, Color lineColor) {
+	public BattleDialog(UIPopup popup, Color fillColor) {
 		this.fillColor = fillColor;
-		this.lineColor = lineColor;
 		this.popup = popup;
 	}
 }

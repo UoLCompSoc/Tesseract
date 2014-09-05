@@ -5,6 +5,9 @@ import java.util.List;
 
 import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
+import uk.org.ulcompsoc.tesseract.components.Position;
+import uk.org.ulcompsoc.tesseract.components.Text;
+import uk.org.ulcompsoc.tesseract.ui.UIBuilder;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
@@ -13,30 +16,37 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
  */
 public class DialogueSystem extends EntitySystem {
-	private Batch			batch		= null;
-	private Camera			camera		= null;
+	private final Batch		batch;
+	private final Camera	camera;
+	private final UIBuilder	builder;
+	private final Color		uiColor;
+
 	private BitmapFont		font		= null;
 
 	private List<Entity>	dias		= new ArrayList<Entity>();
-
-	private ShapeRenderer	renderer	= new ShapeRenderer();
 
 	private int				currentMsg	= 0;
 
 	private boolean			pressed		= false;
 
-	public DialogueSystem(Camera camera, Batch batch, BitmapFont font, int priority) {
+	private Position		cachePos	= new Position();
+	private Rectangle		cacheRect	= new Rectangle();
+
+	public DialogueSystem(Camera camera, Batch batch, UIBuilder builder, Color uiColor, BitmapFont font, int priority) {
 		super(priority);
-		this.camera = camera;
+
 		this.batch = batch;
+		this.camera = camera;
+		this.builder = builder;
+		this.uiColor = uiColor;
+
 		this.font = font;
 	}
 
@@ -46,26 +56,34 @@ public class DialogueSystem extends EntitySystem {
 		Dialogue dia = Mappers.dialogue.get(currentDia);
 		Vector2 pos = Mappers.position.get(currentDia).position;
 
-		renderer.setProjectionMatrix(camera.combined);
+		final String thisMsg = dia.dialogueLines[currentMsg];
 
-		renderer.setColor(Color.NAVY);
-		renderer.begin(ShapeType.Filled);
+		final int boxW = 5;
+		final int boxPaddingW = 5;
+		final int boxPaddingH = 5;
+		final int boxDrawable = boxW * builder.tileWidth - boxPaddingW * 2;
 
-		renderer.rect(pos.x, pos.y, 100, 100);
+		cacheRect = Text.getTextRectangle(thisMsg, boxDrawable, font);
+		cacheRect.x = pos.x + boxPaddingW;
+		cacheRect.y = pos.y + builder.tileHeight - boxPaddingH;
 
-		renderer.end();
-
-		renderer.setColor(Color.WHITE);
-		renderer.begin(ShapeType.Line);
-
-		renderer.rect(pos.x, pos.y, 100, 100);
-
-		renderer.end();
+		final int boxH = Math.max((int) (cacheRect.height / builder.tileHeight)
+				+ (cacheRect.height % builder.tileHeight == 0 ? 1 : 0), 2);
 
 		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
 
-		font.drawWrapped(batch, dia.dialogueLines[currentMsg], pos.x, pos.y + 95, 100);
+		Color oldCol = batch.getColor();
+
+		batch.begin();
+		batch.setColor(uiColor);
+		batch.draw(builder.buildAndGet(boxW, boxH).texture, pos.x, pos.y);
+
+		batch.setColor(oldCol);
+
+		Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH * builder.tileHeight) + ", textH = " + cacheRect.height);
+		cachePos.setX(pos.x).smartCentreY(cacheRect.height, pos.y - boxPaddingH, boxDrawable)
+				.adjust(boxPaddingW, -boxPaddingH);
+		font.drawWrapped(batch, thisMsg, cachePos.position.x, cachePos.position.y, boxDrawable);
 
 		batch.end();
 

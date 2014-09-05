@@ -43,14 +43,22 @@ public class Text extends Component {
 		return baseText + val;
 	}
 
-	public static float getTextWidth(Text text, float wrapWidth, BitmapFont font) {
-		TextBounds bounds = font.getMultiLineBounds(text.getText());
+	public static float getTextWidth(String text, float wrapWidth, BitmapFont font) {
+		TextBounds bounds = font.getMultiLineBounds(text);
 		return bounds.width;
 	}
 
-	public static float getTextHeight(Text text, float wrapWidth, BitmapFont font) {
-		TextBounds bounds = font.getWrappedBounds(text.getText(), wrapWidth);
+	public static float getTextHeight(String text, float wrapWidth, BitmapFont font) {
+		TextBounds bounds = font.getWrappedBounds(text, wrapWidth);
 		return bounds.height;
+	}
+
+	public static float getTextWidth(Text text, float wrapWidth, BitmapFont font) {
+		return getTextWidth(text.getText(), wrapWidth, font);
+	}
+
+	public static float getTextHeight(Text text, float wrapWidth, BitmapFont font) {
+		return getTextHeight(text.getText(), wrapWidth, font);
 	}
 
 	public static Rectangle getTextRectangle(float x, float y, float wrapWidth, Text text, BitmapFont font) {

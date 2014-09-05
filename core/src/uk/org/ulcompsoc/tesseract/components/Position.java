@@ -247,7 +247,7 @@ public class Position extends Component {
 	 * @return this for chaining
 	 */
 	public Position smartCentreY(float thisHeight, float y, float height) {
-		this.position.y = 0.5f * (2.0f * y + height + thisHeight);
+		this.position.y = 0.5f * (2.0f * y + height - thisHeight);
 		return this;
 	}
 

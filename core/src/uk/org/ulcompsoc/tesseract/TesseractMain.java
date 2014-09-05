@@ -258,8 +258,6 @@ public class TesseractMain extends ApplicationAdapter {
 		worldSelectEngine = new Engine();
 		initWorldSelectEngine(worldSelectEngine);
 
-		// resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
 		worldEngines = new Engine[mapNames.length];
 		initWorldEngines(worldEngines);
 
@@ -350,7 +348,7 @@ public class TesseractMain extends ApplicationAdapter {
 		((OrthographicCamera) camera).setToOrtho(false, width, height);
 
 		if (battleEngine != null) {
-			// this handleResize is a dirty hack
+			// TODO: Fix handleResize dirty hack
 			battleEngine.getSystem(BattleMessageSystem.class).handleResize(xScale, yScale);
 			ImmutableArray<Entity> ents = battleEngine.getEntitiesFor(posFamily);
 
@@ -389,11 +387,18 @@ public class TesseractMain extends ApplicationAdapter {
 		initWorldSelectEngine(worldSelectEngine);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void flagBattleChange(boolean boss) {
 		battleChangeFlag = true;
 		bossIncomingFlag = boss;
 		transitionTime = BATTLE_START_TRANSITION_TIME;
 		vortexOn();
+
+		ImmutableArray<Entity> entities = battleEngine.getEntitiesFor(Family.getFor(BattleDialog.class));
+
+		for (int i = 0; i < entities.size(); i++) {
+			Mappers.battleDialog.get(entities.get(i)).fillColor = getCurrentMap().uiColor;
+		}
 	}
 
 	public static void flagWorldChange(int newWorld) {
@@ -568,7 +573,7 @@ public class TesseractMain extends ApplicationAdapter {
 			engine.addSystem(new MovementSystem(maps[i], 500));
 			engine.addSystem(new FocusTakingSystem(750));
 			engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
-			engine.addSystem(new DialogueSystem(camera, batch, font10, 2000));
+			engine.addSystem(new DialogueSystem(camera, batch, uiBuilder, maps[i].uiColor, font10, 2000));
 
 			engines[i] = engine;
 		}

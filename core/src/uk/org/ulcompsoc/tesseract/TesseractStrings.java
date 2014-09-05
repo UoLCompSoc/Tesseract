@@ -34,7 +34,7 @@ public class TesseractStrings {
 
 	private static BattleMessage	fleeMessage	= new BattleMessage(
 														"You attempt to flee! Oh, it's just going to chase you...",
-														2.0f);
+														1.25f);
 
 	public static BattleMessage getFleeMessage() {
 		return fleeMessage;
