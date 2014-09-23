@@ -35,6 +35,10 @@ public class BattlePerformers {
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
 
+					if (Mappers.finishedMarker.has(e)) {
+						continue;
+					}
+
 					final Renderable r = Mappers.renderable.get(e);
 					final float scaleAmt = (Mappers.scaled.has(e) ? Mappers.scaled.get(e).scaleAmt : 1.0f);
 
