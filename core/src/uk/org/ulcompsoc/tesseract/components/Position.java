@@ -36,7 +36,7 @@ public class Position extends Component {
 	}
 
 	public Position(Vector2 position) {
-		this.position = position;
+		this.position = position.cpy();
 		this.gridPosition = new GridPoint2();
 	}
 

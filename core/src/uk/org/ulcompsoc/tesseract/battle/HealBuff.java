@@ -1,8 +1,12 @@
 package uk.org.ulcompsoc.tesseract.battle;
 
 import uk.org.ulcompsoc.tesseract.Mappers;
+import uk.org.ulcompsoc.tesseract.TesseractMain;
+import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 
 /**
@@ -21,14 +25,17 @@ public class HealBuff implements BuffPerformer {
 
 	private int			healPerTick	= 0;
 
-	public HealBuff(int ticks) {
-		this(5.0f, ticks);
+	private Engine		engine		= null;
+
+	public HealBuff(Engine engine, int ticks) {
+		this(engine, 5.0f, ticks);
 	}
 
-	public HealBuff(float duration, int ticks) {
+	public HealBuff(Engine engine, float duration, int ticks) {
 		this.duration = duration;
 		this.ticks = ticks;
 		this.timePerTick = duration / ticks;
+		this.engine = engine;
 	}
 
 	@Override
@@ -49,6 +56,8 @@ public class HealBuff implements BuffPerformer {
 
 			ticksDone++;
 
+			addHealAnimation();
+
 			stats.restoreHP(healPerTick);
 
 			if (ticksDone == (ticks - 1)) {
@@ -58,6 +67,18 @@ public class HealBuff implements BuffPerformer {
 		}
 
 		return false;
+	}
+
+	private void addHealAnimation() {
+		Entity e = new Entity();
+
+		Position playerPos = Mappers.position.get(target);
+
+		e.add(new Position(playerPos.position.x + WorldConstants.TILE_WIDTH, playerPos.position.y
+				+ WorldConstants.TILE_HEIGHT));
+		e.add(TesseractMain.getTempHealRenderable(e));
+
+		engine.addEntity(e);
 	}
 
 	@Override

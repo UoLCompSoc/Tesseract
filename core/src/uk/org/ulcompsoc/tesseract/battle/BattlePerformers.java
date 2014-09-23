@@ -4,9 +4,11 @@ import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.MouseClickPerformer;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.TesseractStrings;
+import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
+import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.TargetMarker;
 import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
@@ -51,7 +53,9 @@ public class BattlePerformers {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
 			battleMessageSystem.addMessage(TesseractStrings.getDefendMessage());
-			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new DefenceBuff());
+			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new DefenceBuff(5.0f));
+
+			addDefendAnimation(engine);
 		}
 	}
 
@@ -59,7 +63,7 @@ public class BattlePerformers {
 		@Override
 		public void perform(Entity invoker, Engine engine) {
 			battleMessageSystem.addMessage(TesseractStrings.getQuaffMessage());
-			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new HealBuff(5));
+			Mappers.combatant.get(TesseractMain.battlePlayerEntity).addBuff(new HealBuff(engine, 5));
 		}
 	}
 
@@ -100,5 +104,16 @@ public class BattlePerformers {
 
 			targets = engine.getEntitiesFor(Family.getFor(TargetMarker.class));
 		}
+	}
+
+	private static void addDefendAnimation(Engine engine) {
+		Entity e = new Entity();
+
+		Position playerPos = Mappers.position.get(TesseractMain.battlePlayerEntity);
+
+		e.add(new Position(playerPos.position.x, playerPos.position.y + WorldConstants.TILE_HEIGHT * 2.0f));
+		e.add(TesseractMain.getTempDefendRenderable(e));
+
+		engine.addEntity(e);
 	}
 }

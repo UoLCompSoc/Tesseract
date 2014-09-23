@@ -397,7 +397,7 @@ public class TesseractMap implements Disposable {
 		final String[] doorDia = { "Ah, this is the door the wizard mentioned...",
 				"It opens when all the bosses are dead, right?" };
 		e.add(new Dialogue(doorDia));
-		e.add(new Renderable(closedDoorSprite).setPrioritity(0));
+		e.add(new Renderable(closedDoorSprite).setPrioritity(75));
 
 		return e;
 	}

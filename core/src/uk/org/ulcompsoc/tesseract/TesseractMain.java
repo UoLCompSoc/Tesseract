@@ -2,6 +2,7 @@ package uk.org.ulcompsoc.tesseract;
 
 import java.util.Random;
 
+import uk.org.ulcompsoc.tesseract.animations.CompletionSignalFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PlayerAnimationFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.SlimeFrameResolver;
@@ -14,6 +15,7 @@ import uk.org.ulcompsoc.tesseract.components.Boss;
 import uk.org.ulcompsoc.tesseract.components.Combatant;
 import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
+import uk.org.ulcompsoc.tesseract.components.FinishedMarker;
 import uk.org.ulcompsoc.tesseract.components.FocusTaker;
 import uk.org.ulcompsoc.tesseract.components.MouseClickListener;
 import uk.org.ulcompsoc.tesseract.components.Movable;
@@ -37,6 +39,7 @@ import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
 import uk.org.ulcompsoc.tesseract.systems.BuffSystem;
 import uk.org.ulcompsoc.tesseract.systems.DialogueSystem;
+import uk.org.ulcompsoc.tesseract.systems.FinishedEntitySystem;
 import uk.org.ulcompsoc.tesseract.systems.FocusTakingSystem;
 import uk.org.ulcompsoc.tesseract.systems.MovementSystem;
 import uk.org.ulcompsoc.tesseract.systems.RenderSystem;
@@ -134,8 +137,20 @@ public class TesseractMain extends ApplicationAdapter {
 	private Animation					playerLeft						= null;
 	private Animation					playerRight						= null;
 
+	private Texture						attackTexture					= null;
+	private static Animation			attackAnimation					= null;
+
+	private Texture						defendTexture					= null;
+	private static Animation			defendAnimation					= null;
+
+	private Texture						healTexture						= null;
+	private static Animation			healAnimation					= null;
+
 	private Texture						slimeDesat						= null;
 	private Animation					slimeDesatAnim					= null;
+
+	private Texture						slimeDeathTexture				= null;
+	private Animation					slimeDeathAnimation				= null;
 
 	private Texture[]					torchTextures					= null;
 	private Animation[]					torchAnims						= null;
@@ -241,6 +256,8 @@ public class TesseractMain extends ApplicationAdapter {
 		loadSlimeFiles();
 
 		loadBossFiles();
+
+		loadBattleAnimations();
 
 		openDoorTex = new Texture(Gdx.files.internal("door_open.png"));
 		closedDoorTex = new Texture(Gdx.files.internal("door_closed.png"));
@@ -671,6 +688,7 @@ public class TesseractMain extends ApplicationAdapter {
 		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(batch, camera, 2000));
 		engine.addSystem(new TextRenderSystem(batch, camera, font16, 3000));
+		engine.addSystem(new FinishedEntitySystem(10000));
 	}
 
 	private void makeBattlePlayerEntity(Engine engine) {
@@ -826,7 +844,7 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.debug("SLIME_THINK_TIME", "Slimes think for " + slimeStats.getThinkTime() + "s.");
 			slimeEntity.add(new Combatant().setThinkingTime(0.0f + random.nextFloat()));
 
-			Enemy slime1 = new Enemy("Slime");
+			Enemy slime1 = new Enemy("Slime", slimeDeathAnimation);
 			slimeEntity.add(slime1);
 			slimeEntity.add(new Named(slime1.speciesName + " " + (i + 1)));
 			slimeEntity.add(new Scaled(scaleAmt));
@@ -963,14 +981,18 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 	}
 
-	public void loadSlimeFiles() {
+	private void loadSlimeFiles() {
 		slimeDesat = new Texture(Gdx.files.internal("monsters/slime_desat.png"));
 		TextureRegion[] desatRegions = TextureRegion.split(slimeDesat, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0];
 		slimeDesatAnim = new Animation(0.75f, desatRegions[0], desatRegions[1]);
+
+		slimeDeathTexture = new Texture(Gdx.files.internal("monsters/slime_die_desat.png"));
+		slimeDeathAnimation = new Animation(0.15f, TextureRegion.split(slimeDeathTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0]);
 	}
 
-	public void loadBossFiles() {
+	private void loadBossFiles() {
 		bossTextures = new Texture[bossFiles.length];
 		bossAnims = new Animation[bossFiles.length];
 
@@ -978,6 +1000,57 @@ public class TesseractMain extends ApplicationAdapter {
 			bossTextures[i] = new Texture(Gdx.files.internal(bossFiles[i]));
 			TextureRegion[] bossRegions = TextureRegion.split(bossTextures[i], bossSizes[i].x, bossSizes[i].y)[0];
 			bossAnims[i] = new Animation(0.1f, new Array<TextureRegion>(bossRegions));
+		}
+	}
+
+	private void loadBattleAnimations() {
+		attackTexture = new Texture(Gdx.files.internal("battle_animations/damage_anim.png"));
+		TextureRegion[] attackRegions = TextureRegion.split(attackTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0];
+
+		attackAnimation = new Animation(0.15f, attackRegions);
+
+		defendTexture = new Texture(Gdx.files.internal("battle_animations/defend_anim.png"));
+		TextureRegion[] defendRegions = TextureRegion.split(defendTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0];
+
+		// 0.714f = 5/7 = defence buff duration / number of frames
+		defendAnimation = new Animation(0.714f, defendRegions);
+
+		healTexture = new Texture(Gdx.files.internal("battle_animations/heal_anim.png"));
+		TextureRegion[] healRegions = TextureRegion.split(healTexture, WorldConstants.TILE_WIDTH,
+				WorldConstants.TILE_HEIGHT)[0];
+
+		healAnimation = new Animation(0.2f, healRegions);
+	}
+
+	public static Renderable getTempAttackRenderable(Entity toBeAdded) {
+		if (toBeAdded == null) {
+			return new Renderable(attackAnimation).setPrioritity(600);
+		} else {
+			return new Renderable(attackAnimation).setAnimationResolver(
+					new CompletionSignalFrameResolver(attackAnimation.getAnimationDuration(),
+							new AnimationCompleteListener(toBeAdded))).setPrioritity(500);
+		}
+	}
+
+	public static Renderable getTempDefendRenderable(Entity toBeAdded) {
+		if (toBeAdded == null) {
+			return new Renderable(defendAnimation).setPrioritity(500);
+		} else {
+			return new Renderable(defendAnimation).setAnimationResolver(
+					new CompletionSignalFrameResolver(defendAnimation.getAnimationDuration(),
+							new AnimationCompleteListener(toBeAdded))).setPrioritity(500);
+		}
+	}
+
+	public static Renderable getTempHealRenderable(Entity toBeAdded) {
+		if (toBeAdded == null) {
+			return new Renderable(healAnimation).setPrioritity(500);
+		} else {
+			return new Renderable(healAnimation).setAnimationResolver(
+					new CompletionSignalFrameResolver(healAnimation.getAnimationDuration(),
+							new AnimationCompleteListener(toBeAdded))).setPrioritity(500);
 		}
 	}
 
@@ -1012,6 +1085,18 @@ public class TesseractMain extends ApplicationAdapter {
 			}
 		}
 
+		if (attackTexture != null) {
+			attackTexture.dispose();
+		}
+
+		if (defendTexture != null) {
+			defendTexture.dispose();
+		}
+
+		if (healTexture != null) {
+			healTexture.dispose();
+		}
+
 		if (openDoorTex != null) {
 			openDoorTex.dispose();
 		}
@@ -1036,6 +1121,12 @@ public class TesseractMain extends ApplicationAdapter {
 		}
 
 		slimeDesatAnim = null;
+		slimeDeathAnimation = null;
+
+		if (slimeDeathTexture != null) {
+			slimeDeathTexture.dispose();
+		}
+
 		if (slimeDesat != null) {
 			slimeDesat.dispose();
 		}
@@ -1071,6 +1162,19 @@ public class TesseractMain extends ApplicationAdapter {
 
 		if (musicManager != null) {
 			musicManager.dispose();
+		}
+	}
+
+	public static class AnimationCompleteListener implements Listener<Boolean> {
+		public Entity	entity	= null;
+
+		public AnimationCompleteListener(Entity entity) {
+			this.entity = entity;
+		}
+
+		@Override
+		public void receive(Signal<Boolean> signal, Boolean object) {
+			entity.add(new FinishedMarker());
 		}
 	}
 
