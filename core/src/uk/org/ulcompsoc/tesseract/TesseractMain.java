@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract;
 import java.util.Random;
 
 import uk.org.ulcompsoc.tesseract.animations.CompletionSignalFrameResolver;
+import uk.org.ulcompsoc.tesseract.animations.LingerFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PingPongFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.PlayerAnimationFrameResolver;
 import uk.org.ulcompsoc.tesseract.animations.SlimeFrameResolver;
@@ -1019,8 +1020,7 @@ public class TesseractMain extends ApplicationAdapter {
 		TextureRegion[] defendRegions = TextureRegion.split(defendTexture, WorldConstants.TILE_WIDTH,
 				WorldConstants.TILE_HEIGHT)[0];
 
-		// 0.714f = 5/7 = defence buff duration / number of frames
-		defendAnimation = new Animation(0.714f, defendRegions);
+		defendAnimation = new Animation(5.0f / defendRegions.length, defendRegions);
 
 		healTexture = new Texture(Gdx.files.internal("battle_animations/heal_anim.png"));
 		TextureRegion[] healRegions = TextureRegion.split(healTexture, WorldConstants.TILE_WIDTH,
@@ -1041,11 +1041,10 @@ public class TesseractMain extends ApplicationAdapter {
 
 	public static Renderable getTempDefendRenderable(Entity toBeAdded) {
 		if (toBeAdded == null) {
-			return new Renderable(defendAnimation).setPrioritity(500);
+			return new Renderable(defendAnimation).setPrioritity(500).setAnimationResolver(new LingerFrameResolver(3));
 		} else {
 			return new Renderable(defendAnimation).setAnimationResolver(
-					new CompletionSignalFrameResolver(defendAnimation.getAnimationDuration(),
-							new AnimationCompleteListener(toBeAdded))).setPrioritity(500);
+					new LingerFrameResolver(3, new AnimationCompleteListener(toBeAdded))).setPrioritity(500);
 		}
 	}
 

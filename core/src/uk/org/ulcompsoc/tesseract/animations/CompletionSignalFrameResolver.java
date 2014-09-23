@@ -1,7 +1,6 @@
 package uk.org.ulcompsoc.tesseract.animations;
 
 import com.badlogic.ashley.signals.Listener;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -9,8 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class CompletionSignalFrameResolver extends AnimationFrameResolver {
-	public Signal<Boolean>	completedSignal	= new Signal<Boolean>();
-	private float			signalTime		= -1.0f;
+	private float	signalTime	= -1.0f;
 
 	public CompletionSignalFrameResolver() {
 		this(-1.0f, null);
@@ -21,8 +19,7 @@ public class CompletionSignalFrameResolver extends AnimationFrameResolver {
 	}
 
 	public CompletionSignalFrameResolver(float signalTime, Listener<Boolean> listener) {
-		completedSignal.add(listener);
-
+		super(listener);
 		if (signalTime <= 0.0f) {
 			signalTime = -1.0f;
 		}
@@ -44,7 +41,7 @@ public class CompletionSignalFrameResolver extends AnimationFrameResolver {
 		}
 
 		if ((animTime + deltaTime) > signalTime) {
-			completedSignal.dispatch(true);
+			completionSignal.dispatch(true);
 		}
 
 		return super.resolveFrame(anim, deltaTime);

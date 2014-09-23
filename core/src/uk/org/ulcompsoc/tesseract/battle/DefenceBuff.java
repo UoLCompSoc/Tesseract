@@ -4,6 +4,7 @@ import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.components.Stats;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -42,6 +43,7 @@ public class DefenceBuff implements BuffPerformer {
 
 		if (timeRemaining <= 0.0f) {
 			undoBuff(target);
+			Gdx.app.debug("DEF_DONE", "Defence buff complete");
 			return true;
 		}
 
