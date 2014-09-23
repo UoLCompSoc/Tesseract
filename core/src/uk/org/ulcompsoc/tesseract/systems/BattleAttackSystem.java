@@ -97,8 +97,8 @@ public class BattleAttackSystem extends EntitySystem {
 			engine.removeEntity(target);
 			doDefeat(target, TesseractStrings.getKilledMessage(Mappers.named.get(target).name));
 		} else {
-			Gdx.app.debug("ENEMY_KILLED", "Enemy killed; " + engine.getEntitiesFor(Family.getFor(Enemy.class)).size()
-					+ " remain.");
+			Gdx.app.debug("ENEMY_KILLED", "Enemy killed; "
+					+ (engine.getEntitiesFor(Family.getFor(Enemy.class)).size() - 1) + " remain.");
 
 			Enemy enemy = Mappers.enemy.get(target);
 

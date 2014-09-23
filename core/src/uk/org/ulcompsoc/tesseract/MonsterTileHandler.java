@@ -40,7 +40,8 @@ public class MonsterTileHandler {
 
 				if (TesseractMain.getCurrentMap().isMonsterTile(pos)) {
 					monsterTilesVisited++;
-					Gdx.app.debug("MONSTER_STEPS", "" + monsterTilesVisited + " steps taken.");
+					if (monsterTilesVisited % 5 == 0)
+						Gdx.app.debug("MONSTER_STEPS", "" + monsterTilesVisited + " steps taken.");
 					final double prob = 0.02 * monsterTilesVisited;
 					final double rand = random.nextDouble();
 

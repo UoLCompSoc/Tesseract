@@ -108,8 +108,10 @@ public class UIBuilder implements Disposable {
 		batch.end();
 		fb.end();
 
-		Gdx.app.log("FB_SIZE", "Expected:\nwidth = " + expectedFBWidth + ", height = " + expectedFBHeight
-				+ "\ngot:\nwidth = " + fb.getWidth() + ", height = " + fb.getHeight() + ".");
+		// Gdx.app.debug("FB_SIZE", "Expected:\nwidth = " + expectedFBWidth +
+		// ", height = " + expectedFBHeight
+		// + "\ngot:\nwidth = " + fb.getWidth() + ", height = " + fb.getHeight()
+		// + ".");
 
 		owned.put(key, fb);
 	}

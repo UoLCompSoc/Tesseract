@@ -85,8 +85,9 @@ public class DialogueSystem extends EntitySystem {
 				.smartCentreY(cacheRect.height, pos.y, boxH * builder.tileHeight)
 				.adjustY(cacheRect.height + WorldConstants.TILE_HEIGHT);
 
-		Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH * builder.tileHeight) + ", textH = " + cacheRect.height
-				+ "\ntextY = " + cachePos.position.y);
+		// Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH *
+		// builder.tileHeight) + ", textH = " + cacheRect.height
+		// + "\ntextY = " + cachePos.position.y);
 
 		font.drawWrapped(batch, thisMsg, cachePos.position.x, cachePos.position.y, boxDrawable);
 

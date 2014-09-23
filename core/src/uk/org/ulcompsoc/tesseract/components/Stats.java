@@ -74,10 +74,11 @@ public class Stats extends Component {
 	}
 
 	public void addExperience(int exp) {
-		Gdx.app.debug("ADD_EXP", "Gained " + exp + " experience points!");
 		totalExp += exp;
+		Gdx.app.debug("ADD_EXP", "Gained " + exp + " experience points; " + (levelUpExperience(level) - totalExp)
+				+ " until next level.");
 
-		if (totalExp > levelUpExperience(level)) {
+		if (totalExp >= levelUpExperience(level)) {
 			doLevelUp();
 		}
 	}
@@ -115,7 +116,7 @@ public class Stats extends Component {
 		int total = 0;
 
 		for (int i = 0; i < level; i++) {
-			total += i * 5 + (i + 1) * 11;
+			total += i * 11 + (i + 1) * 5;
 		}
 
 		return total;
