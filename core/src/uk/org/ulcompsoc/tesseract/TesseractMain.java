@@ -586,6 +586,14 @@ public class TesseractMain extends ApplicationAdapter {
 			if (maps[i].bossEntity != null) {
 				maps[i].bossEntity.add(new Renderable(bossAnims[i]).setPrioritity(100).setAnimationResolver(
 						new PingPongFrameResolver()));
+
+				final int bossWidthInTiles = (int) (Mappers.renderable.get(maps[i].bossEntity).width / WorldConstants.TILE_WIDTH) - 1;
+				Gdx.app.debug("BOSS_WIDTH", "Boss width = " + bossWidthInTiles);
+				Mappers.dialogue.get(maps[i].bossEntity).interactionWidth = bossWidthInTiles;
+				Mappers.dialogue.get(maps[i].bossEntity).interactionHeight = (bossWidthInTiles > 1 ? 1 : 0);
+
+				maps[i].setBossSolids(bossWidthInTiles + 1);
+
 				engine.addEntity(maps[i].bossEntity);
 			}
 

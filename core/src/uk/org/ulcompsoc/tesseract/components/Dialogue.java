@@ -9,9 +9,12 @@ import com.badlogic.ashley.signals.Signal;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class Dialogue extends Component {
-	public String[]			dialogueLines	= null;
+	public String[]			dialogueLines		= null;
 
-	public Signal<Entity>	finishSignal	= null;
+	public Signal<Entity>	finishSignal		= null;
+
+	public int				interactionWidth	= 0;
+	public int				interactionHeight	= 0;
 
 	public Dialogue(String[] dialogueLines) {
 		this.dialogueLines = dialogueLines;

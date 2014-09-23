@@ -57,6 +57,7 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		if (dialogueSystem == null) {
 			dialogueSystem = engine.getSystem(DialogueSystem.class);
 		}
+
 		Vector2 pos = Mappers.position.get(entity).position;
 		WorldPlayerInputListener listener = Mappers.worldPlayerInputListener.get(entity);
 
@@ -76,14 +77,14 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 						attemptMove(entity, Facing.LEFT, pos, pos.x - xMove, pos.y);
 					} else if (isAnyKeyPressed(listener.rightKeys)) {
 						attemptMove(entity, Facing.RIGHT, pos, pos.x + xMove, pos.y);
-					} else if (Gdx.input.isKeyJustPressed(Keys.ENTER)) {
+					} else if (isAnyKeyJustPressed(listener.worldChangeKeys)) {
 						worldSelectChangeSignal.dispatch(true);
 					}
 				}
 			}
 
-			if (Gdx.input.isKeyJustPressed(listener.examineKey)) {
-				Gdx.app.debug("EXAMINE", "Attempting to examine.");
+			if (isAnyKeyJustPressed(listener.examineKeys)) {
+				// Gdx.app.debug("EXAMINE", "Attempting to examine.");
 				attemptExamine(entity);
 			}
 		} else {
@@ -115,9 +116,8 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		Facing f = Mappers.renderable.get(entity).facing;
 
 		GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
-
-		// dirty hack
-		GridPoint2 pointInFront2 = Facing.pointInFront(pos.x - 1, pos.y, f);
+		int origX = pointInFront.x;
+		int origY = pointInFront.y;
 
 		@SuppressWarnings("unchecked")
 		ImmutableArray<Entity> npcEntities = engine.getEntitiesFor(Family.getFor(Position.class, Dialogue.class));
@@ -125,19 +125,48 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		for (int i = 0; i < npcEntities.size(); i++) {
 			Entity other = npcEntities.get(i);
 
+			Dialogue dia = Mappers.dialogue.get(other);
 			GridPoint2 otherPos = Mappers.position.get(other).getGridPosition();
 
-			if (pointInFront.equals(otherPos) || pointInFront2.equals(otherPos)) {
-				dialogueSystem.add(other);
+			for (int x = 0; x <= dia.interactionWidth; x++) {
+				if (pointInFront.equals(otherPos)) {
+					dialogueSystem.add(other);
+					return true;
+				}
+
+				pointInFront.x--;
 			}
+
+			pointInFront.x = origX;
+
+			for (int y = 0; y < dia.interactionHeight; y++) {
+				pointInFront.y--;
+
+				if (pointInFront.equals(otherPos)) {
+					dialogueSystem.add(other);
+					return true;
+				}
+			}
+
+			pointInFront.y = origY;
 		}
 
-		return true;
+		return false;
 	}
 
 	public boolean isAnyKeyPressed(int[] keys) {
 		for (int k : keys) {
 			if (Gdx.input.isKeyPressed(k)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean isAnyKeyJustPressed(int[] keys) {
+		for (int k : keys) {
+			if (Gdx.input.isKeyJustPressed(k)) {
 				return true;
 			}
 		}

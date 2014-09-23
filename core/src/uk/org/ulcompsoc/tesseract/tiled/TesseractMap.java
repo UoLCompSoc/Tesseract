@@ -3,6 +3,7 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.animations.AnimationJSONParser;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
@@ -58,6 +59,7 @@ public class TesseractMap implements Disposable {
 
 	public final List<Texture>		ownedTextures;
 
+	private final List<GridPoint2>	bossSolids	= new ArrayList<GridPoint2>();
 	public boolean					bossBeaten	= false;
 
 	/**
@@ -160,8 +162,23 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
+	public void setBossSolids(int width) {
+		GridPoint2 bossPos = Mappers.position.get(bossEntity).getGridPosition();
+
+		for (int i = 0; i < width; i++) {
+			collisionArray[bossPos.y * widthInTiles + bossPos.x + i] = true;
+
+			GridPoint2 thisPos = new GridPoint2(bossPos.x + i, bossPos.y);
+			bossSolids.add(thisPos);
+		}
+	}
+
 	public void setBossBeaten() {
 		this.bossBeaten = true;
+
+		for (GridPoint2 point : bossSolids) {
+			collisionArray[point.y * widthInTiles + point.x] = false;
+		}
 	}
 
 	@Override
@@ -371,7 +388,10 @@ public class TesseractMap implements Disposable {
 
 		final String[] dia = Dialogue.parseDialogueLines(Gdx.files.internal(
 				TiledUtil.getMapTextPrefix(mapJson) + "boss_start.txt").readString());
-		boss.add(new Dialogue(dia).addFinishListener(dfl));
+
+		Dialogue diaComponent = new Dialogue(dia).addFinishListener(dfl);
+
+		boss.add(diaComponent);
 
 		return boss;
 	}
