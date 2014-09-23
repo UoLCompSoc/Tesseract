@@ -23,16 +23,22 @@ public class Stats extends Component {
 	public Signal<Integer>	levelUpListener	= new Signal<Integer>();
 
 	public Stats() {
-		this(100, 10, 5, 10);
+		this(1, 100, 10, 5, 10);
 	}
 
 	public Stats(int maxHP, int strength, int fortitude, int intelligence) {
+		this(1, maxHP, strength, fortitude, intelligence);
+	}
+
+	public Stats(int startingLevel, int maxHP, int strength, int fortitude, int intelligence) {
 		this.maxHP = maxHP;
 		this.currentHP = maxHP;
 
 		this.strength = strength;
 		this.fortitude = fortitude;
 		this.intelligence = intelligence;
+
+		this.level = startingLevel;
 	}
 
 	public void restoreHP(int amt) {
@@ -101,6 +107,7 @@ public class Stats extends Component {
 
 		maxHP += 10;
 		currentHP += 10;
+		hpChangeSignal.dispatch(this);
 		levelUpListener.dispatch(level);
 	}
 

@@ -158,9 +158,9 @@ public class TesseractMain extends ApplicationAdapter {
 
 	private Texture[]					bossTextures					= null;
 	private Animation[]					bossAnims						= null;
-	private Stats[]						bossStats						= { new Stats(20, 15, 10, 3),
-			new Stats(100, 15, 10, 1), new Stats(300, 15, 10, 5), new Stats(200, 20, 10, 5), new Stats(150, 20, 10, 2),
-			new Stats(200, 20, 10, 5), new Stats(350, 25, 5, 2)		};
+	private Stats[]						bossStats						= { new Stats(1, 20, 15, 10, 3),
+			new Stats(10, 100, 15, 10, 1), new Stats(15, 300, 15, 10, 5), new Stats(20, 200, 20, 10, 5),
+			new Stats(25, 150, 20, 10, 2), new Stats(30, 200, 20, 10, 5), new Stats(300, 350, 25, 5, 2) };
 
 	private Texture[]					worldSelectTextures				= null;
 
@@ -588,7 +588,8 @@ public class TesseractMain extends ApplicationAdapter {
 						new PingPongFrameResolver()));
 
 				final int bossWidthInTiles = (int) (Mappers.renderable.get(maps[i].bossEntity).width / WorldConstants.TILE_WIDTH) - 1;
-				Gdx.app.debug("BOSS_WIDTH", "Boss width = " + bossWidthInTiles);
+				// Gdx.app.debug("BOSS_WIDTH", "Boss width = " +
+				// bossWidthInTiles);
 				Mappers.dialogue.get(maps[i].bossEntity).interactionWidth = bossWidthInTiles;
 				Mappers.dialogue.get(maps[i].bossEntity).interactionHeight = (bossWidthInTiles > 1 ? 1 : 0);
 

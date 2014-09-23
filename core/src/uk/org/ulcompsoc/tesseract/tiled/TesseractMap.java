@@ -416,7 +416,9 @@ public class TesseractMap implements Disposable {
 		e.add(new Position().setFromGrid(pos));
 		final String[] doorDia = { "Ah, this is the door the wizard mentioned...",
 				"It opens when all the bosses are dead, right?" };
-		e.add(new Dialogue(doorDia));
+		Dialogue diaComponent = new Dialogue(doorDia);
+		diaComponent.interactionWidth = 1;
+		e.add(diaComponent);
 		e.add(new Renderable(closedDoorSprite).setPrioritity(75));
 
 		return e;
@@ -441,7 +443,10 @@ public class TesseractMap implements Disposable {
 		}
 		e.add(new Position().setFromGrid(pos));
 		final String[] doorDia = { "This looks... ominous.", "Well, I guess I've come this far..." };
-		e.add(new Dialogue(doorDia).addFinishListener(dfl));
+		Dialogue diaComponent = new Dialogue(doorDia).addFinishListener(dfl);
+		diaComponent.interactionWidth = 1;
+
+		e.add(diaComponent);
 		e.add(new Renderable(openDoorSprite).setPrioritity(0));
 
 		return e;
