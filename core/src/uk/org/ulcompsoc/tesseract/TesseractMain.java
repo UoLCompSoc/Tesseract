@@ -501,12 +501,16 @@ public class TesseractMain extends ApplicationAdapter {
 		battleChangeFlag = worldChangeFlag = false;
 		Gdx.app.debug("WORLD_CHANGE", "Changing to world " + (diffWorld == -1 ? currentMapIndex : diffWorld) + ".");
 
+		if (diffWorld == currentMapIndex) {
+			diffWorld = -1;
+		}
+
 		if (diffWorld != -1) {
 			if (diffWorld >= maps.length) {
 				diffWorld = diffWorld % maps.length;
 			}
 
-			if (currentMapIndex != -1 && diffWorld != currentMapIndex) {
+			if (currentMapIndex != -1) {
 				worldEngines[currentMapIndex].removeEntity(worldPlayerEntity);
 			}
 
@@ -521,8 +525,9 @@ public class TesseractMain extends ApplicationAdapter {
 
 		if (diffWorld != -1) {
 			worldPlayerEntity.add(getCurrentMap().findPlayerPosition());
-			currentEngine.addEntity(worldPlayerEntity);
 			musicManager.play(currentMapIndex);
+
+			currentEngine.addEntity(worldPlayerEntity);
 		}
 
 		((OrthographicCamera) camera).zoom = 0.5f;
