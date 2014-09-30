@@ -35,7 +35,7 @@ public class BattlePerformers {
 				for (int i = 0; i < enemies.size(); i++) {
 					Entity e = enemies.get(i);
 
-					if (Mappers.finishedMarker.has(e)) {
+					if (Mappers.dyingMarker.has(e)) {
 						continue;
 					}
 

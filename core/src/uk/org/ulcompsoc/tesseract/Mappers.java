@@ -20,6 +20,7 @@ import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
 import uk.org.ulcompsoc.tesseract.components.Dimension;
 import uk.org.ulcompsoc.tesseract.components.Scaled;
 import uk.org.ulcompsoc.tesseract.components.FinishedMarker;
+import uk.org.ulcompsoc.tesseract.components.DyingMarker;
 
 import com.badlogic.ashley.core.ComponentMapper;
 
@@ -75,4 +76,6 @@ public class Mappers {
     public static ComponentMapper<Scaled>               scaled              = ComponentMapper.getFor(Scaled.class);
     
     public static ComponentMapper<FinishedMarker>       finishedMarker      = ComponentMapper.getFor(FinishedMarker.class);
+    
+    public static ComponentMapper<DyingMarker>          dyingMarker         = ComponentMapper.getFor(DyingMarker.class);
 }

@@ -38,6 +38,7 @@ import uk.org.ulcompsoc.tesseract.systems.BattleAttackSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleDialogRenderSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleInputSystem;
 import uk.org.ulcompsoc.tesseract.systems.BattleMessageSystem;
+import uk.org.ulcompsoc.tesseract.systems.BattleVictorySystem;
 import uk.org.ulcompsoc.tesseract.systems.BuffSystem;
 import uk.org.ulcompsoc.tesseract.systems.DialogueSystem;
 import uk.org.ulcompsoc.tesseract.systems.FinishedEntitySystem;
@@ -80,7 +81,7 @@ import com.badlogic.gdx.utils.Json;
 
 public class TesseractMain extends ApplicationAdapter {
 	public static final String			PLAYER_NAME						= "Valiant Hero™";
-	public static final float			BATTLE_END_TRANSITION_TIME		= 4.0f;
+	public static final float			BATTLE_END_TRANSITION_TIME		= 2.0f;
 	public static final float			BATTLE_START_TRANSITION_TIME	= 2.0f;
 	public static final float			WORLD_SELECT_LOAD_TIME			= 0.25f;
 	public static final float			WORLD_SELECT_CHANGE_TIME		= 1.0f;
@@ -230,7 +231,7 @@ public class TesseractMain extends ApplicationAdapter {
 			Gdx.app.setLogLevel(Application.LOG_DEBUG);
 		}
 
-		ShaderProgram.pedantic = true;
+		ShaderProgram.pedantic = false;
 
 		random = new Random();
 
@@ -310,9 +311,11 @@ public class TesseractMain extends ApplicationAdapter {
 		if (isTransitioning()) {
 			transitionTime -= deltaTime;
 
-			vortexProgram.begin();
-			vortexProgram.setUniformf("transitionTime", BATTLE_START_TRANSITION_TIME - transitionTime);
-			vortexProgram.end();
+			if (useShader) {
+				vortexProgram.begin();
+				vortexProgram.setUniformf("transitionTime", BATTLE_START_TRANSITION_TIME - transitionTime);
+				vortexProgram.end();
+			}
 
 			if (transitionTime <= 0.0f) {
 				transitionTime = -1.0f;
@@ -690,15 +693,18 @@ public class TesseractMain extends ApplicationAdapter {
 
 		BattleMessageSystem battleMessageSystem = new BattleMessageSystem(0.25f * screenRect.width,
 				0.85f * screenRect.height, uiBuilder, batch, camera, font24, 300);
-		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, 200);
+		BattleVictorySystem victorySystem = new BattleVictorySystem(battleMessageSystem, 25000);
+		victorySystem.addVictoryListener(battleVictoryListener);
+		BattleAttackSystem battleAttackSystem = new BattleAttackSystem(battleMessageSystem, victorySystem, 200);
+		battleAttackSystem.addDefeatListener(battleDefeatListener);
 		BattlePerformers.battleAttackSystem = battleAttackSystem;
 		BattlePerformers.battleMessageSystem = battleMessageSystem;
 
 		engine.addSystem(new BuffSystem(50));
 		engine.addSystem(new BattleAISystem(75));
 		engine.addSystem(new BattleInputSystem(camera, 100));
-		engine.addSystem(battleAttackSystem.addVictoryListener(battleVictoryListener).addDefeatListener(
-				battleDefeatListener));
+		engine.addSystem(battleAttackSystem);
+		engine.addSystem(victorySystem);
 		engine.addSystem(battleMessageSystem);
 		engine.addSystem(new RenderSystem(batch, shapeRenderer, camera, 1000));
 		engine.addSystem(new BattleDialogRenderSystem(batch, camera, 2000));
@@ -868,8 +874,11 @@ public class TesseractMain extends ApplicationAdapter {
 	}
 
 	public void loadShader() {
-		vortexProgram = new ShaderProgram(Gdx.files.internal("shaders/passVertex.glslv"),
-				Gdx.files.internal("shaders/vortexFragment.glslf"));
+		Gdx.app.debug("LOAD_SHADER", "GL version is: " + Gdx.gl20.glGetString(GL20.GL_VERSION));
+		Gdx.app.debug("LOAD_SHADER", "GLSL version is: " + Gdx.gl20.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+
+		vortexProgram = new ShaderProgram(Gdx.files.internal("shaders/passVertex.glslv").readString(), Gdx.files
+				.internal("shaders/vortexFragment.glslf").readString());
 
 		String log = vortexProgram.getLog();
 		if (log.length() > 0) {
@@ -1201,7 +1210,7 @@ public class TesseractMain extends ApplicationAdapter {
 	public class BattleVictoryListener implements Listener<Boolean> {
 		@Override
 		public void receive(Signal<Boolean> signal, Boolean object) {
-			Gdx.app.debug("BATTLE_END", "Battle end detected: boss = " + object);
+			Gdx.app.debug("BATTLE_END", "Battle end detected: boss = " + object + ".");
 			flagWorldReturn(object.booleanValue());
 		}
 	}

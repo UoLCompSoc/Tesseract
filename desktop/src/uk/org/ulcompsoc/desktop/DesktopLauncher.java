@@ -26,14 +26,6 @@ public class DesktopLauncher {
 			throw new IllegalStateException("Could not find expected resolution, sorry.");
 		}
 
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.width = 1280;
-		config.height = 720;
-
-		config.addIcon("icons/icon16.png", FileType.Internal);
-		config.addIcon("icons/icon32.png", FileType.Internal);
-		config.addIcon("icons/icon128.png", FileType.Internal);
-
 		boolean debug = false;
 		boolean silent = false;
 
@@ -48,6 +40,17 @@ public class DesktopLauncher {
 		}
 
 		Difficulty diff = Difficulty.parseCommandLineArgs(args);
+
+		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		config.width = 1280;
+		config.height = 720;
+
+		config.useGL30 = false;
+		LwjglApplicationConfiguration.disableAudio = silent;
+
+		config.addIcon("icons/icon16.png", FileType.Internal);
+		config.addIcon("icons/icon32.png", FileType.Internal);
+		config.addIcon("icons/icon128.png", FileType.Internal);
 
 		new LwjglApplication(new TesseractMain(new RegularFontResolver(), diff, debug, silent), config);
 	}

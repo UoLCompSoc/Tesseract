@@ -10,6 +10,7 @@ import uk.org.ulcompsoc.tesseract.TesseractStrings;
 import uk.org.ulcompsoc.tesseract.animations.CompletionSignalFrameResolver;
 import uk.org.ulcompsoc.tesseract.battle.BattleAttack;
 import uk.org.ulcompsoc.tesseract.battle.BattleMessage;
+import uk.org.ulcompsoc.tesseract.components.DyingMarker;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
@@ -32,18 +33,18 @@ public class BattleAttackSystem extends EntitySystem {
 	private List<BattleAttack>	attacks				= new ArrayList<BattleAttack>();
 
 	private BattleMessageSystem	messageSystem		= null;
+	private BattleVictorySystem	victorySystem		= null;
 
-	private Signal<Boolean>		battleEndSignal		= null;
 	private Signal<Boolean>		battleDefeatSignal	= null;
 
 	private Random				random				= null;
 
-	public BattleAttackSystem(BattleMessageSystem messageSystem, int priority) {
+	public BattleAttackSystem(BattleMessageSystem messageSystem, BattleVictorySystem victorySystem, int priority) {
 		super(priority);
 
 		this.messageSystem = messageSystem;
-		this.battleEndSignal = new Signal<Boolean>();
 		this.battleDefeatSignal = new Signal<Boolean>();
+		this.victorySystem = victorySystem;
 		this.random = new Random();
 	}
 
@@ -102,7 +103,10 @@ public class BattleAttackSystem extends EntitySystem {
 
 			Enemy enemy = Mappers.enemy.get(target);
 
+			victorySystem.hint(Mappers.boss.has(target));
+
 			if (enemy.hasDeathAnimation()) {
+				target.add(new DyingMarker());
 				Renderable newEnemyRenderable = new Renderable(enemy.deathAnimation)
 						.setAnimationResolver(new CompletionSignalFrameResolver(enemy.deathAnimation
 								.getAnimationDuration(), new TesseractMain.AnimationCompleteListener(target)));
@@ -114,14 +118,8 @@ public class BattleAttackSystem extends EntitySystem {
 			}
 		}
 
-		// == 1 because the entity won't actually be deleted until the engine
-		// finishes updating
-		if (engine.getEntitiesFor(Family.getFor(Enemy.class)).size() == 1) {
-			doVictory(target, TesseractStrings.getKilledMessage(Mappers.named.get(target).name));
-		} else {
-			messageSystem.clearAllMessages();
-			messageSystem.addMessage(TesseractStrings.getKilledMessage(Mappers.named.get(target).name));
-		}
+		messageSystem.clearAllMessages();
+		messageSystem.addMessage(TesseractStrings.getKilledMessage(Mappers.named.get(target).name));
 	}
 
 	private void createBattleAttackAnimation(Entity target) {
@@ -140,22 +138,9 @@ public class BattleAttackSystem extends EntitySystem {
 		engine.addEntity(attackEntity);
 	}
 
-	public BattleAttackSystem addVictoryListener(Listener<Boolean> listener) {
-		battleEndSignal.add(listener);
-		return this;
-	}
-
 	public BattleAttackSystem addDefeatListener(Listener<Boolean> listener) {
 		battleDefeatSignal.add(listener);
 		return this;
-	}
-
-	public void doVictory(Entity target, BattleMessage lastMessage) {
-		messageSystem.clearAllMessages();
-		messageSystem.addMessage(lastMessage);
-		messageSystem.addMessage(TesseractStrings.getVictoryMessage());
-
-		battleEndSignal.dispatch(Mappers.boss.has(target));
 	}
 
 	public void doDefeat(Entity target, BattleMessage battleMessage) {
