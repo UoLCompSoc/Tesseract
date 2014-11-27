@@ -23,7 +23,7 @@ public class DesktopLauncher {
 		}
 
 		if (!resFound) {
-			throw new IllegalStateException("Could not find expected resolution, sorry.");
+			System.out.println("Could not find expected resolution, sorry.");
 		}
 
 		boolean debug = false;
