@@ -8,12 +8,14 @@ import uk.org.ulcompsoc.tesseract.WorldConstants;
 import uk.org.ulcompsoc.tesseract.animations.AnimationJSONParser;
 import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Enemy;
+import uk.org.ulcompsoc.tesseract.components.Interactible;
 import uk.org.ulcompsoc.tesseract.components.NPC;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
@@ -38,29 +40,30 @@ import com.badlogic.gdx.utils.JsonValue;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class TesseractMap implements Disposable {
-	public final TiledMap			map;
-	public final boolean[]			collisionArray;
-	public final boolean[]			monsterTiles;
-	public final Entity[]			NPCs;
-	public final Entity[]			jsonEntites;
-	public final Entity				baseLayerEntity;
-	public final Entity				zLayerEntity;
-	public final Entity				bossEntity;
-	public final Entity				doorEntity;
-	public final Entity				openDoorEntity;
-	public final TiledMapRenderer	renderer;
+	public final TiledMap map;
+	public final boolean[] collisionArray;
+	public final boolean[] monsterTiles;
+	public final boolean[] interactibleTiles;
+	public final Entity[] NPCs;
+	public final Entity[] jsonEntites;
+	public final Entity baseLayerEntity;
+	public final Entity zLayerEntity;
+	public final Entity bossEntity;
+	public final Entity doorEntity;
+	public final Entity openDoorEntity;
+	public final TiledMapRenderer renderer;
 
-	public final String				mapJson;
-	public final Color				color;
-	public final Color				uiColor;
+	public final String mapJson;
+	public final Color color;
+	public final Color uiColor;
 
-	public final int				widthInTiles;
-	public final int				heightInTiles;
+	public final int widthInTiles;
+	public final int heightInTiles;
 
-	public final List<Texture>		ownedTextures;
+	public final List<Texture> ownedTextures;
 
-	private final List<GridPoint2>	bossSolids	= new ArrayList<GridPoint2>();
-	public boolean					bossBeaten	= false;
+	private final List<GridPoint2> bossSolids = new ArrayList<GridPoint2>();
+	public boolean bossBeaten = false;
 
 	/**
 	 * <p>
@@ -72,25 +75,25 @@ public class TesseractMap implements Disposable {
 	 * </p>
 	 * 
 	 * @param path
-	 *        The path to the folder containing the TMX and JSON files.
+	 *            The path to the folder containing the TMX and JSON files.
 	 * @param mapName
-	 *        The name of the map.
+	 *            The name of the map.
 	 * @param batch
-	 *        A sprite batch to use when rendering the map.
+	 *            A sprite batch to use when rendering the map.
 	 * @param openDoorSprite
-	 *        temp hack for LD
+	 *            temp hack for LD
 	 * @param closedDoorSprite
-	 *        temp hack for LD
+	 *            temp hack for LD
 	 * @param healListener
-	 *        temp hack for LD
+	 *            temp hack for LD
 	 * @param bossListener
-	 *        temp hack for LD
+	 *            temp hack for LD
 	 * @param doorOpenListener
-	 *        temp hack for LD
+	 *            temp hack for LD
 	 */
 	public TesseractMap(String path, String mapName, Batch batch, TextureRegion openDoorSprite,
-			TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
-			DialogueFinishListener doorOpenListener) {
+	        TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
+	        DialogueFinishListener doorOpenListener) {
 		final String tmxFileLocation = path + mapName + "/" + mapName + ".tmx";
 		final String jsonFileLocation = path + mapName + "/" + mapName + ".json";
 		this.map = new TmxMapLoader().load(tmxFileLocation);
@@ -109,6 +112,8 @@ public class TesseractMap implements Disposable {
 		this.widthInTiles = TiledUtil.getMapWidthInTiles(map);
 		this.heightInTiles = TiledUtil.getMapHeightInTiles(map);
 
+		this.interactibleTiles = new boolean[widthInTiles * heightInTiles];
+
 		this.renderer = new OrthogonalTiledMapRenderer(map, batch);
 
 		this.collisionArray = generateCollisionArray(map);
@@ -121,6 +126,7 @@ public class TesseractMap implements Disposable {
 
 		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
 		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
+
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -181,6 +187,42 @@ public class TesseractMap implements Disposable {
 		}
 	}
 
+	public void setInteractibleAt(final GridPoint2 pos) {
+		setInteractibleAt(pos.x, pos.y);
+	}
+
+	public void setInteractibleAt(int xGrid, int yGrid) {
+		final int arrPos = widthInTiles * yGrid + xGrid;
+
+		if (arrPos < 0 || arrPos > interactibleTiles.length) {
+			return;
+		} else {
+			interactibleTiles[arrPos] = true;
+		}
+	}
+
+	public boolean isInteractibleAt(int gridX, int gridY) {
+		final int arrPos = widthInTiles * gridY + gridX;
+
+		if (arrPos < 0 || arrPos > interactibleTiles.length) {
+			return false;
+		} else {
+			return interactibleTiles[arrPos];
+		}
+
+	}
+
+	public boolean isInteractibleAt(final GridPoint2 pos) {
+		return isInteractibleAt(pos.x, pos.y);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void parseInteractible() {
+		final Family family = Family.getFor(Interactible.class, Position.class);
+
+		// parse interactibles here
+	}
+
 	@Override
 	public void dispose() {
 		if (ownedTextures != null) {
@@ -196,7 +238,7 @@ public class TesseractMap implements Disposable {
 		}
 	}
 
-	public static boolean[] generateCollisionArray(TiledMap map) {
+	public static boolean[] generateCollisionArray(final TiledMap map) {
 		boolean[] retVal = null;
 		MapLayers layers = map.getLayers();
 
@@ -221,7 +263,7 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public static Entity[] generateEntitiesFromJSON(TiledMap map, List<Texture> ownedTextures) {
+	public static Entity[] generateEntitiesFromJSON(final TiledMap map, final List<Texture> ownedTextures) {
 		List<TiledMapTileLayer> layers = TiledUtil.getJSONLayers(map);
 		List<Entity> entities = new ArrayList<Entity>();
 		JsonReader reader = new JsonReader();
@@ -300,8 +342,8 @@ public class TesseractMap implements Disposable {
 			TiledMapTileLayer layer = (TiledMapTileLayer) layer_;
 
 			if (TiledUtil.isNPCLayer(layer)) {
+				final Entity e = new Entity();
 				String prop = layer.getName() + ".txt";
-				Entity e = new Entity();
 
 				prop = mapTextPrefix + prop;
 
@@ -310,8 +352,9 @@ public class TesseractMap implements Disposable {
 				e.add(new Position().setFromGrid(pos));
 				e.add(new Renderable(layer.getCell(pos.x, pos.y).getTile().getTextureRegion()));
 				e.add(new NPC());
+				e.add(new Interactible());
 
-				FileHandle fh = Gdx.files.internal(prop);
+				final FileHandle fh = Gdx.files.internal(prop);
 
 				if (fh.exists()) {
 					String fileContents = fh.readString();
@@ -320,6 +363,7 @@ public class TesseractMap implements Disposable {
 					Dialogue dia = new Dialogue(lines);
 
 					if (layer.getName().equals("npc3")) {
+						// TODO: Fix dirty hack.
 						// dirty hack for queen healing
 						dia = dia.addFinishListener(listener);
 					}
@@ -387,7 +431,7 @@ public class TesseractMap implements Disposable {
 		boss.add(new Enemy(name));
 
 		final String[] dia = Dialogue.parseDialogueLines(Gdx.files.internal(
-				TiledUtil.getMapTextPrefix(mapJson) + "boss_start.txt").readString());
+		        TiledUtil.getMapTextPrefix(mapJson) + "boss_start.txt").readString());
 
 		Dialogue diaComponent = new Dialogue(dia).addFinishListener(dfl);
 
@@ -415,7 +459,7 @@ public class TesseractMap implements Disposable {
 		}
 		e.add(new Position().setFromGrid(pos));
 		final String[] doorDia = { "Ah, this is the door the wizard mentioned...",
-				"It opens when all the bosses are dead, right?" };
+		        "It opens when all the bosses are dead, right?" };
 		Dialogue diaComponent = new Dialogue(doorDia);
 		diaComponent.interactionWidth = 1;
 		e.add(diaComponent);

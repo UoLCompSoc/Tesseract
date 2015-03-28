@@ -4,12 +4,12 @@ import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.Move;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
-import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.components.Renderable.Facing;
 import uk.org.ulcompsoc.tesseract.components.WorldPlayerInputListener;
+import uk.org.ulcompsoc.tesseract.tiled.TesseractMap;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -17,7 +17,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Listener;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.GridPoint2;
@@ -27,16 +26,17 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldPlayerInputSystem extends IteratingSystem {
-	private Engine			engine					= null;
+	private Engine engine = null;
 
-	private DialogueSystem	dialogueSystem			= null;
+	private DialogueSystem dialogueSystem = null;
 
-	public Signal<Boolean>	worldSelectChangeSignal	= null;
+	public final Signal<Boolean> worldSelectChangeSignal = new Signal<Boolean>();
+	private final TesseractMap map;
 
 	@SuppressWarnings("unchecked")
-	public WorldPlayerInputSystem(Listener<Boolean> worldSelectChangeListener, int priority) {
+	public WorldPlayerInputSystem(Listener<Boolean> worldSelectChangeListener, final TesseractMap map, int priority) {
 		super(Family.getFor(Position.class, Renderable.class, WorldPlayerInputListener.class), priority);
-		worldSelectChangeSignal = new Signal<Boolean>();
+		this.map = map;
 		worldSelectChangeSignal.add(worldSelectChangeListener);
 	}
 
@@ -112,43 +112,16 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 	}
 
 	private boolean attemptExamine(Entity entity) {
-		GridPoint2 pos = Mappers.position.get(entity).getGridPosition();
-		Facing f = Mappers.renderable.get(entity).facing;
+		final GridPoint2 pos = Mappers.position.get(entity).getGridPosition();
+		final Facing f = Mappers.renderable.get(entity).facing;
 
-		GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
-		int origX = pointInFront.x;
-		int origY = pointInFront.y;
+		final GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
+		final int origX = pointInFront.x;
+		final int origY = pointInFront.y;
+		System.out.format("(%d,%d)\n", origX, origY);
 
-		@SuppressWarnings("unchecked")
-		ImmutableArray<Entity> npcEntities = engine.getEntitiesFor(Family.getFor(Position.class, Dialogue.class));
-
-		for (int i = 0; i < npcEntities.size(); i++) {
-			Entity other = npcEntities.get(i);
-
-			Dialogue dia = Mappers.dialogue.get(other);
-			GridPoint2 otherPos = Mappers.position.get(other).getGridPosition();
-
-			for (int x = 0; x <= dia.interactionWidth; x++) {
-				if (pointInFront.equals(otherPos)) {
-					dialogueSystem.add(other);
-					return true;
-				}
-
-				pointInFront.x--;
-			}
-
-			pointInFront.x = origX;
-
-			for (int y = 0; y < dia.interactionHeight; y++) {
-				pointInFront.y--;
-
-				if (pointInFront.equals(otherPos)) {
-					dialogueSystem.add(other);
-					return true;
-				}
-			}
-
-			pointInFront.y = origY;
+		if (map.isInteractibleAt(origX, origY)) {
+			// do something
 		}
 
 		return false;
