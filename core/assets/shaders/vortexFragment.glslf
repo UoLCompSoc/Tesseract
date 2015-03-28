@@ -15,9 +15,9 @@
     #define HIGHP highp
     precision mediump float;
 #else
-    #define MEDP
-    #define LOWP
-    #define HIGHP
+    #define LOWP 
+    #define MEDP 
+    #define HIGHP 
 #endif
 
 #define PI 3.1416
@@ -60,4 +60,4 @@ void main() {
     } else {
         gl_FragColor = v_color * texture2D(u_texture, v_texCoords);
     }
-};
+}
