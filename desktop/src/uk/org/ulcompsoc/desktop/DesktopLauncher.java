@@ -11,10 +11,12 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 public class DesktopLauncher {
 	public static void main(String[] args) {
-		DisplayMode[] modes = LwjglApplicationConfiguration.getDisplayModes();
+		final DisplayMode[] modes = LwjglApplicationConfiguration.getDisplayModes();
 		boolean resFound = false;
 
-		for (DisplayMode mode : modes) {
+		for (final DisplayMode mode : modes) {
+			System.out.format("%dx%d\n", mode.width, mode.height);
+
 			if (mode.width == 1280 && mode.height == 720) {
 				System.out.println("1280x720 found.");
 				resFound = true;
@@ -23,13 +25,13 @@ public class DesktopLauncher {
 		}
 
 		if (!resFound) {
-			System.out.println("Could not find expected resolution, sorry.");
+			System.out.println("Could not find expected resolution.");
 		}
 
 		boolean debug = false;
 		boolean silent = false;
 
-		for (String s : args) {
+		for (final String s : args) {
 			if ("--debug".equals(s)) {
 				debug = true;
 			}

@@ -9,16 +9,16 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class StandardMusicManager implements MusicManager, Disposable {
-	public static final float	DEFAULT_VOLUME		= 0.75f;
-	public final Music[]		loadedMusic;
+	public static final float DEFAULT_VOLUME = 0.25f;
+	public final Music[] loadedMusic;
 
-	private int					playingIndex		= -1;
+	private int playingIndex = -1;
 
-	private float				fadeDuration		= -1.0f;
-	private float				remainingFadeTime	= -1.0f;
+	private float fadeDuration = -1.0f;
+	private float remainingFadeTime = -1.0f;
 
-	public StandardMusicManager(String[] files) {
-		Music[] temp = new Music[files.length];
+	public StandardMusicManager(final String[] files) {
+		final Music[] temp = new Music[files.length];
 
 		for (int i = 0; i < files.length; i++) {
 			temp[i] = Gdx.audio.newMusic(Gdx.files.internal(files[i]));
@@ -89,7 +89,7 @@ public class StandardMusicManager implements MusicManager, Disposable {
 
 	@Override
 	public void dispose() {
-		for (Music m : loadedMusic) {
+		for (final Music m : loadedMusic) {
 			m.dispose();
 		}
 	}
