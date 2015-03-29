@@ -54,13 +54,13 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 	}
 
 	@Override
-	public void processEntity(Entity entity, float deltaTime) {
+	public void processEntity(final Entity entity, float deltaTime) {
 		if (dialogueSystem == null) {
 			dialogueSystem = engine.getSystem(DialogueSystem.class);
 		}
 
-		Vector2 pos = Mappers.position.get(entity).position;
-		WorldPlayerInputListener listener = Mappers.worldPlayerInputListener.get(entity);
+		final Vector2 pos = Mappers.position.get(entity).position;
+		final WorldPlayerInputListener listener = Mappers.worldPlayerInputListener.get(entity);
 
 		final float xMove = WorldConstants.TILE_WIDTH;
 		final float yMove = WorldConstants.TILE_HEIGHT;
@@ -119,15 +119,14 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		final GridPoint2 pointInFront = Facing.pointInFront(pos.x, pos.y, f);
 		final int origX = pointInFront.x;
 		final int origY = pointInFront.y;
-		System.out.format("(%d,%d)\n", origX, origY);
+		// Gdx.app.debug("INTERACTION",
+		// String.format("Interacting with (%d,%d)", origX, origY));
 
 		final Entity interactible = map.getInteractibleAt(origX, origY);
 		if (interactible != null) {
-			Gdx.app.debug("INTERACTION", "Interacting with entity.");
 			final Dialogue dia = Mappers.dialogue.get(interactible);
 
 			if (dia != null) {
-				Gdx.app.debug("INTERACTION", "Dialogue: " + dia.dialogueLines[0]);
 				dialogueSystem.add(interactible);
 				return true;
 			}

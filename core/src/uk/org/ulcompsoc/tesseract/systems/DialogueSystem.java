@@ -24,21 +24,21 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class DialogueSystem extends EntitySystem {
-	private final Batch		batch;
-	private final Camera	camera;
-	private final UIBuilder	builder;
-	private final Color		uiColor;
+	private final Batch batch;
+	private final Camera camera;
+	private final UIBuilder builder;
+	private final Color uiColor;
 
-	private BitmapFont		font		= null;
+	private BitmapFont font = null;
 
-	private List<Entity>	dias		= new ArrayList<Entity>();
+	private List<Entity> dias = new ArrayList<Entity>();
 
-	private int				currentMsg	= 0;
+	private int currentMsg = 0;
 
-	private boolean			pressed		= false;
+	private boolean pressed = false;
 
-	private Position		cachePos	= new Position();
-	private Rectangle		cacheRect	= new Rectangle();
+	private Position cachePos = new Position();
+	private Rectangle cacheRect = new Rectangle();
 
 	public DialogueSystem(Camera camera, Batch batch, UIBuilder builder, Color uiColor, BitmapFont font, int priority) {
 		super(priority);
@@ -69,7 +69,7 @@ public class DialogueSystem extends EntitySystem {
 		cacheRect.y = pos.y + builder.tileHeight - boxPaddingH;
 
 		final int boxH = Math.max((int) (cacheRect.height / builder.tileHeight)
-				+ (cacheRect.height % builder.tileHeight == 0 ? 1 : 0), 2);
+		        + (cacheRect.height % builder.tileHeight == 0 ? 1 : 0), 2);
 
 		batch.setProjectionMatrix(camera.combined);
 
@@ -82,8 +82,8 @@ public class DialogueSystem extends EntitySystem {
 		batch.setColor(oldCol);
 
 		cachePos.smartCentreX(cacheRect.width, pos.x, boxW * builder.tileWidth)
-				.smartCentreY(cacheRect.height, pos.y, boxH * builder.tileHeight)
-				.adjustY(cacheRect.height + WorldConstants.TILE_HEIGHT);
+		        .smartCentreY(cacheRect.height, pos.y, boxH * builder.tileHeight)
+		        .adjustY(cacheRect.height + WorldConstants.TILE_HEIGHT);
 
 		// Gdx.app.debug("DIALOGUE_UPDATE", "BoxH = " + (boxH *
 		// builder.tileHeight) + ", textH = " + cacheRect.height
@@ -113,7 +113,6 @@ public class DialogueSystem extends EntitySystem {
 	}
 
 	public void add(Entity e) {
-
 		dias.add(e);
 	}
 

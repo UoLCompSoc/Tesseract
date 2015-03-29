@@ -40,11 +40,14 @@ import com.badlogic.gdx.utils.JsonValue;
  */
 public class TesseractMap implements Disposable {
 	public final TiledMap map;
+
 	public final boolean[] collisionArray;
 	public final boolean[] monsterTiles;
+
 	public final Entity[] interactibleTiles;
 	public final Entity[] NPCs;
 	public final Entity[] jsonEntites;
+
 	public final Entity baseLayerEntity;
 	public final Entity zLayerEntity;
 	public final Entity bossEntity;
@@ -121,7 +124,9 @@ public class TesseractMap implements Disposable {
 		this.baseLayerEntity = generateBaseLayerEntity(map, renderer);
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
+
 		this.bossEntity = generateBossEntity(map, mapJson, bossListener);
+		setBossSolids();
 
 		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
 		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
@@ -168,22 +173,26 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public void setBossSolids(int width) {
-		GridPoint2 bossPos = Mappers.position.get(bossEntity).getGridPosition();
+	public void setBossSolids() {
+		if (bossEntity != null) {
+			final int width = (int) Mappers.renderable.get(bossEntity).getRenderableWidth() / WorldConstants.TILE_WIDTH;
+			final GridPoint2 bossPos = Mappers.position.get(bossEntity).getGridPosition();
 
-		for (int i = 0; i < width; i++) {
-			collisionArray[bossPos.y * widthInTiles + bossPos.x + i] = true;
+			for (int i = 0; i < width; i++) {
+				collisionArray[bossPos.y * widthInTiles + bossPos.x + i] = true;
 
-			GridPoint2 thisPos = new GridPoint2(bossPos.x + i, bossPos.y);
-			bossSolids.add(thisPos);
+				GridPoint2 thisPos = new GridPoint2(bossPos.x + i, bossPos.y);
+				bossSolids.add(thisPos);
+			}
 		}
 	}
 
 	public void setBossBeaten() {
 		this.bossBeaten = true;
 
-		for (GridPoint2 point : bossSolids) {
+		for (final GridPoint2 point : bossSolids) {
 			collisionArray[point.y * widthInTiles + point.x] = false;
+			setInteractibleAt(null, point);
 		}
 	}
 
@@ -218,12 +227,19 @@ public class TesseractMap implements Disposable {
 
 	public void parseInteractible() {
 		for (final Entity entity : NPCs) {
-			final Position pos = Mappers.position.get(entity);
+			final GridPoint2 gridPos = Mappers.position.get(entity).getGridPosition();
 
-			final GridPoint2 gridPos = pos.getGridPosition();
-			final int arrPos = gridPos.y * widthInTiles + gridPos.x;
+			setInteractibleAt(entity, gridPos);
+		}
 
-			interactibleTiles[arrPos] = entity;
+		if (bossEntity != null) {
+			for (final GridPoint2 bossPos : bossSolids) {
+				setInteractibleAt(bossEntity, bossPos);
+			}
+		}
+
+		if (doorEntity != null) {
+
 		}
 	}
 
@@ -412,7 +428,7 @@ public class TesseractMap implements Disposable {
 	}
 
 	public static Entity generateBossEntity(TiledMap map, String mapJson, DialogueFinishListener dfl) {
-		Entity boss = new Entity();
+		final Entity boss = new Entity();
 
 		MapLayers layers = map.getLayers();
 		GridPoint2 pos = null;
