@@ -4,6 +4,7 @@ import uk.org.ulcompsoc.tesseract.Mappers;
 import uk.org.ulcompsoc.tesseract.Move;
 import uk.org.ulcompsoc.tesseract.TesseractMain;
 import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.components.Dialogue;
 import uk.org.ulcompsoc.tesseract.components.Moving;
 import uk.org.ulcompsoc.tesseract.components.Position;
 import uk.org.ulcompsoc.tesseract.components.Renderable;
@@ -120,8 +121,16 @@ public class WorldPlayerInputSystem extends IteratingSystem {
 		final int origY = pointInFront.y;
 		System.out.format("(%d,%d)\n", origX, origY);
 
-		if (map.isInteractibleAt(origX, origY)) {
-			// do something
+		final Entity interactible = map.getInteractibleAt(origX, origY);
+		if (interactible != null) {
+			Gdx.app.debug("INTERACTION", "Interacting with entity.");
+			final Dialogue dia = Mappers.dialogue.get(interactible);
+
+			if (dia != null) {
+				Gdx.app.debug("INTERACTION", "Dialogue: " + dia.dialogueLines[0]);
+				dialogueSystem.add(interactible);
+				return true;
+			}
 		}
 
 		return false;

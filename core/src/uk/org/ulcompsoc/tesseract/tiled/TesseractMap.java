@@ -15,7 +15,6 @@ import uk.org.ulcompsoc.tesseract.components.Renderable;
 import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
@@ -43,7 +42,7 @@ public class TesseractMap implements Disposable {
 	public final TiledMap map;
 	public final boolean[] collisionArray;
 	public final boolean[] monsterTiles;
-	public final boolean[] interactibleTiles;
+	public final Entity[] interactibleTiles;
 	public final Entity[] NPCs;
 	public final Entity[] jsonEntites;
 	public final Entity baseLayerEntity;
@@ -112,7 +111,7 @@ public class TesseractMap implements Disposable {
 		this.widthInTiles = TiledUtil.getMapWidthInTiles(map);
 		this.heightInTiles = TiledUtil.getMapHeightInTiles(map);
 
-		this.interactibleTiles = new boolean[widthInTiles * heightInTiles];
+		this.interactibleTiles = new Entity[widthInTiles * heightInTiles];
 
 		this.renderer = new OrthogonalTiledMapRenderer(map, batch);
 
@@ -127,6 +126,7 @@ public class TesseractMap implements Disposable {
 		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
 		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
 
+		parseInteractible();
 	}
 
 	public boolean isTileSolid(int x, int y) {
@@ -187,40 +187,44 @@ public class TesseractMap implements Disposable {
 		}
 	}
 
-	public void setInteractibleAt(final GridPoint2 pos) {
-		setInteractibleAt(pos.x, pos.y);
+	public void setInteractibleAt(final Entity entity, final GridPoint2 pos) {
+		setInteractibleAt(entity, pos.x, pos.y);
 	}
 
-	public void setInteractibleAt(int xGrid, int yGrid) {
+	public void setInteractibleAt(final Entity entity, int xGrid, int yGrid) {
 		final int arrPos = widthInTiles * yGrid + xGrid;
 
 		if (arrPos < 0 || arrPos > interactibleTiles.length) {
 			return;
 		} else {
-			interactibleTiles[arrPos] = true;
+			interactibleTiles[arrPos] = entity;
 		}
 	}
 
-	public boolean isInteractibleAt(int gridX, int gridY) {
+	public Entity getInteractibleAt(int gridX, int gridY) {
 		final int arrPos = widthInTiles * gridY + gridX;
 
 		if (arrPos < 0 || arrPos > interactibleTiles.length) {
-			return false;
+			return null;
 		} else {
 			return interactibleTiles[arrPos];
 		}
 
 	}
 
-	public boolean isInteractibleAt(final GridPoint2 pos) {
-		return isInteractibleAt(pos.x, pos.y);
+	public Entity getInteractibleAt(final GridPoint2 pos) {
+		return getInteractibleAt(pos.x, pos.y);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void parseInteractible() {
-		final Family family = Family.getFor(Interactible.class, Position.class);
+		for (final Entity entity : NPCs) {
+			final Position pos = Mappers.position.get(entity);
 
-		// parse interactibles here
+			final GridPoint2 gridPos = pos.getGridPosition();
+			final int arrPos = gridPos.y * widthInTiles + gridPos.x;
+
+			interactibleTiles[arrPos] = entity;
+		}
 	}
 
 	@Override
@@ -264,9 +268,9 @@ public class TesseractMap implements Disposable {
 	}
 
 	public static Entity[] generateEntitiesFromJSON(final TiledMap map, final List<Texture> ownedTextures) {
-		List<TiledMapTileLayer> layers = TiledUtil.getJSONLayers(map);
-		List<Entity> entities = new ArrayList<Entity>();
-		JsonReader reader = new JsonReader();
+		final List<TiledMapTileLayer> layers = TiledUtil.getJSONLayers(map);
+		final List<Entity> entities = new ArrayList<Entity>();
+		final JsonReader reader = new JsonReader();
 
 		for (TiledMapTileLayer layer : layers) {
 			if (TiledUtil.isJSONLayer(layer)) {
