@@ -31,22 +31,21 @@ import com.badlogic.gdx.math.Vector2;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class RenderSystem extends EntitySystem {
-	public static Comparator<Entity>	renderablePriorityComparator	= new RenderablePriorityComparator();
+	public static Comparator<Entity> renderablePriorityComparator = new RenderablePriorityComparator();
 
-	private Camera						camera							= null;
-	private Batch						batch							= null;
-	private ShapeRenderer				renderer						= null;
+	private Camera camera = null;
+	private Batch batch = null;
+	private ShapeRenderer renderer = null;
 
 	@SuppressWarnings("unchecked")
-	private Family						renderSystemFamily				= Family.getFor(Position.class,
-																				Renderable.class);
+	private Family renderSystemFamily = Family.getFor(Position.class, Renderable.class);
 
-	boolean								reorder							= true;
+	boolean reorder = true;
 
-	private ImmutableArray<Entity>		entitiesImmu					= null;
-	private List<Entity>				entities						= null;
+	private ImmutableArray<Entity> entitiesImmu = null;
+	private List<Entity> entities = null;
 
-	private EntityListener				renderSystemListener			= new RenderSystemListener();
+	private EntityListener renderSystemListener = new RenderSystemListener();
 
 	public RenderSystem(Batch batch, ShapeRenderer renderer, Camera camera, int priority) {
 		super(priority);
@@ -62,6 +61,7 @@ public class RenderSystem extends EntitySystem {
 	public void addedToEngine(Engine engine) {
 		entitiesImmu = engine.getEntitiesFor(renderSystemFamily);
 		engine.addEntityListener(renderSystemListener);
+		doReorder();
 	}
 
 	@Override
