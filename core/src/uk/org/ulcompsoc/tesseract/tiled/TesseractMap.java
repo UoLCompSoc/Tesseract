@@ -3,22 +3,12 @@ package uk.org.ulcompsoc.tesseract.tiled;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.org.ulcompsoc.tesseract.Mappers;
-import uk.org.ulcompsoc.tesseract.WorldConstants;
-import uk.org.ulcompsoc.tesseract.animations.AnimationJSONParser;
-import uk.org.ulcompsoc.tesseract.components.Dialogue;
-import uk.org.ulcompsoc.tesseract.components.Enemy;
-import uk.org.ulcompsoc.tesseract.components.Interactible;
-import uk.org.ulcompsoc.tesseract.components.NPC;
-import uk.org.ulcompsoc.tesseract.components.Position;
-import uk.org.ulcompsoc.tesseract.components.Renderable;
-import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
-
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
@@ -34,6 +24,17 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+
+import uk.org.ulcompsoc.tesseract.Mappers;
+import uk.org.ulcompsoc.tesseract.WorldConstants;
+import uk.org.ulcompsoc.tesseract.animations.AnimationJSONParser;
+import uk.org.ulcompsoc.tesseract.components.Dialogue;
+import uk.org.ulcompsoc.tesseract.components.Enemy;
+import uk.org.ulcompsoc.tesseract.components.Interactible;
+import uk.org.ulcompsoc.tesseract.components.NPC;
+import uk.org.ulcompsoc.tesseract.components.Position;
+import uk.org.ulcompsoc.tesseract.components.Renderable;
+import uk.org.ulcompsoc.tesseract.dialoguelisteners.DialogueFinishListener;
 
 /**
  * @author Ashley Davis (SgtCoDFish)
@@ -65,7 +66,9 @@ public class TesseractMap implements Disposable {
 	public final List<Texture> ownedTextures;
 
 	private final List<GridPoint2> bossSolids = new ArrayList<GridPoint2>();
+	private final List<GridPoint2> doorSolids = new ArrayList<GridPoint2>();
 	public boolean bossBeaten = false;
+	public boolean doorOpen = false;
 
 	/**
 	 * <p>
@@ -95,7 +98,7 @@ public class TesseractMap implements Disposable {
 	 */
 	public TesseractMap(String path, String mapName, Batch batch, TextureRegion openDoorSprite,
 	        TextureRegion closedDoorSprite, DialogueFinishListener healListener, DialogueFinishListener bossListener,
-	        DialogueFinishListener doorOpenListener) {
+	        DialogueFinishListener doorOpenListener, Animation bossAnimation) {
 		final String tmxFileLocation = path + mapName + "/" + mapName + ".tmx";
 		final String jsonFileLocation = path + mapName + "/" + mapName + ".json";
 		this.map = new TmxMapLoader().load(tmxFileLocation);
@@ -125,11 +128,12 @@ public class TesseractMap implements Disposable {
 		this.zLayerEntity = generateZLayerEntity(map, renderer);
 		this.monsterTiles = generateMonsterTiles(map);
 
-		this.bossEntity = generateBossEntity(map, mapJson, bossListener);
+		this.bossEntity = generateBossEntity(map, mapJson, bossListener, bossAnimation);
 		setBossSolids();
 
 		this.doorEntity = generateDoorEntity(map, closedDoorSprite);
 		this.openDoorEntity = generateOpenDoorEntity(map, openDoorSprite, doorOpenListener);
+		setDoorSolids();
 
 		parseInteractible();
 	}
@@ -175,6 +179,10 @@ public class TesseractMap implements Disposable {
 
 	public void setBossSolids() {
 		if (bossEntity != null) {
+			if(Mappers.renderable.get(bossEntity) == null) {
+				Gdx.app.error("NO_BOSS_RENDERABLE", "Couldn't find renderable for boss.");
+			}
+			
 			final int width = (int) Mappers.renderable.get(bossEntity).getRenderableWidth() / WorldConstants.TILE_WIDTH;
 			final GridPoint2 bossPos = Mappers.position.get(bossEntity).getGridPosition();
 
@@ -194,6 +202,29 @@ public class TesseractMap implements Disposable {
 			collisionArray[point.y * widthInTiles + point.x] = false;
 			setInteractibleAt(null, point);
 		}
+	}
+	
+	public void setDoorSolids() {
+		if(doorEntity != null) {
+			if(Mappers.renderable.get(doorEntity) == null) {
+				Gdx.app.error("NO_DOOR_RENDERABLE", "Couldn't find renderable for door.");
+			}
+			
+			final int width = (int) Mappers.renderable.get(doorEntity).getRenderableWidth() / WorldConstants.TILE_WIDTH;
+			final GridPoint2 doorPos = Mappers.position.get(doorEntity).getGridPosition();
+			
+			for(int i = 0; i < width; ++i) {
+				collisionArray[doorPos.y * widthInTiles + doorPos.x + i] = true;
+				
+				final GridPoint2 thisPos = new GridPoint2(doorPos.x + i, doorPos.y);
+				doorSolids.add(thisPos);
+			}
+		}
+	}
+	
+	public void setDoorOpen() {
+		doorOpen = true;
+		parseInteractible();
 	}
 
 	public void setInteractibleAt(final Entity entity, final GridPoint2 pos) {
@@ -239,7 +270,14 @@ public class TesseractMap implements Disposable {
 		}
 
 		if (doorEntity != null) {
-
+			for (final GridPoint2 doorPos : doorSolids) {
+				Gdx.app.debug("DOOR_SOLID", "Door solid at (x, y) = (" + doorPos.x + ", " + doorPos.y + ").");
+				if(doorOpen) {
+					setInteractibleAt(openDoorEntity, doorPos);
+				} else {					
+					setInteractibleAt(doorEntity, doorPos);
+				}
+			}
 		}
 	}
 
@@ -427,7 +465,7 @@ public class TesseractMap implements Disposable {
 		return retVal;
 	}
 
-	public static Entity generateBossEntity(TiledMap map, String mapJson, DialogueFinishListener dfl) {
+	public static Entity generateBossEntity(TiledMap map, String mapJson, DialogueFinishListener dfl, Animation bossAnimation) {
 		final Entity boss = new Entity();
 
 		MapLayers layers = map.getLayers();
@@ -456,6 +494,9 @@ public class TesseractMap implements Disposable {
 		Dialogue diaComponent = new Dialogue(dia).addFinishListener(dfl);
 
 		boss.add(diaComponent);
+		
+		final Renderable renderable = new Renderable(bossAnimation);
+		boss.add(renderable);
 
 		return boss;
 	}
@@ -481,7 +522,6 @@ public class TesseractMap implements Disposable {
 		final String[] doorDia = { "Ah, this is the door the wizard mentioned...",
 		        "It opens when all the bosses are dead, right?" };
 		Dialogue diaComponent = new Dialogue(doorDia);
-		diaComponent.interactionWidth = 1;
 		e.add(diaComponent);
 		e.add(new Renderable(closedDoorSprite).setPrioritity(75));
 
@@ -508,10 +548,9 @@ public class TesseractMap implements Disposable {
 		e.add(new Position().setFromGrid(pos));
 		final String[] doorDia = { "This looks... ominous.", "Well, I guess I've come this far..." };
 		Dialogue diaComponent = new Dialogue(doorDia).addFinishListener(dfl);
-		diaComponent.interactionWidth = 1;
 
 		e.add(diaComponent);
-		e.add(new Renderable(openDoorSprite).setPrioritity(0));
+		e.add(new Renderable(openDoorSprite).setPrioritity(75));
 
 		return e;
 	}

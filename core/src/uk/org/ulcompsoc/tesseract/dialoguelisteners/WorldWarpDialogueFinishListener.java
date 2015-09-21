@@ -9,7 +9,7 @@ import com.badlogic.ashley.signals.Signal;
  * @author Ashley Davis (SgtCoDFish)
  */
 public class WorldWarpDialogueFinishListener extends DialogueFinishListener {
-	private int	worldID	= 0;
+	final private int	worldID;
 
 	public WorldWarpDialogueFinishListener(int worldID) {
 		this.worldID = worldID;

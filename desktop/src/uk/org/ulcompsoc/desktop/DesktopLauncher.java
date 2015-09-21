@@ -48,6 +48,7 @@ public class DesktopLauncher {
 		config.height = 720;
 
 		config.useGL30 = false;
+		config.title = "Tesseract";
 		LwjglApplicationConfiguration.disableAudio = silent;
 
 		config.addIcon("icons/icon16.png", FileType.Internal);

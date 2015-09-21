@@ -450,6 +450,7 @@ public class TesseractMain extends ApplicationAdapter {
 				Engine world1 = worldEngines[0];
 				world1.removeEntity(maps[0].doorEntity);
 				world1.addEntity(maps[0].openDoorEntity);
+				maps[0].setDoorOpen();
 			} else if (bossesRemaining == 0) {
 				flagWorldChange(0);
 				return;
@@ -565,10 +566,11 @@ public class TesseractMain extends ApplicationAdapter {
 
 		for (int i = 0; i < mapNames.length; i++) {
 			Engine engine = new Engine();
-
+			
+			// TODO: FIX DIRTY BOSSANIMS HACK
 			maps[i] = new TesseractMap("maps/", mapNames[i], batch, new TextureRegion(openDoorTex), new TextureRegion(
 			        closedDoorTex), new FullHealDialogueFinishListener(), new BossBattleDialogueFinishListener(),
-			        new WorldWarpDialogueFinishListener(6));
+			        new WorldWarpDialogueFinishListener(6), bossAnims[1]);
 
 			engine.addEntity(maps[i].baseLayerEntity);
 
