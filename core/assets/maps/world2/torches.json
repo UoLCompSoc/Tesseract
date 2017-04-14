@@ -3,6 +3,6 @@
         "location": "maps/world2/torches.png",
         "frames": 3,
         "resolver": "pingpong",
-        "frameDuration": 0.15f,
+        "frameDuration": "0.15"
     }
 }
